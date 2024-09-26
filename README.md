@@ -15,24 +15,24 @@ Have the following installed:
 
 Navigate to the project directory:
 
-Install the dependencies:
+### Install the dependencies:
 npm install
 
-Run the development server:
+### Run the development server:
 
 npm run dev
 
 Open localhost to view it in your browser.
 
-Scripts
+### Scripts
 dev: Runs the development server.
 build: Builds the app for production.
 preview: Previews the production build locally.
 
-Technologies Used
+### Technologies Used
 React: A JavaScript library for building user interfaces.
 TypeScript: A typed superset of JavaScript.
 Vite: Next-generation frontend tooling.
 MSAL: Microsoft Authentication Library for secure login with Office 365.
 
-*TBA Docker info below
+### TBA Docker info below
