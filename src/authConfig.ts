@@ -2,8 +2,8 @@ import { LogLevel } from '@azure/msal-browser';
 
 export const msalConfig = {
     auth: {
-        clientId: '694175b0-96b6-4edd-bc19-e2b6258ea849',
-        authority: 'https://login.microsoftonline.com/cd65ef4d-bcae-4953-8c37-f6b30026a09e', 
+        clientId: 'idhere',
+        authority: 'https://login.microsoftonline.com/idhere', 
         redirectUri: 'http://localhost:5174/', 
         postLogoutRedirectUri: 'http://localhost:5174/',
         navigateToLoginRequestUrl: true, // If "true", will navigate back to the original request location before processing the auth code response.
