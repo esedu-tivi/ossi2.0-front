@@ -26,4 +26,4 @@ dist-ssr
 # Environment Variables
 .env
 .env.*
-
+.authConfig.ts
