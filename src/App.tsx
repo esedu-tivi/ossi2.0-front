@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { Login } from './components/Login';
+import { Dashboard } from './components/Dashboard';
+import { useMsal } from '@azure/msal-react';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const { instance, accounts } = useMsal();  // Get the MSAL instance and accounts
+
+  // Handle authentication persistence across page reloads
+  useEffect(() => {
+    if (!accounts.length && instance.getActiveAccount()) {
+      instance.setActiveAccount(instance.getActiveAccount());
+    }
+  }, [instance, accounts]);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      
+        <Routes>
+          {/* 
+            If user is authenticated, redirect them to the dashboard.
+            If not, keep them on the login page.
+          */}
+          <Route path="/" element={accounts.length > 0 ? <Navigate to="/dashboard" /> : <Login />} />
+          
+          {/* 
+            Protect the dashboard route: 
+            If the user is not authenticated, redirect to the login page.
+          */}
+          <Route path="/dashboard" element={accounts.length > 0 ? <Dashboard /> : <Navigate to="/" />} />
+        </Routes>
+      
+    </Router>
+  );
 }
 
-export default App
+
+
+
+
