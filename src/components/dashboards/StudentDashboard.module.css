@@ -1,0 +1,11 @@
+.dashboardContainer {
+    display: flex;
+    margin-top: 20px;
+  }
+  
+  .canvasArea {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #eaeaea;
+  }
+  
