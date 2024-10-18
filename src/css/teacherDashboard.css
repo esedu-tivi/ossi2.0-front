@@ -1,0 +1,35 @@
+.teacher-dashboard {
+    display: flex;
+  }
+  
+  .teacher-drawer {
+    width: 240px;
+    flex-shrink: 0;
+  }
+  
+  .teacher-drawer-paper {
+    width: 240px;
+    box-sizing: border-box;
+  }
+  
+  .teacher-main {
+    flex-grow: 1;
+    background-color: var(--background-default);
+    padding: 16px;
+  }
+  
+  .teacher-avatar {
+    background-color: var(--primary-main);
+    width: 64px;
+    height: 64px;
+  }
+  
+  .teacher-email {
+    margin-top: 8px;
+  }
+  
+  .teacher-icons {
+    display: flex;
+    margin-top: 16px;
+  }
+  

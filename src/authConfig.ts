@@ -25,9 +25,9 @@ export const msalConfig = {
                     case LogLevel.Info:
                         console.info(message);
                         return;
-                    case LogLevel.Verbose:
-                        console.debug(message);
-                        return;
+                    // case LogLevel.Verbose:
+                    //     console.debug(message);
+                    //     return;
                     case LogLevel.Warning:
                         console.warn(message);
                         return;
@@ -36,7 +36,7 @@ export const msalConfig = {
                 }
             },
             piiLoggingEnables: false,
-            logLevel: LogLevel.Verbose,
+            logLevel: LogLevel.Info,
         },
     },
 };

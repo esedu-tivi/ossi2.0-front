@@ -1,71 +1,47 @@
-import { useEffect, useState } from 'react';
-import { useMsal } from '@azure/msal-react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import axios from 'axios';
-import { Login } from './components/auth/Login'; 
-import StudentDashboard from './components/dashboards/studentDashboard'; 
-import TeacherDashboard from './components/dashboards/teacherDashboard'; 
-import './App.css';
+import { useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import TeacherDashboard from "./components/dashboards/teacherDashboard";
+import StudentDashboard from "./components/dashboards/studentDashboard";
+import { useAuth } from "./utils/auth-context";
+import ProtectedRoute from "./ProtectedRoute";
+import Login from "./components/Login";
 
-export default function App() {
-  const { instance, accounts } = useMsal();
-  const [jobTitle, setJobTitle] = useState<string | null>(null);
+const App = () => {
+  const { isAuthenticated, userEmail } = useAuth();
+  const navigate = useNavigate();
 
-  // Handle authentication persistence across page reloads
   useEffect(() => {
-    if (!accounts.length && instance.getActiveAccount()) {
-      instance.setActiveAccount(instance.getActiveAccount());
-    }
-  }, [instance, accounts]);
-
-  // Fetch the job title from the backend
-  useEffect(() => {
-    const fetchJobTitle = async () => {
-      if (accounts.length > 0) {
-        const idToken = sessionStorage.getItem('idToken');
-        if (idToken) {
-          try {
-            const response = await axios.post('/auth/login', { idToken }); // edit the endpoint 
-            if (response.data.isValid) {
-              setJobTitle(response.data.jobTitle);
-            } else {
-              setJobTitle(null);
-            }
-          } catch (error) {
-            console.error("Failed to fetch job title:", error);
-            setJobTitle(null);
-          }
-        }
+    if (isAuthenticated) {
+      if (userEmail.endsWith("@esedulainen.fi")) {
+        navigate("/studentdashboard");
+      } else if (userEmail.endsWith("@esedu.fi")) {
+        navigate("/teacherdashboard");
       }
-    };
-
-    fetchJobTitle();
-  }, [accounts]);
+    }
+  }, [isAuthenticated, userEmail, navigate]);
 
   return (
-    <Router>
-      <Routes>
-        {/* 
-          If user is authenticated, redirect them to the appropriate dashboard.
-          If not, keep them on the login page.
-        */}
-        <Route path="/" element={accounts.length > 0 ? (
-          jobTitle === 'oppilas' ? <Navigate to="/studentdashboard" /> :
-          jobTitle === 'opettaja' ? <Navigate to="/teacherdashboard" /> :
-          <Navigate to="/unknownrole" />
-        ) : <Login />} />
-        
-        {/* 
-          Protect the routes: 
-          If the user is not authenticated, redirect to the login page.
-        */}
-        <Route path="/studentdashboard" element={accounts.length > 0 && jobTitle === 'oppilas' ? <StudentDashboard /> : <Navigate to="/" />} />
-        <Route path="/teacherdashboard" element={accounts.length > 0 && jobTitle === 'opettaja' ? <TeacherDashboard /> : <Navigate to="/" />} />
-        <Route path="/unknownrole" element={<div>Tapahtui virhe. Ota yhteyttä IT-Tukeen (unknown role)</div>} />
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route
+        path="/teacherdashboard"
+        element={<ProtectedRoute element={<TeacherDashboard />} />}
+      />
+      <Route
+        path="/studentdashboard"
+        element={<ProtectedRoute element={<StudentDashboard />} />}
+      />
+    </Routes>
   );
-}
+};
+
+export default App;
+
+
+
+
+
+
 
 
 
