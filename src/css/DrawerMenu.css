@@ -1,0 +1,18 @@
+.drawer {
+    width: 240px;
+    flex-shrink: 0;
+  }
+  
+  .drawer-paper {
+    width: 240px;
+    box-sizing: border-box;
+  }
+  
+  .drawer-icon {
+    color: black;
+  }
+  
+  .drawer-text {
+    color: black;
+  }
+  

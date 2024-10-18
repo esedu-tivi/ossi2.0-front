@@ -1,35 +1,49 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import TeacherDashboard from "./components/dashboards/teacherDashboard";
+import StudentDashboard from "./components/dashboards/studentDashboard";
+import { useAuth } from "./utils/auth-context";
+import ProtectedRoute from "./ProtectedRoute";
+import Login from "./components/Login";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const { isAuthenticated, userEmail } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (userEmail.endsWith("@esedulainen.fi")) {
+        navigate("/studentdashboard");
+      } else if (userEmail.endsWith("@esedu.fi")) {
+        navigate("/teacherdashboard");
+      }
+    }
+  }, [isAuthenticated, userEmail, navigate]);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route
+        path="/teacherdashboard"
+        element={<ProtectedRoute element={<TeacherDashboard />} />}
+      />
+      <Route
+        path="/studentdashboard"
+        element={<ProtectedRoute element={<StudentDashboard />} />}
+      />
+    </Routes>
+  );
+};
 
-export default App
+export default App;
+
+
+
+
+
+
+
+
+
+
+

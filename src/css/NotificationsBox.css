@@ -1,0 +1,17 @@
+.notifications-box {
+    padding: 20px;
+    margin-top: 20px;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    background-color: #f6f6f7 !important; 
+    height: 200px; 
+  }
+  
+  .notifications-title {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
