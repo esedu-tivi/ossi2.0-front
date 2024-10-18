@@ -1,3 +1,5 @@
+//Lisää client ja tenantID
+
 import { LogLevel } from '@azure/msal-browser';
 
 export const msalConfig = {
