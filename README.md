@@ -12,6 +12,9 @@ Have the following installed:
 
 - [Node.js](https://nodejs.org/) (version 16 or above)
 - npm or [Yarn](https://yarnpkg.com/)
+- Docker Desktop - https://www.docker.com/products/docker-desktop/
+
+Also clone the Ossi-Api repository and follow the instructions for setting that one up.
 
 Navigate to the project directory:
 
@@ -23,11 +26,6 @@ npm install
 npm run dev
 
 Open localhost to view it in your browser.
-
-### Scripts
-dev: Runs the development server.
-build: Builds the app for production.
-preview: Previews the production build locally.
 
 ### Technologies Used
 React: A JavaScript library for building user interfaces.
