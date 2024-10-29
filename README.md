@@ -21,6 +21,8 @@ Navigate to the project directory:
 ### Install the dependencies:
 npm install
 
+- Remember to add clientid and author to authConfig.
+
 ### Run the development server:
 
 npm run dev
