@@ -1,36 +1,20 @@
 import React from 'react';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { useState } from 'react';
+import { DataGrid, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
+import { useQuery } from '@apollo/client';
+import { GET_STUDENTS } from '../graphql/StudentQueries';
 import '../css/StudentList.css';
 
-// Korvataan oikealla datalla myöhemmin.
-const rows = [
-    { id: 1, nimi: 'Mikko Virtanen', ryhmä: 'TiVi22', tag: 'Tag1', ammattinimike: 'Insinööri' },
-    { id: 2, nimi: 'Anna Korhonen', ryhmä: 'Tivi24', tag: 'Tag2', ammattinimike: 'Opettaja' },
-    { id: 3, nimi: 'Jari Laine', ryhmä: 'Tivi25', tag: 'Tag3', ammattinimike: 'Suunnittelija' },
-    { id: 4, nimi: 'Leena Mäkinen', ryhmä: 'Tivi23', tag: 'Tag4', ammattinimike: 'Ohjelmistokehittäjä' },
-    { id: 5, nimi: 'Pekka Niemi', ryhmä: 'Tivi24', tag: 'Tag5', ammattinimike: 'Insinööri' },
-    { id: 6, nimi: 'Marja Heikkinen', ryhmä: 'Tivi25', tag: 'Tag6', ammattinimike: 'Opettaja' },
-    { id: 7, nimi: 'Timo Mäkelä', ryhmä: 'Tivi23', tag: 'Tag7', ammattinimike: 'Suunnittelija' },
-    { id: 8, nimi: 'Sanna Salonen', ryhmä: 'Tivi24', tag: 'Tag8', ammattinimike: 'Ohjelmistokehittäjä' },
-    { id: 9, nimi: 'Jukka Kallio', ryhmä: 'Tivi25', tag: 'Tag9', ammattinimike: 'Insinööri' },
-    { id: 10, nimi: 'Kaisa Karjalainen', ryhmä: 'Tivi23', tag: 'Tag10', ammattinimike: 'Opettaja' },
-    { id: 11, nimi: 'Antti Rantanen', ryhmä: 'Tivi24', tag: 'Tag11', ammattinimike: 'Suunnittelija' },
-    { id: 12, nimi: 'Tiina Koskinen', ryhmä: 'Tivi25', tag: 'Tag12', ammattinimike: 'Ohjelmistokehittäjä' },
-    { id: 13, nimi: 'Jari Savolainen', ryhmä: 'Tivi23', tag: 'Tag13', ammattinimike: 'Insinööri' },
-    { id: 14, nimi: 'Laura Seppälä', ryhmä: 'Tivi24', tag: 'Tag14', ammattinimike: 'Opettaja' },
-    { id: 15, nimi: 'Heikki Lehtonen', ryhmä: 'Tivi25', tag: 'Tag15', ammattinimike: 'Suunnittelija' },
-    { id: 16, nimi: 'Aino Hämäläinen', ryhmä: 'Tivi23', tag: 'Tag16', ammattinimike: 'Ohjelmistokehittäjä' },
-    { id: 17, nimi: 'Juha Ahonen', ryhmä: 'Tivi24', tag: 'Tag17', ammattinimike: 'Insinööri' },
-    { id: 18, nimi: 'Mari Eskelinen', ryhmä: 'Tivi25', tag: 'Tag18', ammattinimike: 'Opettaja' },
-    { id: 19, nimi: 'Sami Kinnunen', ryhmä: 'Tivi23', tag: 'Tag19', ammattinimike: 'Suunnittelija' },
-    { id: 20, nimi: 'Riikka Hietala', ryhmä: 'Tivi24', tag: 'Tag20', ammattinimike: 'Ohjelmistokehittäjä' },
-    { id: 21, nimi: 'Markku Ojala', ryhmä: 'Tivi25', tag: 'Tag21', ammattinimike: 'Insinööri' },
-    { id: 22, nimi: 'Johanna Mäntylä', ryhmä: 'Tivi23', tag: 'Tag22', ammattinimike: 'Opettaja' },
-    { id: 23, nimi: 'Ville Vuorinen', ryhmä: 'Tivi24', tag: 'Tag23', ammattinimike: 'Suunnittelija' },
-    { id: 24, nimi: 'Heli Väisänen', ryhmä: 'Tivi25', tag: 'Tag24', ammattinimike: 'Ohjelmistokehittäjä' },
-    { id: 25, nimi: 'Kari Tuominen', ryhmä: 'Tivi23', tag: 'Tag25', ammattinimike: 'Insinööri' },
-    { id: 26, nimi: 'Kari Salminen', ryhmä: 'Tivi24', tag: 'Tag26', ammattinimike: 'Oppilas' }
-];
+type StudentData = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  groupId: string;
+  studyingQualification: {
+    name: string;
+  };
+};
 
 const columns: GridColDef[] = [
   { field: 'nimi', headerName: 'Nimi', width: 200, filterable: true },
@@ -40,14 +24,52 @@ const columns: GridColDef[] = [
 ];
 
 const StudentList: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<StudentData | null>(null);
+
+  const { loading, error, data } = useQuery(GET_STUDENTS);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  const rows = data.students.map((student: StudentData) => ({
+    id: student.id,
+    nimi: `${student.firstName} ${student.lastName}`,
+    ryhmä: student.groupId,
+    tag:'',
+    ammattinimike: student.studyingQualification.name,
+  }));
+
+  const handleRowClick = (params: GridRowParams) => {
+    setSelectedRow(params.row as StudentData);
+    setOpen(true);
+  };
+
+  const handleClose = () => setOpen(false);
+
   return (
     <div className="student-list">
       <DataGrid 
         rows={rows} 
         columns={columns} 
-        checkboxSelection
-        autoHeight
+        onRowClick={handleRowClick}
+        // checkboxSelection / onko tarvetta?
       />
+
+<Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Hallinnoi Opiskelijaa</DialogTitle>
+        <DialogContent>
+          <p>{selectedRow?.firstName}</p>
+          <p>{selectedRow?.lastName}</p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => console.log("Tarkastele Tietoja")}>Opiskelijan Tiedot</Button>
+          <Button onClick={() => console.log("Tarkastele Tietoja")}>Lisää Tagi</Button>
+          <Button onClick={() => console.log("Arkistoi")}>Arkistoi</Button>
+          <Button onClick={() => console.log("Seuraa Opiskelijaa")}>Seuraa</Button>
+          <Button onClick={handleClose}>Sulje</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
