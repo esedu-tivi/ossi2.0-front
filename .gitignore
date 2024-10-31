@@ -26,4 +26,6 @@ dist-ssr
 # Environment Variables
 .env
 .env.*
-.authConfig.ts
+
+# Ignore authConfig file
+src/authConfig.ts

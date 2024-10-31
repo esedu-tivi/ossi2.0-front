@@ -5,7 +5,7 @@ import { MsalProvider } from "@azure/msal-react";
 import { msalInstance, handleMsalEventCallback } from "../utils/auth-utils";
 import AuthContext from "../utils/auth-context";
 import { useMutation } from "@apollo/client";
-import { LOGIN_MUTATION } from "./graphql/LoginMutation";
+import { LOGIN_MUTATION } from "../graphql/LoginMutation";
 
 interface AuthProviderProps {
   children: ReactNode;
