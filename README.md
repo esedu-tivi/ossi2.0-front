@@ -1,7 +1,3 @@
-# React + TypeScript + Vite
-
-A Single Page Application (SPA) created using Vite, React, and TypeScript.
-
 ## Getting Started
 
 To run the project locally, follow these steps:
@@ -29,10 +25,3 @@ npm run dev
 
 Open localhost to view it in your browser.
 
-### Technologies Used
-React: A JavaScript library for building user interfaces.
-TypeScript: A typed superset of JavaScript.
-Vite: Next-generation frontend tooling.
-MSAL: Microsoft Authentication Library for secure login with Office 365.
-
-### TBA Docker info below
