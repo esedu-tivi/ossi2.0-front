@@ -14,6 +14,9 @@ type StudentData = {
   studyingQualification: {
     name: string;
   };
+  studyingQualificationTitle: {
+    name: string;
+  };
 };
 
 const columns: GridColDef[] = [
@@ -37,7 +40,7 @@ const StudentList: React.FC = () => {
     nimi: `${student.firstName} ${student.lastName}`,
     ryhmä: student.groupId,
     tag:'',
-    ammattinimike: student.studyingQualification.name,
+    ammattinimike: student.studyingQualificationTitle.name,
   }));
 
   const handleRowClick = (params: GridRowParams) => {
