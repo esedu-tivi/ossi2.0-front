@@ -10,6 +10,9 @@ export const GET_STUDENTS = gql`
       studyingQualification {
         name
       }
+      studyingQualificationTitle {
+      name
+    }
     }
   }
 `;
