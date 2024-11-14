@@ -1,9 +1,9 @@
 import { LogLevel } from '@azure/msal-browser';
 
-const clientId = process.env.REACT_APP_CLIENT_ID;
-const tenantId = process.env.REACT_APP_TENANT_ID;
-const redirectUri = process.env.REACT_APP_REDIRECT_URI;
-const postLogoutRedirectUri = process.env.REACT_APP_POST_LOGOUT_REDIRECT_URI;
+const clientId = import.meta.env.VITE_CLIENT_ID;
+const tenantId = import.meta.env.VITE_TENANT_ID;
+const redirectUri = import.meta.env.VITE_REDIRECT_URI;
+const postLogoutRedirectUri = import.meta.env.VITE_POST_LOGOUT_REDIRECT_URI;
 
 if (!clientId || !tenantId || !redirectUri || !postLogoutRedirectUri) {
   throw new Error("Missing environment variables for MSAL configuration");
@@ -12,7 +12,7 @@ if (!clientId || !tenantId || !redirectUri || !postLogoutRedirectUri) {
 export const msalConfig = {
     auth: {
         clientId: clientId,
-        authority: 'https://login.microsoftonline.com/${tenantId}', 
+        authority: `https://login.microsoftonline.com/${tenantId}`, 
         redirectUri: redirectUri, 
         postLogoutRedirectUri: postLogoutRedirectUri,
         navigateToLoginRequestUrl: true, // If "true", will navigate back to the original request location before processing the auth code response.
