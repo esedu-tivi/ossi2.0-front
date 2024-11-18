@@ -8,9 +8,11 @@ interface SelectorProps {
     items: string[];
     title: string;
     openWindow: boolean;
+    buttonText: string;
+    onAdd: (selectedItems: string[]) => void;
 }
 
-const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, openWindow }) => {
+const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, openWindow, onAdd }) => {
     const [open, setOpen] = useState(openWindow);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -28,18 +30,13 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, openWindo
         setSelectedItems(newChecked);
     };
 
-    // const handleClickOpen = () => {
-    //     setOpen(true);
-    // };
-
     const handleClose = () => {
         setOpen(false);
     };
 
     const handleAdd = () => {
-        // console.log('Selected items:', selectedItems);
+        onAdd(selectedItems);
         setOpen(false);
-        return selectedItems;
     };
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,10 +47,6 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, openWindo
 
     return (
         <div>
-            {/* <Button variant="contained" color="primary" onClick={handleClickOpen} className="button">
-                Avaa Valitsin
-            </Button> */}
-
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle sx={{ backgroundColor: '#65558f', color: '#ffffff' }} className="dialogTitle">
                     {title}
