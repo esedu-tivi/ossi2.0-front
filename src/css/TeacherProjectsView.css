@@ -1,0 +1,98 @@
+.project-table-container {
+  margin-top: 75px;
+  padding: 10px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+
+.table-header {
+  background-color: #fdfdfd;
+  border: 1.5px solid #c0c0c0;
+}
+
+.table-header-cell {
+  padding: 8px;
+  width: 35%;
+  font-weight: bold !important;
+  border: 1px solid #ccc;
+  color: #333;
+  width: 25%;
+}
+
+.table-header-id {
+  width: 5%;
+}
+
+.table-header-name {
+  width: 30%;
+  cursor: pointer; /* Set the cursor to a pointer on hover */
+}
+
+.table-header-theme {
+  width: 30%;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Hide buttons initially, only show on row hover */
+.table-row {
+  position: relative;
+  height: 60px;
+  transition: background-color 0.3s ease;
+}
+
+.table-row:hover {
+  background-color: #f5f6fa; /* Set the hover background color */
+}
+
+.button-group {
+  visibility: hidden;
+  min-height: 31px;
+}
+
+.table-row:hover .button-group {
+  visibility: visible;
+}
+
+.button-group button {
+  margin-right: 8px;
+}
+
+.button-group button:last-child {
+  margin-right: 0;
+}
+
+.search-container .MuiOutlinedInput-root {
+  border-color: black !important; /* Set the border color of the search box to black */
+}
+
+
+.add-project-button {
+  margin-top: 12px;
+}
+
+.dialog-close-button {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+}
+
+.dialog-content {
+  min-height: 850px;
+}
+
+.form-control-label {
+  margin-top: 20px;
+}
+
+.create-project-button {
+  margin-top: 24px;
+}

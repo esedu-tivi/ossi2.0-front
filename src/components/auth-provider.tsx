@@ -44,6 +44,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     //Käsittelee kirjautumisen yhteydessä olevan redirectin, joka on tullut MSALin kautta
     const initializeMsal = async () => {
       try {
+        
+        if (!msalInstance) {
+          throw new Error("MSAL instance is not initialized");
+        }
+
+        await msalInstance.initialize();
 
         //handleRedirectPromise palauttaa AuthenticationResultin, joka sisältää käyttäjän tiedot, jos kirjautuminen onnistui
         //account, idToken, accessToken
@@ -52,13 +58,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         //Tarkastaa oliko kirjautuminen validi, sekä käyttäjätietojen olemassaolon
         //Jos true, niin kirjautuminen oli onnistunut ja käyttäjä redirectataan takaisin sovellukseen
         if (redirectResponse?.account) {
-
           //Asettaa käyttäjän aktiiviseksi MSAL accountiksi
           msalInstance.setActiveAccount(redirectResponse.account);
-
           //Säilyttää käyttäjän sähköpostiosoitteen komponentin tilassa
           setUserEmail(redirectResponse.account.username);
-
           //Asettaa käyttäjän autentikoinnin tilan trueksi (käyttäjä on logged in)
           setIsAuthenticated(true);
 
@@ -74,7 +77,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     //Poistaa event callbackin
+   if (msalInstance) {
     initializeMsal();
+  }
     
     return () => {
       if (callbackId) {
