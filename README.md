@@ -33,3 +33,6 @@ npm run dev
 
 Open localhost to view it in your browser.
 
+### Extra
+For student devs with @esedulainen.fi email --> if you want to dev on teacher views, change the emails on app.tsx rows 23-24.
+
