@@ -64,6 +64,10 @@
 
 .button-group button {
   margin-right: 8px;
+  background-color: #65558F !important;
+  color: white !important;
+  border-radius: 16px !important;
+  border: none !important;
 }
 
 .button-group button:last-child {
@@ -77,6 +81,9 @@
 
 .add-project-button {
   margin-top: 12px;
+  background-color: #65558F !important; 
+  color: white !important; 
+  border-radius: 16px !important; 
 }
 
 .dialog-close-button {
