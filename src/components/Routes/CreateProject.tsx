@@ -5,13 +5,10 @@ import {
   Box,
   Switch,
   IconButton,
-  MenuItem,
   Typography,
   Chip,
-  Select,
   FormControl,
   InputLabel,
-  SelectChangeEvent,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { FormData } from '../../FormData';
@@ -24,7 +21,7 @@ const NewProjectForm: React.FC = () => {
     description: '',
     materials: '',
     osaamiset: [],
-    duration: 0,
+    duration: '',
     tags: [],
     includedInParts: [],
     isActive: false,
@@ -36,7 +33,7 @@ const NewProjectForm: React.FC = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: name === 'duration' ? (value === '' ? '' : Number(value)) : value,
     });
   };
 
@@ -58,14 +55,6 @@ const NewProjectForm: React.FC = () => {
     setFormData({
       ...formData,
       [field]: formData[field].filter((_, i) => i !== index),
-    });
-  };
-
-  const handleAvailableTimeChange = (event: SelectChangeEvent<string | number>) => {
-    const newValue = Number(event.target.value);
-    setFormData({
-      ...formData,
-      duration: newValue,
     });
   };
 
@@ -99,7 +88,7 @@ const NewProjectForm: React.FC = () => {
       onSubmit={handleSubmit}
       textAlign={'center'}
       sx={{
-        maxWidth: 800,
+        maxWidth: 1600,
         margin: 'auto',
         padding: 3,
         borderRadius: 2,
@@ -123,179 +112,199 @@ const NewProjectForm: React.FC = () => {
         </Typography>
       </Box>
 
-      <TextField
-        label="Projektin nimi"
-        variant="outlined"
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        fullWidth
-        sx={{ my: 2 }}
-      />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 2,
+          mt: 2,
+        }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <TextField
+            label="Projektin nimi"
+            variant="outlined"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            fullWidth
+            sx={{ my: 2 }}
+          />
 
-      <FormControl fullWidth>
-        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Teemat</InputLabel>
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 1, 
-            position: 'relative', 
-            border: '1px solid #ccc',
-            borderRadius: 1,
-            padding: 1,
-            minHeight: 32,
-          }}
-        >
-          {formData.tags.map((tag, index) => (
-            <Chip
-              key={index}
-              label={tag}
-              onDelete={() => handleRemoveItem('tags', index)}
-              sx={{ backgroundColor: '#E0E0E0' }}
-            />
-          ))}
-          <IconButton
-            onClick={() => handleAddItem('tags')}
-            color="primary"
-            sx={{
-              position: 'absolute',
-              right: 0,
-              top: '50%',
-              transform: 'translateY(-50%)',
-            }}
-          >
-            <AddIcon />
-          </IconButton>
+          <TextField
+            label="Materiaalit"
+            variant="outlined"
+            name="materials"
+            value={formData.materials}
+            onChange={handleChange}
+            fullWidth
+            multiline
+            rows={10}
+            sx={{ my: 2 }}
+          />
+
+          <TextField
+            label="Projektin kuvaus"
+            variant="outlined"
+            name="projectInfo"
+            value={formData.description}
+            onChange={handleChange}
+            fullWidth
+            multiline
+            rows={10}
+            sx={{ my: 2 }}
+          />
         </Box>
-      </FormControl>
 
-      <FormControl fullWidth>
-        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Osaamiset</InputLabel>
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 1, 
-            position: 'relative', 
-            border: '1px solid #ccc',
-            borderRadius: 1,
-            padding: 1,
-            minHeight: 32,
-          }}
-        >
-          {formData.osaamiset.map((osaaminen, index) => (
-            <Chip
-              key={index}
-              label={osaaminen}
-              onDelete={() => handleRemoveItem('osaamiset', index)}
-              sx={{ backgroundColor: '#E0E0E0' }}
-            />
-          ))}
-          <IconButton
-            onClick={() => handleAddItem('osaamiset')}
-            color="primary"
-            sx={{
-              position: 'absolute',
-              right: 0,
-              top: '50%',
-              transform: 'translateY(-50%)',
-            }}
-          >
-            <AddIcon />
-          </IconButton>
+        <Box sx={{ flex: 1 }}>
+          <TextField
+            label="Ajankäyttö"
+            variant="outlined"
+            name="duration"
+            type="number"
+            value={formData.duration}
+            onChange={handleChange}
+            fullWidth
+            sx={{ my: 2 }}
+          />
+
+          <FormControl fullWidth>
+            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Teemat</InputLabel>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: 1, 
+                position: 'relative', 
+                border: '1px solid #ccc',
+                borderRadius: 1,
+                padding: 1,
+                minHeight: 32,
+              }}
+            >
+              {formData.tags.map((tag, index) => (
+                <Chip
+                  key={index}
+                  label={tag}
+                  onDelete={() => handleRemoveItem('tags', index)}
+                  sx={{ backgroundColor: '#E0E0E0' }}
+                />
+              ))}
+              <IconButton
+                onClick={() => handleAddItem('tags')}
+                color="primary"
+                sx={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }}
+              >
+                <AddIcon />
+              </IconButton>
+            </Box>
+          </FormControl>
+
+          <FormControl fullWidth>
+            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Osaamiset</InputLabel>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: 1, 
+                position: 'relative', 
+                border: '1px solid #ccc',
+                borderRadius: 1,
+                padding: 1,
+                minHeight: 32,
+              }}
+            >
+              {formData.osaamiset.map((exp, index) => (
+                <Chip
+                  key={index}
+                  label={exp}
+                  onDelete={() => handleRemoveItem('osaamiset', index)}
+                  sx={{ backgroundColor: '#E0E0E0' }}
+                />
+              ))}
+              <IconButton
+                onClick={() => handleAddItem('osaamiset')}
+                color="primary"
+                sx={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }}
+              >
+                <AddIcon />
+              </IconButton>
+            </Box>
+          </FormControl>
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tunnisteet</InputLabel>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: 1, 
+                position: 'relative', 
+                border: '1px solid #ccc',
+                borderRadius: 1,
+                padding: 1,
+                minHeight: 32,
+              }}
+            >
+              {formData.includedInParts.map((parts, index) => (
+                <Chip
+                  key={index}
+                  label={parts}
+                  onDelete={() => handleRemoveItem('includedInParts', index)}
+                  sx={{ backgroundColor: '#E0E0E0' }}
+                />
+              ))}
+              <IconButton
+                onClick={() => handleAddItem('includedInParts')}
+                color="primary"
+                sx={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }}
+              >
+                <AddIcon />
+              </IconButton>
+            </Box>
+          </FormControl>
         </Box>
-      </FormControl>
-
-      <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tunnisteet</InputLabel>
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 1, 
-            position: 'relative', 
-            border: '1px solid #ccc',
-            borderRadius: 1,
-            padding: 1,
-            minHeight: 32,
-          }}
-        >
-          {formData.includedInParts.map((parts, index) => (
-            <Chip
-              key={index}
-              label={parts}
-              onDelete={() => handleRemoveItem('includedInParts', index)}
-              sx={{ backgroundColor: '#E0E0E0' }}
-            />
-          ))}
-          <IconButton
-            onClick={() => handleAddItem('includedInParts')}
-            color="primary"
-            sx={{
-              position: 'absolute',
-              right: 0,
-              top: '50%',
-              transform: 'translateY(-50%)',
-            }}
-          >
-            <AddIcon />
-          </IconButton>
-        </Box>
-      </FormControl>
-
-      <TextField
-        label="Materiaalit"
-        variant="outlined"
-        name="materials"
-        value={formData.materials}
-        onChange={handleChange}
-        fullWidth
-        multiline
-        rows={3}
-        sx={{ my: 2 }}
-      />
-
-      <TextField
-        label="Projektin kuvaus"
-        variant="outlined"
-        name="description"
-        value={formData.description}
-        onChange={handleChange}
-        fullWidth
-        multiline
-        rows={4}
-        sx={{ my: 2 }}
-      />
-
-      <FormControl fullWidth sx={{ my: 2 }}>
-        <InputLabel>Ajankäyttö</InputLabel>
-        <Select
-          value={formData.duration}
-          onChange={handleAvailableTimeChange}
-          displayEmpty
-          label="Ajankäyttö"
-        >
-          <MenuItem value={0}>Ei määriteltyä aikaa</MenuItem>
-          <MenuItem value={10}>10 tuntia</MenuItem>
-          <MenuItem value={20}>20 tuntia</MenuItem>
-          <MenuItem value={30}>30 tuntia</MenuItem>
-          <MenuItem value={40}>40 tuntia</MenuItem>
-          <MenuItem value={50}>50 tuntia</MenuItem>
-        </Select>
-      </FormControl>
-
-      <Box display="flex" alignItems="center" sx={{ my: 2 }}>
-        <Typography>Projektin tila</Typography>
-        <Switch
-          checked={formData.isActive}
-          onChange={handleToggleActivity}
-          name="isActive"
-          color="primary"
-          sx={{ ml: 2 }}
-        />
-        <Typography>{formData.isActive ? 'Aktiivinen' : 'Ei aktiivinen'}</Typography>
       </Box>
+
+      <FormControl
+        sx={{
+          maxWidth: 300,
+          display: 'flex',
+          flexDirection: 'column',
+          my: 1,
+          border: '1px solid #ccc',
+          borderRadius: 1,
+          padding: 2,
+        }}
+      >
+        <Typography sx={{ mb: 1, textAlign: 'left' }}>
+          Projektin tila
+        </Typography>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Typography>{formData.isActive ? 'Aktiivinen' : 'Ei aktiivinen'}</Typography>
+          <Switch
+            checked={formData.isActive}
+            onChange={handleToggleActivity}
+            name="isActive"
+            color="primary"
+          />
+        </Box>
+      </FormControl>
 
       <Button 
         type="submit" 

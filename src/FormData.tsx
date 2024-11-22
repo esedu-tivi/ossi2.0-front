@@ -3,7 +3,7 @@ export interface FormData {
     description: string;
     materials: string;
     osaamiset: string[];
-    duration: number;
+    duration: string;
     tags: string[];
     includedInParts: string[];
     isActive: boolean;
