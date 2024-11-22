@@ -17,11 +17,22 @@ Navigate to the project directory:
 ### Install the dependencies:
 npm install
 
-- Remember to add clientid and author to authConfig. *Ask for this file since it's now being removed from the repository!
+- Remember to add .env file to your project with correct client/tenantId's
+  
+VITE_CLIENT_ID=client-id-here
+
+VITE_TENANT_ID=tenant-id-here
+
+VITE_REDIRECT_URI=http://localhost:5174/
+
+VITE_POST_LOGOUT_REDIRECT_URI=http://localhost:5174/
 
 ### Run the development server:
 
 npm run dev
 
 Open localhost to view it in your browser.
+
+### Extra
+For student devs with @esedulainen.fi email --> if you want to dev on teacher views, change the emails on app.tsx rows 23-24.
 
