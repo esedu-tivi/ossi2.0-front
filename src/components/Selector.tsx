@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -23,18 +23,26 @@ import SearchIcon from '@mui/icons-material/Search';
 interface SelectorProps {
     items: string[];
     title: string;
-    openWindow: boolean;
+    open: boolean;
     buttonText: string;
+    selectedItems: string[];
     onAdd: (selectedItems: string[]) => void;
+    onClose: () => void;
 }
 
-const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, openWindow, onAdd }) => {
-    const [open, setOpen] = useState(openWindow);
-    const [selectedItems, setSelectedItems] = useState<string[]>([]);
+const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, open, selectedItems: initialSelectedItems, onAdd, onClose }) => {
+    const [selectedItems, setSelectedItems] = useState<string[]>(initialSelectedItems);
     const [searchTerm, setSearchTerm] = useState('');
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+    useEffect(() => {
+        if (open) {
+            setSelectedItems(initialSelectedItems);
+            setSearchTerm('');
+        }
+    }, [open, initialSelectedItems]);
 
     const handleToggle = (value: string) => () => {
         const currentIndex = selectedItems.indexOf(value);
@@ -49,13 +57,9 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, openWindo
         setSelectedItems(newChecked);
     };
 
-    const handleClose = () => {
-        setOpen(false);
-    };
-
     const handleAdd = () => {
         onAdd(selectedItems);
-        setOpen(false);
+        onClose();
     };
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,14 +69,12 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, openWindo
     const filteredItems = items.filter((item) => item.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
-        <div>
-            <Dialog open={open} onClose={handleClose} fullScreen={isMobile}>
-                <DialogTitle sx={{ backgroundColor: '#65558f', color: '#ffffff' }} className="dialogTitle">
-                    {title}
-                </DialogTitle>
+        <Dialog open={open} onClose={onClose} fullScreen={isMobile}>
+            <DialogTitle sx={{ backgroundColor: '#65558f', color: '#ffffff' }}>
+                {title}
                 <IconButton
                     aria-label="close"
-                    onClick={handleClose}
+                    onClick={onClose}
                     sx={{
                         position: 'absolute',
                         right: 8,
@@ -82,65 +84,65 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, openWindo
                 >
                     <CloseIcon />
                 </IconButton>
-                <DialogContent sx={{ width: isMobile ? '100%' : 500, padding: 0 }}>
-                    <Box sx={{ position: 'sticky', top: 0, zIndex: 1, backgroundColor: '#fff', padding: 0 }}>
-                        <TextField
-                            variant="outlined"
-                            placeholder="Hae"
-                            fullWidth
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton>
-                                            <SearchIcon />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                            sx={{ backgroundColor: '#ece6f0' }}
-                        />
-                        {selectedItems.length > 0 && (
-                            <Box sx={{ padding: 1, backgroundColor: '#ece6f0', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                <Typography variant="caption">Valitut:</Typography>
-                                {selectedItems.map((item) => (
-                                    <Typography key={item} variant="caption" sx={{ marginRight: 1 }}>
-                                        {item}
-                                    </Typography>
-                                ))}
-                            </Box>
-                        )}
-                    </Box>
-                    <List>
-                        {filteredItems.map((item) => (
-                            <ListItem
-                                sx={{ borderBottom: 1, borderColor: '#ddd', paddingTop: 0, paddingBottom: 0, display: 'flex', justifyContent: 'space-between' }}
-                                key={item}
-                                onClick={handleToggle(item)}
-                            >
-                                <ListItemText primary={item} />
-                                <Checkbox
-                                    sx={{
-                                        marginLeft: 'auto',
+            </DialogTitle>
+            <DialogContent sx={{ width: isMobile ? '100%' : 500, padding: 0 }}>
+                <Box sx={{ position: 'sticky', top: 0, zIndex: 1, backgroundColor: '#fff', padding: 0 }}>
+                    <TextField
+                        variant="outlined"
+                        placeholder="Hae"
+                        fullWidth
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton>
+                                        <SearchIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }}
+                        sx={{ backgroundColor: '#ece6f0' }}
+                    />
+                    {selectedItems.length > 0 && (
+                        <Box sx={{ padding: 1, backgroundColor: '#ece6f0', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            <Typography variant="caption">Valitut:</Typography>
+                            {selectedItems.map((item) => (
+                                <Typography key={item} variant="caption" sx={{ marginRight: 1 }}>
+                                    {item}
+                                </Typography>
+                            ))}
+                        </Box>
+                    )}
+                </Box>
+                <List>
+                    {filteredItems.map((item) => (
+                        <ListItem
+                            sx={{ borderBottom: 1, borderColor: '#ddd', paddingTop: 0, paddingBottom: 0, display: 'flex', justifyContent: 'space-between' }}
+                            key={item}
+                            onClick={handleToggle(item)}
+                        >
+                            <ListItemText primary={item} />
+                            <Checkbox
+                                sx={{
+                                    marginLeft: 'auto',
+                                    color: '#65558f',
+                                    '&.Mui-checked': {
                                         color: '#65558f',
-                                        '&.Mui-checked': {
-                                            color: '#65558f',
-                                        },
-                                    }}
-                                    checked={selectedItems.indexOf(item) !== -1}
-                                />
-                            </ListItem>
-                        ))}
-                    </List>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'center' }}>
-                    <Button onClick={handleAdd} sx={{ backgroundColor: '#65558f', color: '#ffffff', borderRadius: 25 }}>
-                        {buttonText}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </div>
+                                    },
+                                }}
+                                checked={selectedItems.indexOf(item) !== -1}
+                            />
+                        </ListItem>
+                    ))}
+                </List>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: 'center' }}>
+                <Button onClick={handleAdd} sx={{ backgroundColor: '#65558f', color: '#ffffff', borderRadius: 25 }}>
+                    {buttonText}
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
 };
 
