@@ -55,6 +55,17 @@ const NewProjectForm: React.FC = () => {
         setSelectorOpen(true);
     };
 
+    const handleRemoveItem = (field: keyof Pick<FormData, 'tags' | 'osaamiset' | 'includedInParts'>, index: number) => {
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [field]: prevFormData[field].filter((_, i) => i !== index),
+        }));
+        setSelectedItems((prevSelectedItems) => ({
+            ...prevSelectedItems,
+            [field]: prevSelectedItems[field].filter((_, i) => i !== index),
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -185,8 +196,8 @@ const NewProjectForm: React.FC = () => {
                         sx={{ my: 2 }}
                     />
 
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tunnisteet</InputLabel>
+                    <FormControl fullWidth>
+                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Teemat</InputLabel>
                         <Box
                             sx={{
                                 display: 'flex',
@@ -199,16 +210,11 @@ const NewProjectForm: React.FC = () => {
                                 minHeight: 32,
                             }}
                         >
-                            {formData.includedInParts.map((parts, index) => (
-                                <Chip
-                                    key={index}
-                                    label={parts}
-                                    onDelete={() => handleRemoveItem('includedInParts', index)}
-                                    sx={{ backgroundColor: '#E0E0E0' }}
-                                />
+                            {formData.tags.map((tag, index) => (
+                                <Chip key={index} label={tag} onDelete={() => handleRemoveItem('tags', index)} sx={{ backgroundColor: '#E0E0E0' }} />
                             ))}
                             <IconButton
-                                onClick={() => handleAddItem('includedInParts')}
+                                onClick={() => handleAddItem('tags')}
                                 color="primary"
                                 sx={{
                                     position: 'absolute',
@@ -222,7 +228,7 @@ const NewProjectForm: React.FC = () => {
                         </Box>
                     </FormControl>
 
-                    <FormControl fullWidth sx={{ mb: 2 }}>
+                    <FormControl fullWidth>
                         <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Osaamiset</InputLabel>
                         <Box
                             sx={{
@@ -254,8 +260,8 @@ const NewProjectForm: React.FC = () => {
                         </Box>
                     </FormControl>
 
-                    <FormControl fullWidth>
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Teemat</InputLabel>
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tunnisteet</InputLabel>
                         <Box
                             sx={{
                                 display: 'flex',
@@ -268,11 +274,16 @@ const NewProjectForm: React.FC = () => {
                                 minHeight: 32,
                             }}
                         >
-                            {formData.tags.map((tag, index) => (
-                                <Chip key={index} label={tag} onDelete={() => handleRemoveItem('tags', index)} sx={{ backgroundColor: '#E0E0E0' }} />
+                            {formData.includedInParts.map((parts, index) => (
+                                <Chip
+                                    key={index}
+                                    label={parts}
+                                    onDelete={() => handleRemoveItem('includedInParts', index)}
+                                    sx={{ backgroundColor: '#E0E0E0' }}
+                                />
                             ))}
                             <IconButton
-                                onClick={() => handleAddItem('tags')}
+                                onClick={() => handleAddItem('includedInParts')}
                                 color="primary"
                                 sx={{
                                     position: 'absolute',
