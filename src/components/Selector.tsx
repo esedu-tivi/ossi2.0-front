@@ -19,6 +19,7 @@ import {
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
 
 interface SelectorProps {
     items: string[];
@@ -28,9 +29,10 @@ interface SelectorProps {
     selectedItems: string[];
     onAdd: (selectedItems: string[]) => void;
     onClose: () => void;
+    currentField: string;
 }
 
-const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, open, selectedItems: initialSelectedItems, onAdd, onClose }) => {
+const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, open, selectedItems: initialSelectedItems, onAdd, onClose, currentField }) => {
     const [selectedItems, setSelectedItems] = useState<string[]>(initialSelectedItems);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -66,6 +68,14 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, open, sel
         setSearchTerm(event.target.value);
     };
 
+    const handleAddNewItem = () => {
+        if (searchTerm && !items.includes(searchTerm)) {
+            items.push(searchTerm);
+            setSelectedItems([...selectedItems, searchTerm]);
+            setSearchTerm('');
+        }
+    };
+
     const filteredItems = items.filter((item) => item.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
@@ -96,6 +106,11 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, open, sel
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
+                                    {currentField === 'includedInParts' && (
+                                        <IconButton onClick={handleAddNewItem}>
+                                            <AddIcon />
+                                        </IconButton>
+                                    )}
                                     <IconButton>
                                         <SearchIcon />
                                     </IconButton>

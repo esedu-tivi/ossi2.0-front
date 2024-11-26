@@ -107,7 +107,17 @@ const NewProjectForm: React.FC = () => {
             case 'tags':
                 return ['Teema 1', 'Teema 2', 'Teema 3', 'Teema 4', 'Teema 5'];
             case 'osaamiset':
-                return ['Osaaminen 1', 'Osaaminen 2', 'Osaaminen 3', 'Osaaminen 4', 'Osaaminen 5'];
+                return [
+                    'Osaaminen 1',
+                    'Osaaminen 2',
+                    'Osaaminen 3',
+                    'Osaaminen 4',
+                    'Osaaminen 5',
+                    'sopii tehtävistä tiimin muiden jäsenten kanssa',
+                    'etsii ratkaisuvaihtoehtoja ja ratkoo ongelmia yhdessä tiimin kanssa',
+                    'arvioi ratkaisujen toimivuuden yhdessä tiimin kanssa',
+                    'arvioi omaa toimintaa tiimin jäsenenä',
+                ];
             case 'includedInParts':
                 return ['Tunniste 1', 'Tunniste 2', 'Tunniste 3', 'Tunniste 4', 'Tunniste 5'];
             default:
@@ -330,6 +340,7 @@ const NewProjectForm: React.FC = () => {
                 selectedItems={selectedItems[currentField]}
                 onAdd={handleAdd}
                 onClose={() => setSelectorOpen(false)}
+                currentField={currentField}
             />
         </Box>
     );
