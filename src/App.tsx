@@ -8,6 +8,8 @@ import Login from './components/Login';
 import TeacherProjectsView from './components/Routes/TeacherProjectsView';
 import CreateProject from './components/Routes/CreateProject';
 import AppLayout from './components/AppLayout';
+import ProjectDetails from './components/Routes/ProjectDetails';
+import EditProject from './components/Routes/EditProject';
 
 const App = () => {
     const { isAuthenticated, userEmail } = useAuth();
@@ -78,6 +80,30 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <CreateProject />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/teacherprojects/edit"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <EditProject />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/teacherprojects/:projectId"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <ProjectDetails />
                             </AppLayout>
                         }
                     />
