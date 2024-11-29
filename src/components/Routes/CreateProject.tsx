@@ -5,7 +5,7 @@ import { FormData } from '../../FormData';
 import { useMutation } from '@apollo/client';
 import { CREATE_PROJECT } from '../../graphql/CreateProject';
 import Selector from '../Selector';
-import { GetTags } from '../../graphql/GetTags';
+import { GET_TAGS } from '../../graphql/GetTags';
 
 const NewProjectForm: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -26,6 +26,7 @@ const NewProjectForm: React.FC = () => {
         includedInParts: [],
     });
     const [createProject, { loading, error, data }] = useMutation(CREATE_PROJECT);
+    const [tagsData] = useQuery(GET_TAGS);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -104,6 +105,7 @@ const NewProjectForm: React.FC = () => {
     };
 
     const getItems = () => {
+        console.log('tagsData:', tagsData);
         switch (currentField) {
             case 'tags':
                 return ['Teema 1', 'Teema 2', 'Teema 3', 'Teema 4', 'Teema 5'];
