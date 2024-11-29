@@ -1,13 +1,14 @@
 import { gql } from '@apollo/client';
 
-export const CREATE_PROJECT = gql`
-  mutation CreateProject($project: CreateProjectInput!) {
-    createProject(project: $project) {
+export const UPDATE_PROJECT = gql`
+  mutation Mutation($updateProjectId: ID!, $project: UpdateProjectInput!) {
+    updateProject(id: $updateProjectId, project: $project) {
       id
       name
       description
-      materials
       duration
+      materials
+      isActive
       includedInQualificationUnitParts {
         id
         name
@@ -16,7 +17,6 @@ export const CREATE_PROJECT = gql`
         id
         name
       }
-      isActive
     }
   }
 `;

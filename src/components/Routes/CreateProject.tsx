@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   TextField,
-  Button,
   Box,
   Switch,
   IconButton,
@@ -11,23 +10,31 @@ import {
   InputLabel,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { FormData } from '../../FormData';
+import SaveSharpIcon from '@mui/icons-material/SaveSharp';
+import { useNavigate } from "react-router-dom";
+import { CreateProjectFormData } from '../../FormData';
 import { useMutation } from '@apollo/client';
 import { CREATE_PROJECT } from '../../graphql/CreateProject';
+import { GET_PROJECTS } from '../../graphql/GetProjects';
 
 const NewProjectForm: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<CreateProjectFormData>({
     name: '',
     description: '',
     materials: '',
     osaamiset: [],
-    duration: '',
+    duration: 0,
     tags: [],
     includedInParts: [],
     isActive: false,
   });
 
-  const [createProject, { loading, error, data }] = useMutation(CREATE_PROJECT);
+  const [createProject, { loading, error, data }] = useMutation(CREATE_PROJECT, {
+    refetchQueries: [
+      { query: GET_PROJECTS }
+    ]
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -41,7 +48,7 @@ const NewProjectForm: React.FC = () => {
     setFormData({ ...formData, isActive: e.target.checked });
   };
 
-  const handleAddItem = (field: keyof Pick<FormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
+  const handleAddItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
     const newItem = prompt(`Lisää ${field}:`);
     if (newItem) {
       setFormData({
@@ -51,7 +58,7 @@ const NewProjectForm: React.FC = () => {
     }
   };
 
-  const handleRemoveItem = (field: keyof Pick<FormData, 'tags' | 'osaamiset' | 'includedInParts'>, index: number) => {
+  const handleRemoveItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>, index: number) => {
     setFormData({
       ...formData,
       [field]: formData[field].filter((_, i) => i !== index),
@@ -68,7 +75,7 @@ const NewProjectForm: React.FC = () => {
             name: formData.name,
             description: formData.description,
             materials: formData.materials,
-            osaamiset: formData.osaamiset,
+            duration: formData.duration,
             includedInParts: formData.includedInParts,
             tags: formData.tags,
             isActive: formData.isActive,
@@ -76,6 +83,7 @@ const NewProjectForm: React.FC = () => {
         },
       });
       console.log('GraphQL Response:', response.data);
+      navigate("/teacherprojects")
     } catch (err) {
       console.error('Submission Error:', err);
     }
@@ -146,7 +154,7 @@ const NewProjectForm: React.FC = () => {
           <TextField
             label="Projektin kuvaus"
             variant="outlined"
-            name="projectInfo"
+            name="description"
             value={formData.description}
             onChange={handleChange}
             fullWidth
@@ -306,13 +314,30 @@ const NewProjectForm: React.FC = () => {
         </Box>
       </FormControl>
 
-      <Button 
+      <IconButton 
         type="submit" 
-        variant="contained" 
-        sx={{ backgroundColor: '#65558F', borderRadius: 5, mt: 3, width: 1/4, padding: 1 }}
+        sx={{ 
+          backgroundColor: '#65558F', 
+          color: '#fff',
+          borderRadius: 5, 
+          mt: 3, 
+          width: 1/4, 
+          padding: 1,
+          fontSize: '1rem',
+          fontWeight: 400,
+          '&:hover': {
+          backgroundColor: '#4e4574',
+          },
+          boxShadow: 3,
+        }}
       >
+        <SaveSharpIcon
+          sx={{
+            mr: 1
+          }} 
+        />
         {loading ? 'Submitting...' : 'Luo Projekti'}
-      </Button>
+      </IconButton>
       {error && <Typography color="error">Virhe: {error.message}</Typography>}
       {data && <Typography color="success">Projekti lisätty</Typography>}
     </Box>
