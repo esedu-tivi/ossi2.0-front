@@ -9,7 +9,9 @@ const httpLink = new HttpLink({
     
     options.headers = {
       ...options.headers,
-      Authorization: token ? `Bearer ${token}` : "", 
+      // This line 14 is commented out because the token doesnt have all 
+      //the attributes needed on the server side
+      // Authorization: token ? `Bearer ${token}` : "", 
     };
 
     return fetch(uri, options);

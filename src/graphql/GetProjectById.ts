@@ -1,22 +1,24 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
-export const GET_PROJECTS = gql`
-  query Projects {
-    projects {
+export const GET_PROJECT_BY_ID = gql`
+  query GetProjectById($id: ID!) {
+    project(id: $id) {
       id
       name
       description
       duration
+      materials
+      isActive
       includedInQualificationUnitParts {
         id
         name
       }
-      materials
-      isActive
       tags {
         name
       }
     }
   }
 `;
+
+
 
