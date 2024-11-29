@@ -7,6 +7,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import Login from "./components/Login";
 import TeacherProjectsView from "./components/Routes/TeacherProjectsView";
 import CreateProject from './components/Routes/CreateProject';
+import EditProject from './components/Routes/EditProject'
 import AppLayout from "./components/AppLayout";
 
 const App = () => {
@@ -20,8 +21,8 @@ const App = () => {
     if (isAuthenticated) {
       console.log("Current location:", location.pathname);
   
-      const isTeacherRoute = userEmail.endsWith("@esedu.fi");
-      const isStudentRoute = userEmail.endsWith("@esedulainen.fi");
+      const isTeacherRoute = userEmail.endsWith("@esedulainen.fi");
+      const isStudentRoute = userEmail.endsWith("@esedu.fi");
   
       if (
         isTeacherRoute &&
@@ -87,6 +88,18 @@ const App = () => {
             element={
               <AppLayout>
                 <CreateProject/>
+              </AppLayout>
+            }
+          />
+        }
+      />
+      <Route
+        path="/teacherprojects/edit"
+        element={
+          <ProtectedRoute
+            element={
+              <AppLayout>
+                <EditProject/>
               </AppLayout>
             }
           />

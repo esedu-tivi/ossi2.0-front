@@ -9,7 +9,7 @@ const httpLink = new HttpLink({
     
     options.headers = {
       ...options.headers,
-      Authorization: token ? `Bearer ${token}` : "", 
+    //  Authorization: token ? `Bearer ${token}` : "", 
     };
 
     return fetch(uri, options);
