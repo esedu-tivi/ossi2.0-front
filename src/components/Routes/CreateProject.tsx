@@ -4,7 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import { useNavigate } from 'react-router-dom';
 import { CreateProjectFormData } from '../../FormData';
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_PROJECT } from '../../graphql/CreateProject';
 import Selector from '../Selector';
 import { GET_TAGS } from '../../graphql/GetTags';
@@ -23,7 +23,7 @@ const NewProjectForm: React.FC = () => {
         isActive: false,
     });
     const [selectorOpen, setSelectorOpen] = useState(false);
-    const [currentField, setCurrentField] = useState<keyof Pick<FormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
+    const [currentField, setCurrentField] = useState<keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: string[] }>({
         tags: [],
         osaamiset: [],
@@ -32,7 +32,7 @@ const NewProjectForm: React.FC = () => {
     const [createProject, { loading, error, data }] = useMutation(CREATE_PROJECT, {
         refetchQueries: [{ query: GET_PROJECTS }],
     });
-    const [tagsData] = useQuery(GET_TAGS);
+    const { loading: tagsLoading, error: tagsError, data: tagsData } = useQuery(GET_TAGS);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -58,14 +58,9 @@ const NewProjectForm: React.FC = () => {
         setSelectorOpen(false);
     };
 
-    const handleAddItem = (field: keyof Pick<FormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
-        const newItem = prompt(`Lisää ${field}:`);
-        if (newItem) {
-            setFormData({
-                ...formData,
-                [field]: [...formData[field], newItem] as string[],
-            });
-        }
+    const handleAddItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
+        setCurrentField(field);
+        setSelectorOpen(true);
     };
 
     const handleRemoveItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>, index: number) => {
@@ -117,10 +112,16 @@ const NewProjectForm: React.FC = () => {
     };
 
     const getItems = () => {
-        console.log('tagsData:', tagsData);
+        if (tagsLoading) {
+            return ['Ladataan...'];
+        }
+        if (tagsError) {
+            return ['Virhe ladattaessa teemoja'];
+        }
+
         switch (currentField) {
             case 'tags':
-                return ['Teema 1', 'Teema 2', 'Teema 3', 'Teema 4', 'Teema 5'];
+                return tagsData ? tagsData.parts.map((part: { name: string }) => part.name) : ['Teema 1', 'Teema 2', 'Teema 3', 'Teema 4', 'Teema 5'];
             case 'osaamiset':
                 return [
                     'Osaaminen 1',
@@ -363,15 +364,6 @@ const NewProjectForm: React.FC = () => {
                 />
                 {loading ? 'Submitting...' : 'Luo Projekti'}
             </IconButton>
-            {/* {error && <Typography color="error">Virhe: {error.message}</Typography>}
-      {data && <Typography color="success">Projekti lisätty</Typography>}
-    </Box>
-  ); */}
-            //{' '}
-            <Button type="submit" variant="contained" sx={{ backgroundColor: '#65558F', borderRadius: 5, mt: 3, width: 1 / 4, padding: 1 }}>
-                // {loading ? 'Submitting...' : 'Luo Projekti'}
-                //{' '}
-            </Button>
             {error && <Typography color="error">Virhe: {error.message}</Typography>}
             {data && <Typography color="success">Projekti lisätty</Typography>}
             <Selector
