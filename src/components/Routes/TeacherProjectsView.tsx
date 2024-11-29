@@ -22,7 +22,7 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { GET_PROJECTS } from "../../graphql/GetProjects";
 
-interface Project {
+export interface Project {
   id: number;
   name: string;
   includedInQualificationUnitParts: { id: number; name: string }[];
@@ -85,7 +85,9 @@ export default function ProjectTable() {
         <Table>
           <TableHead>
             <TableRow className="table-header">
-              <TableCell className="table-header-cell table-header-id">ID#</TableCell>
+              <TableCell className="table-header-cell table-header-id">
+                ID#
+              </TableCell>
               <TableCell
                 className="table-header-cell table-header-name"
                 onClick={handleSortByName}
@@ -99,7 +101,9 @@ export default function ProjectTable() {
                   ) : null}
                 </div>
               </TableCell>
-              <TableCell className="table-header-cell table-header-theme">Teemat</TableCell>
+              <TableCell className="table-header-cell table-header-theme">
+                Teemat
+              </TableCell>
               <TableCell className="table-header-cell">
                 <div className="search-container">
                   <SearchIcon />
@@ -139,6 +143,7 @@ export default function ProjectTable() {
                       color="primary"
                       startIcon={<InfoIcon />}
                       size="small"
+                      onClick={() => navigate(`/teacherprojects/${project.id}`)} // Navigate to project details
                     >
                       Tiedot
                     </Button>
@@ -160,4 +165,3 @@ export default function ProjectTable() {
     </div>
   );
 }
-
