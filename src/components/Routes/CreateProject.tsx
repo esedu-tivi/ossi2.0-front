@@ -5,6 +5,7 @@ import { FormData } from '../../FormData';
 import { useMutation } from '@apollo/client';
 import { CREATE_PROJECT } from '../../graphql/CreateProject';
 import Selector from '../Selector';
+import { GetTags } from '../../graphql/GetTags';
 
 const NewProjectForm: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
