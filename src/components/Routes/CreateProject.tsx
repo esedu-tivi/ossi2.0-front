@@ -10,7 +10,6 @@ import Selector from '../Selector';
 import { GET_TAGS } from '../../graphql/GetTags';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
-// import { CREATE_PROJECT_TAG } from '../../graphql/CreateProjectTag';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
@@ -36,9 +35,6 @@ const NewProjectForm: React.FC = () => {
     });
     const { loading: tagsLoading, error: tagsError, data: tagsData } = useQuery(GET_TAGS);
     const { loading: projectTagsLoading, error: projectTagsError, data: projectTagsData, refetch } = useQuery(GET_PROJECT_TAGS);
-    // const [createProjectTag] = useMutation(CREATE_PROJECT_TAG, {
-    //     refetchQueries: [{ query: GET_PROJECT_TAGS }],
-    // });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
