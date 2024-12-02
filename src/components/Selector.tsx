@@ -20,6 +20,8 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import { useMutation } from '@apollo/client';
+import { CREATE_PROJECT_TAG } from '../graphql/CreateProjectTag';
 
 interface SelectorProps {
     items: string[];
@@ -30,11 +32,23 @@ interface SelectorProps {
     onAdd: (selectedItems: string[]) => void;
     onClose: () => void;
     currentField: string;
+    updateProjectTags: (newTag: string) => void;
 }
 
-const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, open, selectedItems: initialSelectedItems, onAdd, onClose, currentField }) => {
+const Selector: React.FC<SelectorProps> = ({
+    items,
+    title,
+    buttonText,
+    open,
+    selectedItems: initialSelectedItems,
+    onAdd,
+    onClose,
+    currentField,
+    updateProjectTags,
+}) => {
     const [selectedItems, setSelectedItems] = useState<string[]>(initialSelectedItems);
     const [searchTerm, setSearchTerm] = useState('');
+    const [createProjectTag] = useMutation(CREATE_PROJECT_TAG);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -68,11 +82,20 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, open, sel
         setSearchTerm(event.target.value);
     };
 
-    const handleAddNewItem = () => {
+    const handleAddNewItem = async () => {
         if (searchTerm && !items.includes(searchTerm)) {
-            items.push(searchTerm);
-            setSelectedItems([...selectedItems, searchTerm]);
-            setSearchTerm('');
+            try {
+                const { data } = await createProjectTag({
+                    variables: { name: searchTerm },
+                });
+                const newTag = data.createProjectTag.name;
+                items.push(newTag);
+                setSelectedItems([...selectedItems, newTag]);
+                setSearchTerm('');
+                updateProjectTags(); // Päivitä tunnisteet lista
+            } catch (error) {
+                console.error('Error creating new tag:', error);
+            }
         }
     };
 
@@ -99,7 +122,7 @@ const Selector: React.FC<SelectorProps> = ({ items, title, buttonText, open, sel
                 <Box sx={{ position: 'sticky', top: 0, zIndex: 1, backgroundColor: '#fff', padding: 0 }}>
                     <TextField
                         variant="outlined"
-                        placeholder="Hae"
+                        placeholder={currentField === 'includedInParts' ? 'Hae tai lisää uusi tunniste' : 'Hae'}
                         fullWidth
                         value={searchTerm}
                         onChange={handleSearchChange}
