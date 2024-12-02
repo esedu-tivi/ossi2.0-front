@@ -59,6 +59,10 @@ const NewProjectForm: React.FC = () => {
     };
 
     const handleAddItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
+        if (field !== 'tags' && formData.tags.length === 0) {
+            alert('Valitse ensin Teema.');
+            return;
+        }
         setCurrentField(field);
         setSelectorOpen(true);
     };
