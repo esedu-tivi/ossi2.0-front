@@ -9,6 +9,7 @@ import { CREATE_PROJECT } from '../../graphql/CreateProject';
 import Selector from '../Selector';
 import { GET_TAGS } from '../../graphql/GetTags';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
+import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
@@ -33,6 +34,7 @@ const NewProjectForm: React.FC = () => {
         refetchQueries: [{ query: GET_PROJECTS }],
     });
     const { loading: tagsLoading, error: tagsError, data: tagsData } = useQuery(GET_TAGS);
+    const { loading: projectTagsLoading, error: projectTagsError, data: projectTagsData, refetch } = useQuery(GET_PROJECT_TAGS);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -59,6 +61,11 @@ const NewProjectForm: React.FC = () => {
     };
 
     const handleAddItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
+        if (field !== 'tags' && formData.tags.length === 0) {
+            alert('Valitse ensin Teema.');
+            return;
+        }
+
         setCurrentField(field);
         setSelectorOpen(true);
     };
@@ -118,6 +125,12 @@ const NewProjectForm: React.FC = () => {
         if (tagsError) {
             return ['Virhe ladattaessa teemoja'];
         }
+        if (projectTagsLoading) {
+            return ['Ladataan...'];
+        }
+        if (projectTagsError) {
+            return ['Virhe ladattaessa tunnisteita'];
+        }
 
         switch (currentField) {
             case 'tags':
@@ -135,10 +148,14 @@ const NewProjectForm: React.FC = () => {
                     'arvioi omaa toimintaa tiimin jäsenenä',
                 ];
             case 'includedInParts':
-                return ['Tunniste 1', 'Tunniste 2', 'Tunniste 3', 'Tunniste 4', 'Tunniste 5'];
+                return projectTagsData ? projectTagsData.projectTags.map((projectTag: { name: string }) => projectTag.name) : [];
             default:
                 return [];
         }
+    };
+
+    const updateProjectTags = () => {
+        refetch();
     };
 
     const { title, buttonText } = getTitleAndButtonText();
@@ -375,6 +392,7 @@ const NewProjectForm: React.FC = () => {
                 onAdd={handleAdd}
                 onClose={() => setSelectorOpen(false)}
                 currentField={currentField}
+                updateProjectTags={updateProjectTags}
             />
         </Box>
     );
