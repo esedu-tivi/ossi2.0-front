@@ -19,8 +19,8 @@ import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
 
 
 const ProjectDetails = () => {
-  const { projectId } = useParams();
   const navigate = useNavigate();
+  const { projectId } = useParams();
 
   const { loading, error, data } = useQuery(GET_PROJECT_BY_ID, {
     variables: { id: projectId },
@@ -33,6 +33,15 @@ const ProjectDetails = () => {
 
   if (!project) return <Typography>Project not found</Typography>;
 
+  const handleCopy = () => {
+    navigate('/teacherprojects/new', {
+      state: {
+        description: project.description,
+        materials: project.materials,
+        includedInParts: project.includedInParts,
+      },
+    });
+  };
   return (
     <Container
       maxWidth="lg"
@@ -71,6 +80,7 @@ const ProjectDetails = () => {
           variant="contained"
           startIcon={<ContentCopyIcon />}
           sx={{ backgroundColor: '#65558F', borderRadius: 2 }}
+          onClick={handleCopy}
         >
           Kopioi
         </Button>
@@ -78,6 +88,7 @@ const ProjectDetails = () => {
           variant="contained"
           startIcon={<EditIcon />}
           sx={{ backgroundColor: '#65558F', borderRadius: 2 }}
+          onClick={() => navigate(`/teacherprojects/edit/${project.id}`)}
         >
           Muokkaa
         </Button>
@@ -102,63 +113,62 @@ const ProjectDetails = () => {
           <Typography variant="h6" gutterBottom>
             Projektin nimi
           </Typography>
-          <TextField
-            // disabled
-            variant="outlined"
-            value={project.name}
-            slotProps={{
-              input: {
-                style: {
-                  color: 'black',
-                  fontSize: '18px',
-                  letterSpacing: '0.5px', 
-                },
-              },
-            }}
-            sx={{ mb: 3, backgroundColor: '#ffffff', width: '100%' }}
-          />
+          <Box
+        sx={{
+          padding: 2,
+          backgroundColor: '#ffffff',
+          border: '1px solid #ddd',
+          borderRadius: 1,
+          maxHeight: 200, // Add scroll for long text
+          overflowY: 'auto',
+          fontSize: '16px',
+          color: 'black',
+          letterSpacing: '0.5px',
+          fontFamily: 'Arial, sans-serif',
+        }}
+      >
+        {project.name}
+      </Box>
 
           <Typography variant="h6" gutterBottom>
             Projektin kuvaus
           </Typography>
-          <TextField
-            // disabled
-            variant="outlined"
-            multiline
-            minRows={4}
-            value={project.description}
-            slotProps={{
-              input: {
-                style: {
-                  color: 'black', 
-                  fontSize: '16px',
-                  letterSpacing: '0.5px', 
-                },
-              },
-            }}
-            sx={{ mb: 3, backgroundColor: '#ffffff', width: '100%' }}
-          />
+          <Box
+        sx={{
+          padding: 2,
+          backgroundColor: '#ffffff',
+          border: '1px solid #ddd',
+          borderRadius: 1,
+          maxHeight: 600,
+          overflowY: 'auto',
+          fontSize: '16px',
+          color: 'black',
+          letterSpacing: '0.5px',
+          fontFamily: 'Arial, sans-serif',
+        }}
+      >
+        {project.description}
+      </Box>
 
           <Typography variant="h6" gutterBottom>
             Materiaalit
           </Typography>
-          <TextField
-            // disabled
-            variant="outlined"
-            multiline
-            minRows={4}
-            value={project.materials}
-            slotProps={{
-              input: {
-                style: {
-                  color: 'black', 
-                  fontSize: '16px', 
-                  letterSpacing: '0.5px',
-                },
-              },
-            }}
-            sx={{ mb: 3, backgroundColor: '#ffffff', width: '100%' }}
-          />
+          <Box
+        sx={{
+          padding: 2,
+          backgroundColor: '#ffffff',
+          border: '1px solid #ddd',
+          borderRadius: 1,
+          maxHeight: 800, 
+          overflowY: 'auto',
+          fontSize: '16px',
+          color: 'black',
+          letterSpacing: '0.5px',
+          fontFamily: 'Arial, sans-serif',
+        }}
+      >
+        {project.materials}
+      </Box>
 
           <Typography variant="h6" gutterBottom>
             Ajankäyttö

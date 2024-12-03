@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextField, Box, Switch, IconButton, Typography, Chip, FormControl, InputLabel } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CreateProjectFormData } from '../../FormData';
 import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_PROJECT } from '../../graphql/CreateProject';
@@ -13,6 +13,7 @@ import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [formData, setFormData] = useState<CreateProjectFormData>({
         name: '',
         description: '',
@@ -23,6 +24,18 @@ const NewProjectForm: React.FC = () => {
         includedInParts: [],
         isActive: false,
     });
+
+    useEffect(() => {
+        if (location.state) {
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+                description: location.state.description || '',
+                materials: location.state.materials || '',
+                includedInParts: location.state.includedInParts || [],
+            }));
+        }
+    }, [location.state]);
+
     const [selectorOpen, setSelectorOpen] = useState(false);
     const [currentField, setCurrentField] = useState<keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: string[] }>({
