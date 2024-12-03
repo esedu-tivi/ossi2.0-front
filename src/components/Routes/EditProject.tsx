@@ -274,7 +274,7 @@ const EditProject: React.FC = () => {
             <TextField
               label="Projektin kuvaus"
               variant="outlined"
-              name="projectInfo"
+              name="description"
               value={formData.description}
               onChange={handleChange}
               fullWidth
