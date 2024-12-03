@@ -86,7 +86,7 @@ const App = () => {
                 }
             />
             <Route
-                path="/teacherprojects/edit"
+                path="/teacherprojects/edit/:projectId"
                 element={
                     <ProtectedRoute
                         element={

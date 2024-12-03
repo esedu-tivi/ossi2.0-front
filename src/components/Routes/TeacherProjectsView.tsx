@@ -135,7 +135,7 @@ export default function ProjectTable() {
                       color="primary"
                       startIcon={<EditIcon />}
                       size="small"
-                      onClick={() => navigate(`/teacherprojects/edit`)}
+                      onClick={() => navigate(`/teacherprojects/edit/${project.id}`)}
                     >
                       Muokkaa
                     </Button>

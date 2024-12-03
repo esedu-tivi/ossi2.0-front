@@ -12,6 +12,6 @@ export interface BaseProjectFormData {
 export interface CreateProjectFormData extends BaseProjectFormData {}
 
 export interface EditProjectFormData extends BaseProjectFormData {
-  changeNotification?: boolean;
-  changeNotificationText?: string;
+  notifyStudents?: boolean;
+  notifyStudentsText?: string;
 }

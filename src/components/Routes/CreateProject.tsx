@@ -7,7 +7,7 @@ import { CreateProjectFormData } from '../../FormData';
 import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_PROJECT } from '../../graphql/CreateProject';
 import Selector from '../Selector';
-import { GET_TAGS } from '../../graphql/GetTags';
+import { GET_PARTS } from '../../graphql/GetParts';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 
@@ -33,7 +33,7 @@ const NewProjectForm: React.FC = () => {
     const [createProject, { loading, error, data }] = useMutation(CREATE_PROJECT, {
         refetchQueries: [{ query: GET_PROJECTS }],
     });
-    const { loading: tagsLoading, error: tagsError, data: tagsData } = useQuery(GET_TAGS);
+    const { loading: partsLoading, error: partsError, data: partsData } = useQuery(GET_PARTS);
     const { loading: projectTagsLoading, error: projectTagsError, data: projectTagsData, refetch } = useQuery(GET_PROJECT_TAGS);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -61,7 +61,7 @@ const NewProjectForm: React.FC = () => {
     };
 
     const handleAddItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
-        if (field !== 'tags' && formData.tags.length === 0) {
+        if (field !== 'includedInParts' && formData.includedInParts.length === 0) {
             alert('Valitse ensin Teema.');
             return;
         }
@@ -108,21 +108,21 @@ const NewProjectForm: React.FC = () => {
     const getTitleAndButtonText = () => {
         switch (currentField) {
             case 'tags':
-                return { title: 'Valitse Teemat', buttonText: 'Lisää Teemat' };
+                return { title: 'Valitse Tunnisteet', buttonText: 'Lisää Tunnisteet' };
             case 'osaamiset':
                 return { title: 'Valitse Osaamiset', buttonText: 'Lisää Osaamiset' };
             case 'includedInParts':
-                return { title: 'Valitse Tunnisteet', buttonText: 'Lisää Tunnisteet' };
+                return { title: 'Valitse Teemat', buttonText: 'Lisää Teemat' };
             default:
                 return { title: '', buttonText: '' };
         }
     };
 
     const getItems = () => {
-        if (tagsLoading) {
+        if (partsLoading) {
             return ['Ladataan...'];
         }
-        if (tagsError) {
+        if (partsError) {
             return ['Virhe ladattaessa teemoja'];
         }
         if (projectTagsLoading) {
@@ -134,7 +134,7 @@ const NewProjectForm: React.FC = () => {
 
         switch (currentField) {
             case 'tags':
-                return tagsData ? tagsData.parts.map((part: { name: string }) => part.name) : ['Teema 1', 'Teema 2', 'Teema 3', 'Teema 4', 'Teema 5'];
+                return projectTagsData ? projectTagsData.projectTags.map((projectTag: { name: string }) => projectTag.name) : [];
             case 'osaamiset':
                 return [
                     'Osaaminen 1',
@@ -148,7 +148,7 @@ const NewProjectForm: React.FC = () => {
                     'arvioi omaa toimintaa tiimin jäsenenä',
                 ];
             case 'includedInParts':
-                return projectTagsData ? projectTagsData.projectTags.map((projectTag: { name: string }) => projectTag.name) : [];
+                return partsData ? partsData.parts.map((part: { name: string }) => part.name) : ['Teema 1', 'Teema 2', 'Teema 3', 'Teema 4', 'Teema 5'];
             default:
                 return [];
         }
@@ -252,11 +252,16 @@ const NewProjectForm: React.FC = () => {
                                 minHeight: 32,
                             }}
                         >
-                            {formData.tags.map((tag, index) => (
-                                <Chip key={index} label={tag} onDelete={() => handleRemoveItem('tags', index)} sx={{ backgroundColor: '#E0E0E0' }} />
+                            {formData.includedInParts.map((parts, index) => (
+                                <Chip
+                                    key={index}
+                                    label={parts}
+                                    onDelete={() => handleRemoveItem('includedInParts', index)}
+                                    sx={{ backgroundColor: '#E0E0E0' }}
+                                />
                             ))}
                             <IconButton
-                                onClick={() => handleAddItem('tags')}
+                                onClick={() => handleAddItem('includedInParts')}
                                 color="primary"
                                 sx={{
                                     position: 'absolute',
@@ -316,16 +321,15 @@ const NewProjectForm: React.FC = () => {
                                 minHeight: 32,
                             }}
                         >
-                            {formData.includedInParts.map((parts, index) => (
-                                <Chip
-                                    key={index}
-                                    label={parts}
-                                    onDelete={() => handleRemoveItem('includedInParts', index)}
-                                    sx={{ backgroundColor: '#E0E0E0' }}
-                                />
+                            {formData.tags.map((tag, index) => (
+                                <Chip 
+                                    key={index} 
+                                    label={tag} 
+                                    onDelete={() => handleRemoveItem('tags', index)} 
+                                    sx={{ backgroundColor: '#E0E0E0' }} />
                             ))}
                             <IconButton
-                                onClick={() => handleAddItem('includedInParts')}
+                                onClick={() => handleAddItem('tags')}
                                 color="primary"
                                 sx={{
                                     position: 'absolute',

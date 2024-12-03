@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from "react-router-dom";
 import {
   TextField,
   Box,
@@ -15,11 +15,15 @@ import DriveFolderUploadSharpIcon from '@mui/icons-material/DriveFolderUploadSha
 import UndoSharpIcon from '@mui/icons-material/UndoSharp';
 import SaveAsSharpIcon from '@mui/icons-material/SaveAsSharp';
 import { EditProjectFormData } from '../../FormData';
-import { useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
+import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { UPDATE_PROJECT } from '../../graphql/UpdateProject';
 
 const EditProject: React.FC = () => {
   const navigate = useNavigate();
+  const { projectId } = useParams();
+
   const [formData, setFormData] = useState<EditProjectFormData>({
     name: '',
     description: '',
@@ -29,17 +33,55 @@ const EditProject: React.FC = () => {
     tags: [],
     includedInParts: [],
     isActive: false,
-    changeNotification: false,
-    changeNotificationText: '',
+    notifyStudents: false,
+    notifyStudentsText: '',
   });
 
-  const [updateProject, { loading, error, data }] = useMutation(UPDATE_PROJECT);
+  const { loading, error, data } = useQuery(GET_PROJECT_BY_ID, {
+    variables: { id: projectId },
+  });
+
+  useEffect(() => {
+    console.log('Route projectId:', projectId);
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!loading && data?.project) {
+      console.log('Fetched project:', data.project);
+    }
+  }, [data, loading]);
+
+  useEffect(() => {
+    if (!loading && data?.project && projectId) {
+      setFormData({
+        name: data.project.name || '',
+        description: data.project.description || '',
+        materials: data.project.materials || '',
+        osaamiset: data.project.osaamiset || [],
+        duration: Number(data.project.duration) || 0,
+        includedInParts: data.project.includedInQualificationUnitParts.map((part: any) => part.name) || [],
+        tags: data.project.tags || [],
+        isActive: Boolean(data.project.isActive) ?? false,
+        notifyStudents: data.project.notifyStudents ?? false,
+        notifyStudentsText: data.project.notifyStudentsText || '',
+      });
+    }
+  }, [data, loading]);
+
+  const project = data?.project;
+
+  const [updateProject] = useMutation(UPDATE_PROJECT, {
+    onCompleted() {
+      navigate('/teacherprojects');
+    },
+    refetchQueries: [{ query: GET_PROJECTS }],
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === 'duration' ? (value === '' ? '' : Number(value)) : value,
+      [name]: name === 'duration' ? (value === '' ? 0 : Number(value)) : value,
     });
   };
 
@@ -47,12 +89,12 @@ const EditProject: React.FC = () => {
     setFormData({ ...formData, isActive: e.target.checked });
   };
 
-  const handleChangeNotification = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { checked } = event.target;
     setFormData((prev) => ({
       ...prev,
-      changeNotification: checked,
-      changeNotificationText: checked ? prev.changeNotificationText : '',
+      notifyStudents: checked,
+      notifyStudentsText: checked ? prev.notifyStudentsText : '',
     }));
   };
 
@@ -75,26 +117,38 @@ const EditProject: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+    console.log('Submitting updates for projectId:', projectId);
+    console.log('Form data:', formData);
+    console.log("UpdateProject Variables:", project);
+    if (!projectId) {
+      console.error("Project ID is missing, cannot submit the form.");
+      return;
+    }
     try {
       const response = await updateProject({
         variables: {
+          updateProjectId: projectId,
           project: {
             name: formData.name,
             description: formData.description,
             materials: formData.materials,
-            osaamiset: formData.osaamiset,
+            duration: formData.duration,
             includedInParts: formData.includedInParts,
             tags: formData.tags,
             isActive: formData.isActive,
+            notifyStudents: formData.notifyStudents,
           },
         },
       });
-      console.log('GraphQL Response:', response.data);
+
+      console.log('Updated project:', response.data);
     } catch (err) {
-      console.error('Submission Error:', err);
+      console.error('Error updating project:', err);
     }
   };
+
+  if (loading) return <Typography>Loading project details...</Typography>;
+  if (error) return <Typography color="error">Error loading project: {error.message}</Typography>;
 
   return (
     <Box
@@ -182,7 +236,7 @@ const EditProject: React.FC = () => {
           }}
         >
           <Typography variant="h4" align="center" color="white">
-            Muokkaa projektia
+            Muokkaa projektia #{project.id} {project.name}
           </Typography>
         </Box>
 
@@ -229,12 +283,12 @@ const EditProject: React.FC = () => {
               sx={{ my: 2 }}
             />
 
-            {formData.changeNotification && (
+            {formData.notifyStudents && (
               <TextField
                 label="Muutosilmoitus"
                 variant="outlined"
-                name="changeNotificationText"
-                value={formData.changeNotificationText}
+                name="notifyStudentsText"
+                value={formData.notifyStudentsText}
                 onChange={handleChange}
                 fullWidth
                 multiline
@@ -276,16 +330,16 @@ const EditProject: React.FC = () => {
                   minHeight: 32,
                 }}
               >
-                {formData.tags.map((tag, index) => (
+                {formData.includedInParts.map((parts, index) => (
                   <Chip
                     key={index}
-                    label={tag}
-                    onDelete={() => handleRemoveItem('tags', index)}
+                    label={parts}
+                    onDelete={() => handleRemoveItem('includedInParts', index)}
                     sx={{ backgroundColor: '#E0E0E0' }}
                   />
                 ))}
                 <IconButton
-                  onClick={() => handleAddItem('tags')}
+                  onClick={() => handleAddItem('includedInParts')}
                   color="primary"
                   sx={{
                     position: 'absolute',
@@ -362,16 +416,16 @@ const EditProject: React.FC = () => {
                   minHeight: 32,
                 }}
               >
-                {formData.includedInParts.map((parts, index) => (
+                {formData.tags.map((tag, index) => (
                   <Chip
                     key={index}
-                    label={parts}
-                    onDelete={() => handleRemoveItem('includedInParts', index)}
+                    label={tag}
+                    onDelete={() => handleRemoveItem('tags', index)}
                     sx={{ backgroundColor: '#E0E0E0' }}
                   />
                 ))}
                 <IconButton
-                  onClick={() => handleAddItem('includedInParts')}
+                  onClick={() => handleAddItem('tags')}
                   color="primary"
                   sx={{
                     position: 'absolute',
@@ -402,7 +456,7 @@ const EditProject: React.FC = () => {
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Typography>{formData.isActive ? 'Aktiivinen' : 'Ei aktiivinen'}</Typography>
                 <Switch
-                  checked={formData.isActive}
+                  checked={!!formData.isActive}
                   onChange={handleToggleActivity}
                   name="isActive"
                   color="primary"
@@ -425,14 +479,14 @@ const EditProject: React.FC = () => {
                 Muutosilmoitus
               </Typography>
               <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Typography>{formData.changeNotification 
+                <Typography>{formData.notifyStudents 
                   ? 'Ilmoitetaan opiskelijoille' 
                   : 'Ei ilmoiteta'}
                 </Typography>
                 <Switch
-                  checked={formData.changeNotification}
-                  onChange={handleChangeNotification}
-                  name="changeNotification"
+                  checked={formData.notifyStudents}
+                  onChange={handleNotifyStudents}
+                  name="notifyStudents"
                   color="primary"
                 />
               </Box>
@@ -462,10 +516,8 @@ const EditProject: React.FC = () => {
               mr: 1
             }} 
           />
-          {loading ? 'Submitting...' : 'Tallenna muutokset'}
+          Tallenna muutokset
         </IconButton>
-        {error && <Typography color="error">Virhe: {error.message}</Typography>}
-        {data && <Typography color="success">Projekti päivitetty</Typography>}
       </Box>
     </Box>
   );
