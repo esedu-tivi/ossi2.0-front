@@ -202,10 +202,10 @@ const NewProjectForm: React.FC = () => {
                     <TextField label="Projektin nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
 
                     <TextField
-                        label="Materiaalit"
+                        label="Projektin kuvaus"
                         variant="outlined"
-                        name="materials"
-                        value={formData.materials}
+                        name="description"
+                        value={formData.description}
                         onChange={handleChange}
                         fullWidth
                         multiline
@@ -214,10 +214,10 @@ const NewProjectForm: React.FC = () => {
                     />
 
                     <TextField
-                        label="Projektin kuvaus"
+                        label="Materiaalit"
                         variant="outlined"
-                        name="description"
-                        value={formData.description}
+                        name="materials"
+                        value={formData.materials}
                         onChange={handleChange}
                         fullWidth
                         multiline
