@@ -34,16 +34,27 @@ export default function ProjectTable() {
   const { loading, error, data } = useQuery(GET_PROJECTS);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
+  const [sortConfig, setSortConfig] = useState<{
+    column: string | null;
+    order: "asc" | "desc" | null;
+  }>({ column: null, order: null });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setSearchQuery(event.target.value);
 
-  const handleSortByName = () => {
-    setSortOrder((prevOrder) => {
-      if (prevOrder === "asc") return "desc";
-      if (prevOrder === "desc") return null;
-      return "asc";
+  const handleSort = (column: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.column !== column) {
+        return { column, order: "asc" };
+      }
+
+      if (prevConfig.order === "asc") {
+        return { column, order: "desc" };
+      }
+      if (prevConfig.order === "desc") {
+        return { column: null, order: null };
+      }
+      return { column, order: "asc" };
     });
   };
 
@@ -57,11 +68,35 @@ export default function ProjectTable() {
         )
     )
     .sort((a, b) => {
-      if (sortOrder === null) return 0; // No sorting
-      const nameA = a.name.toLowerCase();
-      const nameB = b.name.toLowerCase();
-      if (sortOrder === "asc") return nameA > nameB ? 1 : -1;
-      return nameA < nameB ? 1 : -1;
+      if (sortConfig.order === null || sortConfig.column === null) return 0;
+      let valueA, valueB;
+
+      switch (sortConfig.column) {
+        case "name":
+          valueA = a.name.toLowerCase();
+          valueB = b.name.toLowerCase();
+          break;
+        case "id":
+          valueA = a.id;
+          valueB = b.id;
+          break;
+        case "themes":
+          valueA = a.includedInQualificationUnitParts
+            .map((part) => part.name)
+            .join(", ")
+            .toLowerCase();
+          valueB = b.includedInQualificationUnitParts
+            .map((part) => part.name)
+            .join(", ")
+            .toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (valueA > valueB) return sortConfig.order === "asc" ? 1 : -1;
+      if (valueA < valueB) return sortConfig.order === "asc" ? -1 : 1;
+      return 0;
     });
 
   if (loading) return <p>Loading...</p>;
@@ -85,24 +120,44 @@ export default function ProjectTable() {
         <Table>
           <TableHead>
             <TableRow className="table-header">
-              <TableCell className="table-header-cell table-header-id">
-                ID#
-              </TableCell>
               <TableCell
-                className="table-header-cell table-header-name"
-                onClick={handleSortByName}
+                className="table-header-cell table-header-id"
+                onClick={() => handleSort("id")}
               >
                 <div className="sortable-header">
-                  Projektin nimi
-                  {sortOrder === "asc" ? (
+                  ID#
+                  {sortConfig.column === "id" && sortConfig.order === "asc" ? (
                     <ArrowUpwardIcon fontSize="small" />
-                  ) : sortOrder === "desc" ? (
+                  ) : sortConfig.column === "id" && sortConfig.order === "desc" ? (
                     <ArrowDownwardIcon fontSize="small" />
                   ) : null}
                 </div>
               </TableCell>
-              <TableCell className="table-header-cell table-header-theme">
-                Teemat
+              <TableCell
+                className="table-header-cell table-header-name"
+                onClick={() => handleSort("name")}
+              >
+                <div className="sortable-header">
+                  Projektin nimi
+                  {sortConfig.column === "name" && sortConfig.order === "asc" ? (
+                    <ArrowUpwardIcon fontSize="small" />
+                  ) : sortConfig.column === "name" && sortConfig.order === "desc" ? (
+                    <ArrowDownwardIcon fontSize="small" />
+                  ) : null}
+                </div>
+              </TableCell>
+              <TableCell
+                className="table-header-cell table-header-theme"
+                onClick={() => handleSort("themes")}
+              >
+                <div className="sortable-header">
+                  Teemat
+                  {sortConfig.column === "themes" && sortConfig.order === "asc" ? (
+                    <ArrowUpwardIcon fontSize="small" />
+                  ) : sortConfig.column === "themes" && sortConfig.order === "desc" ? (
+                    <ArrowDownwardIcon fontSize="small" />
+                  ) : null}
+                </div>
               </TableCell>
               <TableCell className="table-header-cell">
                 <div className="search-container">
@@ -144,7 +199,7 @@ export default function ProjectTable() {
                       color="primary"
                       startIcon={<InfoIcon />}
                       size="small"
-                      onClick={() => navigate(`/teacherprojects/${project.id}`)} // Navigate to project details
+                      onClick={() => navigate(`/teacherprojects/${project.id}`)}
                     >
                       Tiedot
                     </Button>
