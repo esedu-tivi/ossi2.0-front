@@ -98,14 +98,14 @@ const Selector: React.FC<SelectorProps> = ({
                 items.push(newTag);
                 setSelectedItems([...selectedItems, newTag]);
                 setSearchTerm('');
-                updateProjectTags(); // Päivitä tunnisteet lista
+                updateProjectTags(newTag); // Päivitä tunnisteet lista
             } catch (error) {
                 console.error('Error creating new tag:', error);
             }
         }
     };
 
-    const filteredItems = items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredItems = items.filter((item) => item && item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <Dialog open={open} onClose={onClose} fullScreen={isMobile}>
