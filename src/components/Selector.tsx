@@ -23,16 +23,21 @@ import AddIcon from '@mui/icons-material/Add';
 import { useMutation } from '@apollo/client';
 import { CREATE_PROJECT_TAG } from '../graphql/CreateProjectTag';
 
+interface Item {
+    id: string;
+    name: string;
+}
+
 interface SelectorProps {
-    items: string[];
+    items: Item[];
     title: string;
     open: boolean;
     buttonText: string;
-    selectedItems: string[];
-    onAdd: (selectedItems: string[]) => void;
+    selectedItems: Item[];
+    onAdd: (selectedItems: Item[]) => void;
     onClose: () => void;
     currentField: string;
-    updateProjectTags: (newTag: string) => void;
+    updateProjectTags: (newTag: Item) => void;
 }
 
 const Selector: React.FC<SelectorProps> = ({
@@ -46,7 +51,7 @@ const Selector: React.FC<SelectorProps> = ({
     currentField,
     updateProjectTags,
 }) => {
-    const [selectedItems, setSelectedItems] = useState<string[]>(initialSelectedItems);
+    const [selectedItems, setSelectedItems] = useState<Item[]>(initialSelectedItems);
     const [searchTerm, setSearchTerm] = useState('');
     const [createProjectTag] = useMutation(CREATE_PROJECT_TAG);
 
@@ -60,8 +65,8 @@ const Selector: React.FC<SelectorProps> = ({
         }
     }, [open, initialSelectedItems]);
 
-    const handleToggle = (value: string) => () => {
-        const currentIndex = selectedItems.indexOf(value);
+    const handleToggle = (value: Item) => () => {
+        const currentIndex = selectedItems.findIndex((item) => item.id === value.id);
         const newChecked = [...selectedItems];
 
         if (currentIndex === -1) {
@@ -74,6 +79,7 @@ const Selector: React.FC<SelectorProps> = ({
     };
 
     const handleAdd = () => {
+        console.log('selectedItems', selectedItems);
         onAdd(selectedItems);
         onClose();
     };
@@ -83,12 +89,12 @@ const Selector: React.FC<SelectorProps> = ({
     };
 
     const handleAddNewItem = async () => {
-        if (searchTerm && !items.includes(searchTerm)) {
+        if (searchTerm && !items.some((item) => item.name === searchTerm)) {
             try {
                 const { data } = await createProjectTag({
                     variables: { name: searchTerm },
                 });
-                const newTag = data.createProjectTag.name;
+                const newTag = { id: data.createProjectTag.id, name: data.createProjectTag.name };
                 items.push(newTag);
                 setSelectedItems([...selectedItems, newTag]);
                 setSearchTerm('');
@@ -99,7 +105,7 @@ const Selector: React.FC<SelectorProps> = ({
         }
     };
 
-    const filteredItems = items.filter((item) => item.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredItems = items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <Dialog open={open} onClose={onClose} fullScreen={isMobile}>
@@ -122,14 +128,14 @@ const Selector: React.FC<SelectorProps> = ({
                 <Box sx={{ position: 'sticky', top: 0, zIndex: 1, backgroundColor: '#fff', padding: 0 }}>
                     <TextField
                         variant="outlined"
-                        placeholder={currentField === 'includedInParts' ? 'Hae tai lisää uusi tunniste' : 'Hae'}
+                        placeholder={currentField === 'tags' ? 'Hae tai lisää uusi tunniste' : 'Hae'}
                         fullWidth
                         value={searchTerm}
                         onChange={handleSearchChange}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    {currentField === 'includedInParts' && (
+                                    {currentField === 'tags' && (
                                         <IconButton onClick={handleAddNewItem}>
                                             <AddIcon />
                                         </IconButton>
@@ -146,8 +152,8 @@ const Selector: React.FC<SelectorProps> = ({
                         <Box sx={{ padding: 1, backgroundColor: '#ece6f0', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                             <Typography variant="caption">Valitut:</Typography>
                             {selectedItems.map((item) => (
-                                <Typography key={item} variant="caption" sx={{ marginRight: 1 }}>
-                                    {item}
+                                <Typography key={item.id} variant="caption" sx={{ marginRight: 1 }}>
+                                    {item.name}
                                 </Typography>
                             ))}
                         </Box>
@@ -157,10 +163,10 @@ const Selector: React.FC<SelectorProps> = ({
                     {filteredItems.map((item) => (
                         <ListItem
                             sx={{ borderBottom: 1, borderColor: '#ddd', paddingTop: 0, paddingBottom: 0, display: 'flex', justifyContent: 'space-between' }}
-                            key={item}
+                            key={item.id}
                             onClick={handleToggle(item)}
                         >
-                            <ListItemText primary={item} />
+                            <ListItemText primary={item.name} />
                             <Checkbox
                                 sx={{
                                     marginLeft: 'auto',
@@ -169,7 +175,7 @@ const Selector: React.FC<SelectorProps> = ({
                                         color: '#65558f',
                                     },
                                 }}
-                                checked={selectedItems.indexOf(item) !== -1}
+                                checked={selectedItems.some((selectedItem) => selectedItem.id === item.id)}
                             />
                         </ListItem>
                     ))}

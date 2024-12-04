@@ -38,7 +38,7 @@ const NewProjectForm: React.FC = () => {
 
     const [selectorOpen, setSelectorOpen] = useState(false);
     const [currentField, setCurrentField] = useState<keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
-    const [selectedItems, setSelectedItems] = useState<{ [key: string]: string[] }>({
+    const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
         tags: [],
         osaamiset: [],
         includedInParts: [],
@@ -61,7 +61,7 @@ const NewProjectForm: React.FC = () => {
         setFormData({ ...formData, isActive: e.target.checked });
     };
 
-    const handleAdd = (items: string[]) => {
+    const handleAdd = (items: Item[]) => {
         setFormData((prevFormData) => ({
             ...prevFormData,
             [currentField]: items,
@@ -105,8 +105,8 @@ const NewProjectForm: React.FC = () => {
                         description: formData.description,
                         materials: formData.materials,
                         duration: formData.duration,
-                        includedInParts: formData.includedInParts,
-                        tags: formData.tags,
+                        includedInParts: formData.includedInParts.map((item) => item.id),
+                        tags: formData.tags.map((item) => item.id),
                         isActive: formData.isActive,
                     },
                 },
@@ -147,21 +147,21 @@ const NewProjectForm: React.FC = () => {
 
         switch (currentField) {
             case 'tags':
-                return projectTagsData ? projectTagsData.projectTags.map((projectTag: { name: string }) => projectTag.name) : [];
+                return projectTagsData ? projectTagsData.projectTags : [];
             case 'osaamiset':
                 return [
-                    'Osaaminen 1',
-                    'Osaaminen 2',
-                    'Osaaminen 3',
-                    'Osaaminen 4',
-                    'Osaaminen 5',
-                    'sopii tehtävistä tiimin muiden jäsenten kanssa',
-                    'etsii ratkaisuvaihtoehtoja ja ratkoo ongelmia yhdessä tiimin kanssa',
-                    'arvioi ratkaisujen toimivuuden yhdessä tiimin kanssa',
-                    'arvioi omaa toimintaa tiimin jäsenenä',
+                    { id: '1', name: 'Osaaminen 1' },
+                    { id: '2', name: 'Osaaminen 2' },
+                    { id: '3', name: 'Osaaminen 3' },
+                    { id: '4', name: 'Osaaminen 4' },
+                    { id: '5', name: 'Osaaminen 5' },
+                    { id: '6', name: 'sopii tehtävistä tiimin muiden jäsenten kanssa' },
+                    { id: '7', name: 'etsii ratkaisuvaihtoehtoja ja ratkoo ongelmia yhdessä tiimin kanssa' },
+                    { id: '8', name: 'arvioi ratkaisujen toimivuuden yhdessä tiimin kanssa' },
+                    { id: '9', name: 'arvioi omaa toimintaa tiimin jäsenenä' },
                 ];
             case 'includedInParts':
-                return partsData ? partsData.parts.map((part: { name: string }) => part.name) : ['Teema 1', 'Teema 2', 'Teema 3', 'Teema 4', 'Teema 5'];
+                return partsData ? partsData.parts : [];
             default:
                 return [];
         }
@@ -265,10 +265,10 @@ const NewProjectForm: React.FC = () => {
                                 minHeight: 32,
                             }}
                         >
-                            {formData.includedInParts.map((parts, index) => (
+                            {formData.includedInParts.map((part, index) => (
                                 <Chip
-                                    key={index}
-                                    label={parts}
+                                    key={part.id}
+                                    label={part.name}
                                     onDelete={() => handleRemoveItem('includedInParts', index)}
                                     sx={{ backgroundColor: '#E0E0E0' }}
                                 />
@@ -303,7 +303,7 @@ const NewProjectForm: React.FC = () => {
                             }}
                         >
                             {formData.osaamiset.map((exp, index) => (
-                                <Chip key={index} label={exp} onDelete={() => handleRemoveItem('osaamiset', index)} sx={{ backgroundColor: '#E0E0E0' }} />
+                                <Chip key={exp.id} label={exp.name} onDelete={() => handleRemoveItem('osaamiset', index)} sx={{ backgroundColor: '#E0E0E0' }} />
                             ))}
                             <IconButton
                                 onClick={() => handleAddItem('osaamiset')}
@@ -335,11 +335,7 @@ const NewProjectForm: React.FC = () => {
                             }}
                         >
                             {formData.tags.map((tag, index) => (
-                                <Chip 
-                                    key={index} 
-                                    label={tag} 
-                                    onDelete={() => handleRemoveItem('tags', index)} 
-                                    sx={{ backgroundColor: '#E0E0E0' }} />
+                                <Chip key={tag.id} label={tag.name} onDelete={() => handleRemoveItem('tags', index)} sx={{ backgroundColor: '#E0E0E0' }} />
                             ))}
                             <IconButton
                                 onClick={() => handleAddItem('tags')}
