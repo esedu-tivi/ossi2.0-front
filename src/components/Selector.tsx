@@ -95,8 +95,6 @@ const Selector: React.FC<SelectorProps> = ({
                     variables: { name: searchTerm },
                 });
                 const newTag = { id: data.createProjectTag.id, name: data.createProjectTag.name };
-                items.push(newTag);
-                setSelectedItems([...selectedItems, newTag]);
                 setSearchTerm('');
                 updateProjectTags(newTag); // Päivitä tunnisteet lista
             } catch (error) {
