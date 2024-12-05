@@ -1,11 +1,16 @@
+export interface Item {
+  id: string;
+  name: string;
+}
+
 export interface BaseProjectFormData {
   name: string;
   description: string;
   materials: string;
-  osaamiset: string[];
+  osaamiset: Item[];
   duration: number;
-  tags: string[];
-  includedInParts: string[];
+  tags: Item[];
+  includedInParts: Item[];
   isActive: boolean;
 }
 

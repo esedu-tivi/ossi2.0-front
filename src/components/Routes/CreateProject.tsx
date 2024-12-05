@@ -10,6 +10,7 @@ import Selector from '../Selector';
 import { GET_PARTS } from '../../graphql/GetParts';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
+import { Item } from '../../FormData';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
@@ -98,6 +99,7 @@ const NewProjectForm: React.FC = () => {
         e.preventDefault();
 
         try {
+            console.log('IncludedInParts Before Submission:', formData.includedInParts);
             const response = await createProject({
                 variables: {
                     project: {
@@ -105,8 +107,8 @@ const NewProjectForm: React.FC = () => {
                         description: formData.description,
                         materials: formData.materials,
                         duration: formData.duration,
-                        includedInParts: formData.includedInParts.map((item) => item.id),
-                        tags: formData.tags.map((item) => item.id),
+                        includedInParts: formData.includedInParts.map(part => part.id),
+                        tags: formData.tags.map(tag => tag.id),
                         isActive: formData.isActive,
                     },
                 },
