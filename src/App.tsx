@@ -12,6 +12,8 @@ import ProjectDetails from './components/Routes/ProjectDetails';
 import EditProject from './components/Routes/EditProject';
 import QualificationUnitPartList from './components/QualificationUnitPartList';
 import QualificationUnitPartDetails from './components/Routes/QualificationUnitPartDetails';
+import CreatePart from './components/Routes/CreatePart';
+import EditPart from './components/Routes/EditPart';
 
 const App = () => {
     const { isAuthenticated, userEmail } = useAuth();
@@ -136,6 +138,30 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <QualificationUnitPartDetails />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/qualificationunitparts/new"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <CreatePart />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/qualificationunitparts/edit/:partId"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <EditPart />
                             </AppLayout>
                         }
                     />

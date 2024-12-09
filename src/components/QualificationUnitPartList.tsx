@@ -179,7 +179,7 @@ const QualificationUnitPartList: React.FC = () => {
                       variant="contained"
                       size="small"
                       startIcon={<EditIcon />}
-                      onClick={() => console.log(`Editing ${part.name}`)}
+                      onClick={() => navigate(`/qualificationunitparts/edit/${part.id}`)}
                     >
                       Muokkaa
                     </Button>

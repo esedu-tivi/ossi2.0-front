@@ -3,6 +3,20 @@ export interface Item {
   name: string;
 }
 
+export interface BasePartFormData {
+  name: string;
+  description: string;
+  materials: string;
+  osaamiset: Item[];
+}
+
+export interface CreatePartFormData extends BasePartFormData {}
+
+export interface EditPartFormData extends BasePartFormData {
+  notifyStudents?: boolean;
+  notifyStudentsText?: string;
+}
+
 export interface BaseProjectFormData {
   name: string;
   description: string;
