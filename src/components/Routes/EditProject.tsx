@@ -44,17 +44,23 @@ const EditProject: React.FC = () => {
 
     useEffect(() => {
         if (!loading && data?.project) {
-            setFormData({
-                name: data.project.name || '',
-                description: data.project.description || '',
-                materials: data.project.materials || '',
-                osaamiset: data.project.osaamiset || [],
-                duration: Number(data.project.duration) || 0,
-                includedInParts: data.project.includedInQualificationUnitParts || [],
-                tags: data.project.tags || [],
-                isActive: data.project.isActive ?? false,
-                notifyStudents: data.project.notifyStudents ?? false,
-                notifyStudentsText: data.project.notifyStudentsText || '',
+            console.log('data.project.isActive:', data.project.isActive);
+            setFormData((prevFormData) => {
+                const newFormData = {
+                    ...prevFormData,
+                    name: data.project.name || '',
+                    description: data.project.description || '',
+                    materials: data.project.materials || '',
+                    osaamiset: data.project.osaamiset || [],
+                    duration: Number(data.project.duration) || 0,
+                    includedInParts: data.project.includedInQualificationUnitParts || [],
+                    tags: data.project.tags || [],
+                    isActive: data.project.isActive ?? false,
+                    notifyStudents: data.project.notifyStudents ?? false,
+                    notifyStudentsText: data.project.notifyStudentsText || '',
+                };
+                console.log('New formData:', newFormData);
+                return newFormData;
             });
 
             setSelectedItems({
@@ -65,6 +71,10 @@ const EditProject: React.FC = () => {
             console.log('Project data:', data.project);
         }
     }, [data, loading]);
+
+    useEffect(() => {
+        console.log('formData.isActive updated:', formData.isActive);
+    }, [formData.isActive]);
 
     const project = data?.project;
 
@@ -85,7 +95,7 @@ const EditProject: React.FC = () => {
 
     const handleToggleActivity = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, isActive: e.target.checked });
-        console.log('isActive:', e.target.checked);
+        console.log('isActive after toggle:', e.target.checked);
     };
 
     const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,6 +227,8 @@ const EditProject: React.FC = () => {
 
     if (loading) return <Typography>Loading project details...</Typography>;
     if (error) return <Typography color="error">Error loading project: {error.message}</Typography>;
+
+    console.log('Switch checked value:', Boolean(formData.isActive));
 
     return (
         <Box
@@ -518,11 +530,10 @@ const EditProject: React.FC = () => {
                                 padding: 2,
                             }}
                         >
-                            {/* TODO miksi projektin tila valitsin on avatessa true vaikka fromData.isActive on false */}
                             <Typography sx={{ mb: 1, textAlign: 'left' }}>Projektin tila</Typography>
                             <Box display="flex" alignItems="center" justifyContent="space-between">
                                 <Typography>{formData.isActive ? 'Aktiivinen' : 'Ei aktiivinen'}</Typography>
-                                <Switch checked={!!formData.isActive} onChange={handleToggleActivity} name="isActive" color="primary" />
+                                <Switch checked={Boolean(formData.isActive)} onChange={handleToggleActivity} name="isActive" color="primary" />
                             </Box>
                         </FormControl>
 
@@ -540,7 +551,7 @@ const EditProject: React.FC = () => {
                             <Typography sx={{ mb: 1, textAlign: 'left' }}>Muutosilmoitus</Typography>
                             <Box display="flex" alignItems="center" justifyContent="space-between">
                                 <Typography>{formData.notifyStudents ? 'Ilmoitetaan opiskelijoille' : 'Ei ilmoiteta'}</Typography>
-                                <Switch checked={formData.notifyStudents} onChange={handleNotifyStudents} name="notifyStudents" color="primary" />
+                                <Switch checked={Boolean(formData.notifyStudents)} onChange={handleNotifyStudents} name="notifyStudents" color="primary" />
                             </Box>
                         </FormControl>
                     </Box>
