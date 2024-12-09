@@ -17,7 +17,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { GET_STUDENTS } from "../graphql/StudentQueries";
+import { GET_STUDENTS } from "../graphql/GetStudents";
 import "../css/StudentList.css";
 
 type StudentData = {

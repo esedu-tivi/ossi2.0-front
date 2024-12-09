@@ -6,7 +6,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-// import Toolbar from '@mui/material/Toolbar';
 import HomeIcon from '@mui/icons-material/Home';
 import SchoolIcon from '@mui/icons-material/School';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -26,7 +25,7 @@ const DrawerMenu = () => {
     { text: 'Etusivu', icon: <HomeIcon />, route: '/teacherdashboard' },
     { text: 'Opiskelijat', icon: <SchoolIcon />, route: '/' },
     { text: 'Projektit', icon: <FolderIcon />, route: '/teacherprojects' },
-    { text: 'Teemapäivät', icon: <EventIcon />, route: '/' },
+    { text: 'Teemat', icon: <EventIcon />, route: '/qualificationunitparts' },
     { text: 'Työpaikat', icon: <WorkIcon />, route: '/' },
     { text: 'Tutkinnot', icon: <GradeIcon />, route: '/' },
   ];
@@ -51,10 +50,11 @@ const DrawerMenu = () => {
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
-              onClick={() => navigate(item.route)}
-              className={`menu-item ${
-                location.pathname === item.route ? 'active' : ''
-              }`} // Add active class conditionally
+              onClick={() => {
+                console.log(`Navigating to ${item.route}`);
+                navigate(item.route);
+              }}
+              className={`menu-item ${location.pathname === item.route ? 'active' : ''}`}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
@@ -67,4 +67,3 @@ const DrawerMenu = () => {
 };
 
 export default DrawerMenu;
-
