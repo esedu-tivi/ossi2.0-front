@@ -10,6 +10,10 @@ import CreateProject from './components/Routes/CreateProject';
 import AppLayout from './components/AppLayout';
 import ProjectDetails from './components/Routes/ProjectDetails';
 import EditProject from './components/Routes/EditProject';
+import QualificationUnitPartList from './components/QualificationUnitPartList';
+import QualificationUnitPartDetails from './components/Routes/QualificationUnitPartDetails';
+import CreatePart from './components/Routes/CreatePart';
+import EditPart from './components/Routes/EditPart';
 
 const App = () => {
     const { isAuthenticated, userEmail } = useAuth();
@@ -20,11 +24,16 @@ const App = () => {
     useEffect(() => {
         if (isAuthenticated) {
             console.log('Current location:', location.pathname);
-
+    
             const isTeacherRoute = userEmail.endsWith('@esedulainen.fi');
             const isStudentRoute = userEmail.endsWith('@esedu.fi');
-
-            if (isTeacherRoute && !location.pathname.startsWith('/teacherdashboard') && !location.pathname.startsWith('/teacherprojects')) {
+    
+            if (
+                isTeacherRoute &&
+                !location.pathname.startsWith('/teacherdashboard') &&
+                !location.pathname.startsWith('/teacherprojects') &&
+                !location.pathname.startsWith('/qualificationunitparts')
+            ) {
                 console.log('Redirecting to /teacherdashboard');
                 navigate('/teacherdashboard');
             } else if (isStudentRoute && !location.pathname.startsWith('/studentdashboard')) {
@@ -33,6 +42,7 @@ const App = () => {
             }
         }
     }, [isAuthenticated, userEmail, navigate, location]);
+    
 
     return (
         <Routes>
@@ -104,6 +114,54 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <ProjectDetails />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/qualificationunitparts"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <QualificationUnitPartList />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/qualificationunitparts/:partId"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <QualificationUnitPartDetails />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/qualificationunitparts/new"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <CreatePart />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/qualificationunitparts/edit/:partId"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <EditPart />
                             </AppLayout>
                         }
                     />
