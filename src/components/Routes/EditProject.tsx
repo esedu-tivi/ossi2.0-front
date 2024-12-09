@@ -70,10 +70,6 @@ const EditProject: React.FC = () => {
         }
     }, [data, loading]);
 
-    // useEffect(() => {
-
-    // }, [formData.isActive]);
-
     const project = data?.project;
 
     const [updateProject] = useMutation(UPDATE_PROJECT, {
