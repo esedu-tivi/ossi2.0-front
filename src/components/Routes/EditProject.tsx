@@ -44,7 +44,6 @@ const EditProject: React.FC = () => {
 
     useEffect(() => {
         if (!loading && data?.project) {
-            console.log('data.project.isActive:', data.project.isActive);
             setFormData((prevFormData) => {
                 const newFormData = {
                     ...prevFormData,
@@ -55,7 +54,7 @@ const EditProject: React.FC = () => {
                     duration: Number(data.project.duration) || 0,
                     includedInParts: data.project.includedInQualificationUnitParts || [],
                     tags: data.project.tags || [],
-                    isActive: data.project.isActive ?? false,
+                    isActive: data.project.isActive === 'true',
                     notifyStudents: data.project.notifyStudents ?? false,
                     notifyStudentsText: data.project.notifyStudentsText || '',
                 };
@@ -68,13 +67,12 @@ const EditProject: React.FC = () => {
                 osaamiset: data.project.osaamiset || [],
                 includedInParts: data.project.includedInQualificationUnitParts || [],
             });
-            console.log('Project data:', data.project);
         }
     }, [data, loading]);
 
-    useEffect(() => {
-        console.log('formData.isActive updated:', formData.isActive);
-    }, [formData.isActive]);
+    // useEffect(() => {
+
+    // }, [formData.isActive]);
 
     const project = data?.project;
 
@@ -93,9 +91,8 @@ const EditProject: React.FC = () => {
         });
     };
 
-    const handleToggleActivity = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, isActive: e.target.checked });
-        console.log('isActive after toggle:', e.target.checked);
+    const handleTabChange = (isActive: boolean) => {
+        setFormData((prev) => ({ ...prev, isActive }));
     };
 
     const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,8 +224,6 @@ const EditProject: React.FC = () => {
 
     if (loading) return <Typography>Loading project details...</Typography>;
     if (error) return <Typography color="error">Error loading project: {error.message}</Typography>;
-
-    console.log('Switch checked value:', Boolean(formData.isActive));
 
     return (
         <Box
@@ -533,7 +528,7 @@ const EditProject: React.FC = () => {
                             <Typography sx={{ mb: 1, textAlign: 'left' }}>Projektin tila</Typography>
                             <Box display="flex" alignItems="center" justifyContent="space-between">
                                 <Typography>{formData.isActive ? 'Aktiivinen' : 'Ei aktiivinen'}</Typography>
-                                <Switch checked={Boolean(formData.isActive)} onChange={handleToggleActivity} name="isActive" color="primary" />
+                                <Switch checked={formData.isActive} onChange={(e) => handleTabChange(e.target.checked)} name="isActive" color="primary" />
                             </Box>
                         </FormControl>
 
