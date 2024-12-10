@@ -11,6 +11,8 @@ import AddIcon from '@mui/icons-material/Add';
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import { useNavigate } from 'react-router-dom';
 import { CreatePartFormData } from '../../FormData';
+import formStyles from '../../styles/formStyles';
+import buttonStyles from '../../styles/buttonStyles';
 
 const CreatePart: React.FC = () => {
   const navigate = useNavigate();
@@ -45,37 +47,17 @@ const CreatePart: React.FC = () => {
       component="form"
       onSubmit={handleSubmit}
       textAlign={'center'}
-      sx={{
-        maxWidth: 1600,
-        margin: 'auto',
-        padding: 3,
-        borderRadius: 2,
-        boxShadow: 3,
-        backgroundColor: 'white',
-        position: 'relative',
-      }}
+      sx={formStyles.formOuterBox}
     >
       <Box
-        sx={{
-          backgroundColor: '#65558F',
-          borderRadius: '8px 8px 0 0',
-          padding: 2,
-          width: 'calc(100% + 17px)',
-          marginLeft: '-24px',
-          marginTop: '-24px',
-        }}
+        sx={formStyles.formBannerBox}
       >
         <Typography variant="h4" align="center" color="white">
           Luo Teema
         </Typography>
       </Box>
       <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          gap: 2,
-          mt: 2,
-        }}
+        sx={formStyles.formColumnBox}
       >
         <Box sx={{ flex: 1 }}>
           <TextField label="Teeman nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
@@ -109,25 +91,11 @@ const CreatePart: React.FC = () => {
           <FormControl fullWidth>
             <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tutkinnon osa</InputLabel>
               <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 1,
-                  position: 'relative',
-                  border: '1px solid #ccc',
-                  borderRadius: 1,
-                  padding: 1,
-                  minHeight: 32,
-                }}
+                sx={formStyles.formModalInputBox}
               >
               <IconButton
                 color="primary"
-                sx={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                }}
+                sx={buttonStyles.openModalButton}
               >
                 <AddIcon />
               </IconButton>
@@ -137,25 +105,11 @@ const CreatePart: React.FC = () => {
           <FormControl fullWidth>
             <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Projektit</InputLabel>
               <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 1,
-                  position: 'relative',
-                  border: '1px solid #ccc',
-                  borderRadius: 1,
-                  padding: 1,
-                  minHeight: 32,
-                }}
+                sx={formStyles.formModalInputBox}
               >
               <IconButton
                 color="primary"
-                sx={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                }}
+                sx={buttonStyles.openModalButton}
               >
                 <AddIcon />
               </IconButton>
@@ -165,25 +119,11 @@ const CreatePart: React.FC = () => {
           <FormControl fullWidth>
             <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Osaamiset</InputLabel>
               <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 1,
-                  position: 'relative',
-                  border: '1px solid #ccc',
-                  borderRadius: 1,
-                  padding: 1,
-                  minHeight: 32,
-                }}
+                sx={formStyles.formModalInputBox}
               >
               <IconButton
                 color="primary"
-                sx={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                }}
+                sx={buttonStyles.openModalButton}
               >
                 <AddIcon />
               </IconButton>
@@ -194,20 +134,7 @@ const CreatePart: React.FC = () => {
 
       <Box textAlign={'center'} sx={{ mt: 2 }}>
         <IconButton
-          sx={{
-            backgroundColor: '#65558F',
-            color: '#fff',
-            borderRadius: 5,
-            mt: 3,
-            width: 1 / 4,
-            padding: 1,
-            fontSize: '1rem',
-            fontWeight: 400,
-            '&:hover': {
-                backgroundColor: '#4e4574',
-            },
-            boxShadow: 3,
-          }}
+          sx={buttonStyles.saveButton}
           type="submit"
         >
           <SaveSharpIcon 

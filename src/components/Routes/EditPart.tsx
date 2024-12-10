@@ -16,6 +16,8 @@ import { useQuery } from '@apollo/client';
 import { useNavigate, useParams } from 'react-router-dom';
 import { EditPartFormData } from '../../FormData';
 import { GET_QUALIFICATION_UNIT_PART_BY_ID } from '../../graphql/GetQualificationUnitPartById';
+import formStyles from '../../styles/formStyles';
+import buttonStyles from '../../styles/buttonStyles';
 
 const EditPart: React.FC = () => {
   const navigate = useNavigate();
@@ -92,29 +94,11 @@ const EditPart: React.FC = () => {
   return (
     <Box
       textAlign={'right'}
-      sx={{
-        maxWidth: 1600,
-        margin: 'auto',
-        padding: 3,
-        position: 'relative',
-      }}
+      sx={formStyles.formEditOuterBox}
     >
       <IconButton
         onClick={() => navigate("/qualificationunitparts")}
-        sx={{
-          backgroundColor: '#65558F',
-          color: '#fff',
-          borderRadius: 5,
-          width: 1 / 6,
-          padding: 1,
-          mb: 2,
-          fontSize: '1rem',
-          fontWeight: 400,
-          '&:hover': {
-            backgroundColor: '#4e4574',
-          },
-          boxShadow: 3,
-        }}
+        sx={buttonStyles.cancelButton}
       >
         <UndoSharpIcon 
           sx={{
@@ -125,21 +109,7 @@ const EditPart: React.FC = () => {
       </IconButton>
 
       <IconButton
-        sx={{
-          backgroundColor: '#65558F',
-          color: '#fff',
-          borderRadius: 5,
-          width: 1 / 10,
-          padding: 1,
-          ml: 3,
-          mb: 2,
-          fontSize: '1rem',
-          fontWeight: 400,
-          '&:hover': {
-            backgroundColor: '#4e4574',
-          },
-          boxShadow: 3,
-        }}
+        sx={buttonStyles.archiveButton}
       >
         <DriveFolderUploadSharpIcon
           sx={{
@@ -153,37 +123,17 @@ const EditPart: React.FC = () => {
         component="form"
         onSubmit={handleSubmit}
         textAlign={'center'}
-        sx={{
-          maxWidth: 1600,
-          margin: 'auto',
-          padding: 3,
-          borderRadius: 2,
-          boxShadow: 3,
-          backgroundColor: 'white',
-          position: 'relative',
-        }}
+        sx={formStyles.formOuterBox}
       >
         <Box
-          sx={{
-            backgroundColor: '#65558F',
-            borderRadius: '8px 8px 0 0',
-            padding: 2,
-            width: 'calc(100% + 17px)',
-            marginLeft: '-24px',
-            marginTop: '-24px',
-          }}
+          sx={formStyles.formBannerBox}
         >
           <Typography variant="h4" align="center" color="white">
             Muokkaa teemaa #{part.id} {part.name}
           </Typography>
         </Box>
         <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: 2,
-            mt: 2,
-          }}
+          sx={formStyles.formColumnBox}
         >
           <Box sx={{ flex: 1 }}>
             <TextField label="Teeman nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
@@ -231,25 +181,11 @@ const EditPart: React.FC = () => {
             <FormControl fullWidth>
               <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tutkinnon osa</InputLabel>
                 <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                    position: 'relative',
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    padding: 1,
-                    minHeight: 32,
-                  }}
+                  sx={formStyles.formModalInputBox}
                 >
                 <IconButton
                   color="primary"
-                  sx={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                  }}
+                  sx={buttonStyles.openModalButton}
                 >
                   <AddIcon />
                 </IconButton>
@@ -259,25 +195,11 @@ const EditPart: React.FC = () => {
             <FormControl fullWidth>
               <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Projektit</InputLabel>
                 <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                    position: 'relative',
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    padding: 1,
-                    minHeight: 32,
-                  }}
+                  sx={formStyles.formModalInputBox}
                 >
                 <IconButton
                   color="primary"
-                  sx={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                  }}
+                  sx={buttonStyles.openModalButton}
                 >
                   <AddIcon />
                 </IconButton>
@@ -287,25 +209,11 @@ const EditPart: React.FC = () => {
             <FormControl fullWidth>
               <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Osaamiset</InputLabel>
                 <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                    position: 'relative',
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    padding: 1,
-                    minHeight: 32,
-                  }}
+                  sx={formStyles.formModalInputBox}
                 >
                 <IconButton
                   color="primary"
-                  sx={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                  }}
+                  sx={buttonStyles.openModalButton}
                 >
                   <AddIcon />
                 </IconButton>
@@ -313,15 +221,7 @@ const EditPart: React.FC = () => {
             </FormControl>
 
             <FormControl
-              sx={{
-                maxWidth: 300,
-                display: 'flex',
-                flexDirection: 'column',
-                my: 3,
-                border: '1px solid #ccc',
-                borderRadius: 1,
-                padding: 2,
-              }}
+              sx={formStyles.formNotificationBox}
             >
               <Typography sx={{ mb: 1, textAlign: 'left' }}>
                 Muutosilmoitus
@@ -344,20 +244,7 @@ const EditPart: React.FC = () => {
 
         <Box textAlign={'center'} sx={{ mt: 2 }}>
           <IconButton
-            sx={{
-              backgroundColor: '#65558F',
-              color: '#fff',
-              borderRadius: 5,
-              mt: 3,
-              width: 1 / 4,
-              padding: 1,
-              fontSize: '1rem',
-              fontWeight: 400,
-              '&:hover': {
-                  backgroundColor: '#4e4574',
-              },
-              boxShadow: 3,
-            }}
+            sx={buttonStyles.saveButton}
             type="submit"
           >
             <SaveAsSharpIcon 
