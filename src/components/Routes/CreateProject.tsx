@@ -14,10 +14,12 @@ import { Item } from '../../FormData';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
 import { Editor } from '@tinymce/tinymce-react';
+import TurndownService from 'turndown';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const turndownService = new TurndownService();
     const [formData, setFormData] = useState<CreateProjectFormData>({
         name: '',
         description: '',
@@ -108,13 +110,15 @@ const NewProjectForm: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        const markdown = turndownService.turndown(formData.description);
+
         try {
             console.log('IncludedInParts Before Submission:', formData.includedInParts);
             const response = await createProject({
                 variables: {
                     project: {
                         name: formData.name,
-                        description: formData.description,
+                        description: markdown,
                         materials: formData.materials,
                         duration: formData.duration,
                         includedInParts: formData.includedInParts.map(part => part.id),
@@ -129,7 +133,6 @@ const NewProjectForm: React.FC = () => {
             console.error('Submission Error:', err);
         }
     };
-
 
     const getTitleAndButtonText = () => {
         switch (currentField) {
