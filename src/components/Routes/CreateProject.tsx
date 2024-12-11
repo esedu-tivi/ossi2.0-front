@@ -13,6 +13,7 @@ import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 import { Item } from '../../FormData';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
+import { Editor } from '@tinymce/tinymce-react';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
@@ -97,6 +98,13 @@ const NewProjectForm: React.FC = () => {
         }));
     };
 
+    const handleEditorChange = (content: string) => {
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            description: content,
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -121,6 +129,7 @@ const NewProjectForm: React.FC = () => {
             console.error('Submission Error:', err);
         }
     };
+
 
     const getTitleAndButtonText = () => {
         switch (currentField) {
@@ -197,17 +206,24 @@ const NewProjectForm: React.FC = () => {
             >
                 <Box sx={{ flex: 1 }}>
                     <TextField label="Projektin nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
-
-                    <TextField
-                        label="Projektin kuvaus"
-                        variant="outlined"
-                        name="description"
+                    <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingLeft: 1 }}>Projektin kuvaus</InputLabel>
+                    <Editor
+                        tinymceScriptSrc='/tinymce/js/tinymce/tinymce.min.js'
                         value={formData.description}
-                        onChange={handleChange}
-                        fullWidth
-                        multiline
-                        rows={10}
-                        sx={{ my: 2 }}
+                        onEditorChange={handleEditorChange}
+                        licenseKey='gpl'
+                        init={{
+                            height: 400,
+                            menubar: false,
+                            plugins: [
+                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                                'preview', 'anchor', 'searchreplace', 'visualblocks', 
+                                'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
+                                'help', 'wordcount'
+                            ],
+                            toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code help',
+                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                        }}
                     />
 
                     <TextField
