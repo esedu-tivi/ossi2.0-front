@@ -15,6 +15,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
+import ReactMarkdown from 'react-markdown'
 
 
 
@@ -147,7 +148,7 @@ const ProjectDetails = () => {
           fontFamily: 'Arial, sans-serif',
         }}
       >
-        {project.description}
+        <ReactMarkdown>{project.description}</ReactMarkdown>
       </Box>
 
           <Typography variant="h6" gutterBottom>

@@ -100,17 +100,18 @@ const NewProjectForm: React.FC = () => {
         }));
     };
 
-    const handleEditorChange = (content: string) => {
+    const handleEditorChange = (content: string, field: 'description' | 'materials') => {
         setFormData((prevFormData) => ({
             ...prevFormData,
-            description: content,
+            [field]: content,
         }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const markdown = turndownService.turndown(formData.description);
+        const markdownDescription = turndownService.turndown(formData.description);
+        const markdownMaterials = turndownService.turndown(formData.materials);
 
         try {
             console.log('IncludedInParts Before Submission:', formData.includedInParts);
@@ -118,8 +119,8 @@ const NewProjectForm: React.FC = () => {
                 variables: {
                     project: {
                         name: formData.name,
-                        description: markdown,
-                        materials: formData.materials,
+                        description: markdownDescription,
+                        materials: markdownMaterials,
                         duration: formData.duration,
                         includedInParts: formData.includedInParts.map(part => part.id),
                         tags: formData.tags.map(tag => tag.id),
@@ -211,9 +212,9 @@ const NewProjectForm: React.FC = () => {
                     <TextField label="Projektin nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
                     <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingLeft: 1 }}>Projektin kuvaus</InputLabel>
                     <Editor
-                        tinymceScriptSrc='/tinymce/js/tinymce/tinymce.min.js'
+                        tinymceScriptSrc='/tinymce/tinymce.min.js'
                         value={formData.description}
-                        onEditorChange={handleEditorChange}
+                        onEditorChange={(content) => handleEditorChange(content, 'description')}
                         licenseKey='gpl'
                         init={{
                             height: 400,
@@ -224,21 +225,29 @@ const NewProjectForm: React.FC = () => {
                                 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
                                 'help', 'wordcount'
                             ],
-                            toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code help',
+                            toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image',
                             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                         }}
                     />
 
-                    <TextField
-                        label="Materiaalit"
-                        variant="outlined"
-                        name="materials"
+                    <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingTop: 2, paddingLeft: 1 }}>Materiaalit</InputLabel>
+                    <Editor
+                        tinymceScriptSrc='/tinymce/tinymce.min.js'
                         value={formData.materials}
-                        onChange={handleChange}
-                        fullWidth
-                        multiline
-                        rows={10}
-                        sx={{ my: 2 }}
+                        onEditorChange={(content) => handleEditorChange(content, 'materials')}
+                        licenseKey='gpl'
+                        init={{
+                            height: 400,
+                            menubar: false,
+                            plugins: [
+                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                                'anchor', 'searchreplace', 'visualblocks', 
+                                'insertdatetime', 'media', 'table', 
+                                'wordcount'
+                            ],
+                            toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image media',
+                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                        }}
                     />
                 </Box>
 

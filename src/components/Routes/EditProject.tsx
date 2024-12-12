@@ -16,9 +16,15 @@ import Selector from '../Selector';
 import { Item } from '../../FormData';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
+import { Editor } from '@tinymce/tinymce-react';
+import TurndownService from 'turndown';
+import MarkdownIt from 'markdown-it';
+
+const md = new MarkdownIt();
 
 const EditProject: React.FC = () => {
     const navigate = useNavigate();
+    const turndownService = new TurndownService();
     const { projectId } = useParams();
 
     const [formData, setFormData] = useState<EditProjectFormData>({
@@ -50,8 +56,8 @@ const EditProject: React.FC = () => {
                 const newFormData = {
                     ...prevFormData,
                     name: data.project.name || '',
-                    description: data.project.description || '',
-                    materials: data.project.materials || '',
+                    description: md.render(data.project.description || ''),
+                    materials: md.render(data.project.materials || ''),
                     osaamiset: data.project.osaamiset || [],
                     duration: Number(data.project.duration) || 0,
                     includedInParts: data.project.includedInQualificationUnitParts || [],
@@ -87,6 +93,13 @@ const EditProject: React.FC = () => {
             ...formData,
             [name]: name === 'duration' ? (value === '' ? 0 : Number(value)) : value,
         });
+    };
+
+    const handleEditorChange = (content: string, field: 'description' | 'materials') => {
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [field]: content,
+        }));
     };
 
     const handleTabChange = (isActive: boolean) => {
@@ -142,14 +155,18 @@ const EditProject: React.FC = () => {
             console.error('Project ID is missing, cannot submit the form.');
             return;
         }
+
+        const markdownDescription = turndownService.turndown(formData.description);
+        const markdownMaterials = turndownService.turndown(formData.materials);
+
         try {
             const response = await updateProject({
                 variables: {
                     updateProjectId: projectId,
                     project: {
                         name: formData.name,
-                        description: formData.description,
-                        materials: formData.materials,
+                        description: markdownDescription,
+                        materials: markdownMaterials,
                         duration: formData.duration,
                         includedInParts: formData.includedInParts.map((item) => item.id),
                         tags: formData.tags.map((item) => item.id),
@@ -279,28 +296,44 @@ const EditProject: React.FC = () => {
                             sx={{ my: 2 }}
                         />
 
-                        <TextField
-                            label="Projektin kuvaus"
-                            variant="outlined"
-                            name="description"
+                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingLeft: 1 }}>Projektin kuvaus</InputLabel>
+                        <Editor
+                            tinymceScriptSrc='/tinymce/tinymce.min.js'
                             value={formData.description}
-                            onChange={handleChange}
-                            fullWidth
-                            multiline
-                            rows={10}
-                            sx={{ my: 2 }}
+                            onEditorChange={(content) => handleEditorChange(content, 'description')}
+                            licenseKey='gpl'
+                            init={{
+                                height: 400,
+                                menubar: false,
+                                plugins: [
+                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                                    'preview', 'anchor', 'searchreplace', 'visualblocks', 
+                                    'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
+                                    'help', 'wordcount'
+                                ],
+                                toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image media',
+                                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                            }}
                         />
 
-                        <TextField
-                            label="Materiaalit"
-                            variant="outlined"
-                            name="materials"
+                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingTop: 2, paddingLeft: 1 }}>Materiaalit</InputLabel>
+                        <Editor
+                            tinymceScriptSrc='/tinymce/tinymce.min.js'
                             value={formData.materials}
-                            onChange={handleChange}
-                            fullWidth
-                            multiline
-                            rows={10}
-                            sx={{ my: 2 }}
+                            onEditorChange={(content) => handleEditorChange(content, 'materials')}
+                            licenseKey='gpl'
+                            init={{
+                                height: 400,
+                                menubar: false,
+                                plugins: [
+                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                                    'preview', 'anchor', 'searchreplace', 'visualblocks', 
+                                    'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
+                                    'help', 'wordcount'
+                                ],
+                                toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image media',
+                                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                            }}
                         />
 
                         {formData.notifyStudents && (

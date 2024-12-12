@@ -18,10 +18,16 @@ import { EditPartFormData } from '../../FormData';
 import { GET_QUALIFICATION_UNIT_PART_BY_ID } from '../../graphql/GetQualificationUnitPartById';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
+import TurndownService from 'turndown';
+import MarkdownIt from 'markdown-it';
+import { Editor } from '@tinymce/tinymce-react';
+
+const md = new MarkdownIt();
 
 const EditPart: React.FC = () => {
   const navigate = useNavigate();
   const { partId } = useParams();
+  const turndownService = new TurndownService();
   const [formData, setFormData] = useState<EditPartFormData>({
     name: '',
     description: '',
@@ -49,8 +55,8 @@ const EditPart: React.FC = () => {
     if (!loading && data?.part && partId) {
       setFormData({
         name: data.part.name || '',
-        description: data.part.description || '',
-        materials: data.part.materials || '',
+        description: md.render(data.part.description || ''),
+        materials: md.render(data.part.materials || ''),
         osaamiset: data.part.osaamiset || [],
         notifyStudents: data.part.notifyStudents ?? false,
         notifyStudentsText: data.part.notifyStudentsText || '',
@@ -68,6 +74,13 @@ const EditPart: React.FC = () => {
     }));
   };
 
+  const handleEditorChange = (content: string, field: 'description' | 'materials') => {
+    setFormData((prevFormData) => ({
+        ...prevFormData,
+        [field]: content,
+    }));
+};
+
   const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { checked } = event.target;
     setFormData((prev) => ({
@@ -80,8 +93,11 @@ const EditPart: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const markdownDescription = turndownService.turndown(formData.description);
+    const markdownMaterials = turndownService.turndown(formData.materials);
+
     try {
-      console.log('Nothing to see here yet');
+      console.log(markdownDescription, markdownMaterials);
       navigate('/qualificationunitparts');
     } catch (err) {
       console.error('Submission Error:', err);
@@ -138,28 +154,44 @@ const EditPart: React.FC = () => {
           <Box sx={{ flex: 1 }}>
             <TextField label="Teeman nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
 
-            <TextField
-              label="Teeman kuvaus"
-              variant="outlined"
-              name="description"
+            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingLeft: 1 }}>Teeman Kuvaus</InputLabel>
+            <Editor
+              tinymceScriptSrc='/tinymce/tinymce.min.js'
               value={formData.description}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={10}
-              sx={{ my: 2 }}
+              onEditorChange={(content) => handleEditorChange(content, 'description')}
+              licenseKey='gpl'
+              init={{
+                height: 400,
+                menubar: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                  'preview', 'anchor', 'searchreplace', 'visualblocks', 
+                  'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
+                  'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+              }}
             />
 
-            <TextField
-              label="Materiaalit"
-              variant="outlined"
-              name="materials"
+            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingTop: 2, paddingLeft: 1 }}>Materiaalit</InputLabel>
+            <Editor
+              tinymceScriptSrc='/tinymce/tinymce.min.js'
               value={formData.materials}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={10}
-              sx={{ my: 2 }}
+              onEditorChange={(content) => handleEditorChange(content, 'materials')}
+              licenseKey='gpl'
+              init={{
+                height: 400,
+                menubar: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                  'anchor', 'searchreplace', 'visualblocks', 
+                  'insertdatetime', 'media', 'table', 
+                  'wordcount'
+                ],
+                toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image media',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+              }}
             />
 
             {formData.notifyStudents && (

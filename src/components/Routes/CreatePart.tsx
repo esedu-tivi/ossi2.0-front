@@ -13,9 +13,12 @@ import { useNavigate } from 'react-router-dom';
 import { CreatePartFormData } from '../../FormData';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
+import { Editor } from '@tinymce/tinymce-react';
+import TurndownService from 'turndown';
 
 const CreatePart: React.FC = () => {
   const navigate = useNavigate();
+  const turndownService = new TurndownService();
   const [formData, setFormData] = useState<CreatePartFormData>({
     name: '',
     description: '',
@@ -31,11 +34,21 @@ const CreatePart: React.FC = () => {
     }));
   };
 
+  const handleEditorChange = (content: string, field: 'description' | 'materials') => {
+    setFormData((prevFormData) => ({
+        ...prevFormData,
+        [field]: content,
+    }));
+};
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const markdownDescription = turndownService.turndown(formData.description);
+    const markdownMaterials = turndownService.turndown(formData.materials);
+
     try {
-      console.log('Nothing to see here yet');
+      console.log(markdownDescription, markdownMaterials);
       navigate('/qualificationunitparts');
     } catch (err) {
       console.error('Submission Error:', err);
@@ -62,29 +75,48 @@ const CreatePart: React.FC = () => {
         <Box sx={{ flex: 1 }}>
           <TextField label="Teeman nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
 
-          <TextField
-            label="Teeman kuvaus"
-            variant="outlined"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            fullWidth
-            multiline
-            rows={10}
-            sx={{ my: 2 }}
-          />
+          <Box sx={{ flex: 1 }}>
+            <TextField label="Projektin nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
+            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingLeft: 1 }}>Teeman Kuvaus</InputLabel>
+            <Editor
+              tinymceScriptSrc='/tinymce/tinymce.min.js'
+              value={formData.description}
+              onEditorChange={(content) => handleEditorChange(content, 'description')}
+              licenseKey='gpl'
+              init={{
+                height: 400,
+                menubar: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                  'preview', 'anchor', 'searchreplace', 'visualblocks', 
+                  'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
+                  'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+              }}
+            />
 
-          <TextField
-            label="Materiaalit"
-            variant="outlined"
-            name="materials"
-            value={formData.materials}
-            onChange={handleChange}
-            fullWidth
-            multiline
-            rows={10}
-            sx={{ my: 2 }}
-          />
+            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingTop: 2, paddingLeft: 1 }}>Materiaalit</InputLabel>
+            <Editor
+              tinymceScriptSrc='/tinymce/tinymce.min.js'
+              value={formData.materials}
+              onEditorChange={(content) => handleEditorChange(content, 'materials')}
+              licenseKey='gpl'
+              init={{
+                height: 400,
+                menubar: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                  'anchor', 'searchreplace', 'visualblocks', 
+                  'insertdatetime', 'media', 'table', 
+                  'wordcount'
+                ],
+                toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image media',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+              }}
+            />
+          </Box>
         </Box>
 
         <Box sx={{ flex: 1 }}>
