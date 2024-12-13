@@ -219,13 +219,17 @@ const NewProjectForm: React.FC = () => {
                         init={{
                             height: 400,
                             menubar: false,
+                            paste_data_images: true,
                             plugins: [
-                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
-                                'preview', 'anchor', 'searchreplace', 'visualblocks', 
-                                'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
-                                'help', 'wordcount'
-                            ],
+                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                                'preview', 'anchor', 'searchreplace', 'visualblocks',
+                                'code', 'fullscreen', 'insertdatetime', 'media', 'table',
+                                'help', 'wordcount', 'paste'
+                            ],                            
                             toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image',
+                            images_file_types: 'jpeg, jpg, png, gif',
+                            file_picker_types: 'image',
+                            automatic_uploads: true,
                             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                         }}
                     />

@@ -15,9 +15,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
-import ReactMarkdown from 'react-markdown'
-
-
+import MarkdownIt from 'markdown-it';
+import DOMPurify from 'dompurify';
 
 const ProjectDetails = () => {
   const navigate = useNavigate();
@@ -34,6 +33,13 @@ const ProjectDetails = () => {
 
   if (!project) return <Typography>Project not found</Typography>;
 
+  const md = new MarkdownIt();
+  const renderedDescription = md.render(project.description || '');
+  const renderedMaterials = md.render(project.materials || '');
+
+  const safeDescription = DOMPurify.sanitize(renderedDescription)
+  const safeMaterials = DOMPurify.sanitize(renderedMaterials)
+
   const handleCopy = () => {
     navigate('/teacherprojects/new', {
       state: {
@@ -43,6 +49,7 @@ const ProjectDetails = () => {
       },
     });
   };
+
   return (
     <Container
       maxWidth="lg"
@@ -120,7 +127,7 @@ const ProjectDetails = () => {
           backgroundColor: '#ffffff',
           border: '1px solid #ddd',
           borderRadius: 1,
-          maxHeight: 200, // Add scroll for long text
+          maxHeight: 200,
           overflowY: 'auto',
           fontSize: '16px',
           color: 'black',
@@ -131,10 +138,10 @@ const ProjectDetails = () => {
         {project.name}
       </Box>
 
-          <Typography variant="h6" gutterBottom>
-            Projektin kuvaus
-          </Typography>
-          <Box
+      <Typography variant="h6" gutterBottom>
+        Projektin kuvaus
+      </Typography>
+      <Box
         sx={{
           padding: 2,
           backgroundColor: '#ffffff',
@@ -148,7 +155,7 @@ const ProjectDetails = () => {
           fontFamily: 'Arial, sans-serif',
         }}
       >
-        <ReactMarkdown>{project.description}</ReactMarkdown>
+        <div dangerouslySetInnerHTML={{ __html: safeDescription }} />
       </Box>
 
           <Typography variant="h6" gutterBottom>
@@ -168,7 +175,7 @@ const ProjectDetails = () => {
           fontFamily: 'Arial, sans-serif',
         }}
       >
-        {project.materials}
+        <div dangerouslySetInnerHTML={{__html: safeMaterials}} />
       </Box>
 
           <Typography variant="h6" gutterBottom>
