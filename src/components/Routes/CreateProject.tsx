@@ -110,6 +110,17 @@ const NewProjectForm: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        turndownService.addRule('iframes', {
+            filter: ['iframe', 'video'],
+            replacement: (content, node) => {
+                const element = node as HTMLElement;
+                const attrs = Array.from(element.attributes)
+                    .map(attr => `${attr.name}="${attr.value}"`)
+                    .join(' ');
+                return `<${element.nodeName.toLowerCase()} ${attrs}>${content}</${element.nodeName.toLowerCase()}>`;
+            }
+        });
+
         const markdownDescription = turndownService.turndown(formData.description);
         const markdownMaterials = turndownService.turndown(formData.materials);
 
@@ -226,9 +237,8 @@ const NewProjectForm: React.FC = () => {
                                 'code', 'fullscreen', 'insertdatetime', 'media', 'table',
                                 'help', 'wordcount', 'paste'
                             ],                            
-                            toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image',
-                            images_file_types: 'jpeg, jpg, png, gif',
-                            file_picker_types: 'image',
+                            toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link image media',
+                            file_picker_types: 'image media',
                             automatic_uploads: true,
                             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                         }}
@@ -243,13 +253,16 @@ const NewProjectForm: React.FC = () => {
                         init={{
                             height: 400,
                             menubar: false,
+                            paste_data_images: true,
                             plugins: [
-                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
-                                'anchor', 'searchreplace', 'visualblocks', 
-                                'insertdatetime', 'media', 'table', 
-                                'wordcount'
-                            ],
-                            toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image media',
+                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                                'preview', 'anchor', 'searchreplace', 'visualblocks',
+                                'code', 'fullscreen', 'insertdatetime', 'media', 'table',
+                                'help', 'wordcount', 'paste'
+                            ],                            
+                            toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link image media',
+                            file_picker_types: 'image media',
+                            automatic_uploads: true,
                             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                         }}
                     />

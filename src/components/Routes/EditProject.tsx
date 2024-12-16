@@ -19,8 +19,7 @@ import buttonStyles from '../../styles/buttonStyles';
 import { Editor } from '@tinymce/tinymce-react';
 import TurndownService from 'turndown';
 import MarkdownIt from 'markdown-it';
-
-const md = new MarkdownIt();
+import DOMPurify from 'dompurify';
 
 const EditProject: React.FC = () => {
     const navigate = useNavigate();
@@ -50,14 +49,32 @@ const EditProject: React.FC = () => {
         variables: { id: projectId },
     });
 
+    const md = new MarkdownIt({
+        html: true,
+    });
+
+    const sanitizeHtml = (html: string) =>
+        DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: [
+            'iframe', 'p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'li', 'ol', 
+            'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'span', 'div'
+        ],
+        ALLOWED_ATTR: [
+            'src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen', 
+            'href', 'alt', 'target', 'rel', 'style', 'class'
+        ],
+    });
+
     useEffect(() => {
         if (!loading && data?.project) {
+            const sanitizedDescription = sanitizeHtml(md.render(data.project.description || ''));
+            const sanitizedMaterials = sanitizeHtml(md.render(data.project.materials || ''));
             setFormData((prevFormData) => {
                 const newFormData = {
                     ...prevFormData,
                     name: data.project.name || '',
-                    description: md.render(data.project.description || ''),
-                    materials: md.render(data.project.materials || ''),
+                    description: sanitizedDescription,
+                    materials: sanitizedMaterials,
                     osaamiset: data.project.osaamiset || [],
                     duration: Number(data.project.duration) || 0,
                     includedInParts: data.project.includedInQualificationUnitParts || [],
@@ -156,8 +173,19 @@ const EditProject: React.FC = () => {
             return;
         }
 
-        const markdownDescription = turndownService.turndown(formData.description);
-        const markdownMaterials = turndownService.turndown(formData.materials);
+        turndownService.addRule('iframes', {
+            filter: ['iframe', 'video'],
+            replacement: (content, node) => {
+                const element = node as HTMLElement;
+                const attrs = Array.from(element.attributes)
+                    .map(attr => `${attr.name}="${attr.value}"`)
+                    .join(' ');
+                return `<${element.nodeName.toLowerCase()} ${attrs}>${content}</${element.nodeName.toLowerCase()}>`;
+            }
+        });
+
+        const markdownDescription = turndownService.turndown(sanitizeHtml(formData.description));
+        const markdownMaterials = turndownService.turndown(sanitizeHtml(formData.materials));
 
         try {
             const response = await updateProject({
@@ -305,14 +333,18 @@ const EditProject: React.FC = () => {
                             init={{
                                 height: 400,
                                 menubar: false,
+                                paste_data_images: true,
                                 plugins: [
-                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
-                                    'preview', 'anchor', 'searchreplace', 'visualblocks', 
-                                    'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
-                                    'help', 'wordcount'
-                                ],
-                                toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image media',
+                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                                    'preview', 'anchor', 'searchreplace', 'visualblocks',
+                                    'code', 'fullscreen', 'insertdatetime', 'media', 'table',
+                                    'help', 'wordcount', 'paste'
+                                ],                            
+                                toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link image media',
+                                file_picker_types: 'image media',
+                                automatic_uploads: true,
                                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                                media_live_embeds: true,
                             }}
                         />
 
@@ -325,14 +357,18 @@ const EditProject: React.FC = () => {
                             init={{
                                 height: 400,
                                 menubar: false,
+                                paste_data_images: true,
                                 plugins: [
-                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
-                                    'preview', 'anchor', 'searchreplace', 'visualblocks', 
-                                    'code', 'fullscreen', 'insertdatetime', 'media', 'table', 
-                                    'help', 'wordcount'
-                                ],
-                                toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | link image media',
+                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                                    'preview', 'anchor', 'searchreplace', 'visualblocks',
+                                    'code', 'fullscreen', 'insertdatetime', 'media', 'table',
+                                    'help', 'wordcount', 'paste'
+                                ],                            
+                                toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link image media',
+                                file_picker_types: 'image media',
+                                automatic_uploads: true,
                                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                                media_live_embeds: true,
                             }}
                         />
 
