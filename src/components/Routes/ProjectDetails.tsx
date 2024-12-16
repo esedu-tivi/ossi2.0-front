@@ -1,22 +1,31 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@apollo/client';
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@apollo/client";
+import { Typography, IconButton } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import EditIcon from "@mui/icons-material/Edit";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import { GET_PROJECT_BY_ID } from "../../graphql/GetProjectById";
+import MarkdownIt from "markdown-it";
+import DOMPurify from "dompurify";
 import {
-  Container,
-  Box,
-  Button,
-  Typography,
-  IconButton,
-  TextField,
-  Chip,
-} from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import EditIcon from '@mui/icons-material/Edit';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
-import MarkdownIt from 'markdown-it';
-import DOMPurify from 'dompurify';
+  StyledContainer,
+  HeaderBox,
+  BackButtonContainer,
+  HeaderTitle,
+  ActionButtonsContainer,
+  StyledButton,
+  MainGrid,
+  ContentBox,
+  DescriptionBox,
+  MaterialsBox,
+  DurationField,
+  TagsBox,
+  StyledChip,
+  StatusBox,
+  StatusField,
+} from "../../styles/ProjectDetailsStyles";
 
 const ProjectDetails = () => {
   const navigate = useNavigate();
@@ -51,200 +60,115 @@ const ProjectDetails = () => {
   };
 
   return (
-    <Container
-      maxWidth="lg"
-      sx={{ backgroundColor: '#f5f5f5', padding: 3, borderRadius: 2 }}
-    >
-      {/* Header */}
-      <Box
-        mb={2}
-        display="flex"
-        alignItems="center"
-        sx={{ backgroundColor: '#65558F', padding: 2, borderRadius: 1 }}
-      >
-        <Box display="flex" alignItems="center" sx={{ mr: 2 }}>
-          <IconButton onClick={() => navigate(-1)} sx={{ color: 'white' }}>
+    <StyledContainer>
+      <HeaderBox>
+        <BackButtonContainer>
+          <IconButton onClick={() => navigate(-1)} sx={{ color: "white" }}>
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ ml: 2, color: 'white' }}>
+          <Typography variant="h6" sx={{ ml: 2, color: "white" }}>
             Ohjelmointi / TVP
           </Typography>
-        </Box>
-        <Typography variant="h4" sx={{ color: 'white', ml: 16 }}>
-          #{project.id} {project.name}
-        </Typography>
-      </Box>
+        </BackButtonContainer>
+        <HeaderTitle>
+          <Typography variant="h4" sx={{ color: "white" }}>
+            #{project.id} {project.name}
+          </Typography>
+        </HeaderTitle>
+      </HeaderBox>
 
-      {/* Buttons */}
-      <Box mb={2} display="flex" gap={2}>
-        <Button
-          variant="contained"
-          startIcon={<PersonAddIcon />}
-          sx={{ backgroundColor: '#65558F', borderRadius: 2 }}
-        >
+      <ActionButtonsContainer>
+        <StyledButton variant="contained" startIcon={<PersonAddIcon />}>
           Lisää opiskelijoille
-        </Button>
-        <Button
+        </StyledButton>
+        <StyledButton
           variant="contained"
           startIcon={<ContentCopyIcon />}
-          sx={{ backgroundColor: '#65558F', borderRadius: 2 }}
           onClick={handleCopy}
         >
           Kopioi
-        </Button>
-        <Button
+        </StyledButton>
+        <StyledButton
           variant="contained"
           startIcon={<EditIcon />}
-          sx={{ backgroundColor: '#65558F', borderRadius: 2 }}
           onClick={() => navigate(`/teacherprojects/edit/${project.id}`)}
         >
           Muokkaa
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={<AssessmentIcon />}
-          sx={{ backgroundColor: '#65558F', borderRadius: 2 }}
-        >
+        </StyledButton>
+        <StyledButton variant="contained" startIcon={<AssessmentIcon />}>
           Suoritusaste
-        </Button>
-      </Box>
+        </StyledButton>
+      </ActionButtonsContainer>
 
-      {/* Main Content */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '60% 40%' },
-          gap: 3,
-        }}
-      >
-        <Box>
+      <MainGrid>
+        <div>
           <Typography variant="h6" gutterBottom>
             Projektin nimi
           </Typography>
-          <Box
-        sx={{
-          padding: 2,
-          backgroundColor: '#ffffff',
-          border: '1px solid #ddd',
-          borderRadius: 1,
-          maxHeight: 200,
-          overflowY: 'auto',
-          fontSize: '16px',
-          color: 'black',
-          letterSpacing: '0.5px',
-          fontFamily: 'Arial, sans-serif',
-        }}
-      >
-        {project.name}
-      </Box>
+          <ContentBox>{project.name}</ContentBox>
 
-      <Typography variant="h6" gutterBottom>
-        Projektin kuvaus
-      </Typography>
-      <Box
-        sx={{
-          padding: 2,
-          backgroundColor: '#ffffff',
-          border: '1px solid #ddd',
-          borderRadius: 1,
-          maxHeight: 600,
-          overflowY: 'auto',
-          fontSize: '16px',
-          color: 'black',
-          letterSpacing: '0.5px',
-          fontFamily: 'Arial, sans-serif',
-        }}
-      >
-        <div dangerouslySetInnerHTML={{ __html: safeDescription }} />
-      </Box>
+          <Typography variant="h6" gutterBottom>
+            Projektin kuvaus
+          </Typography>
+          <DescriptionBox>
+            <div dangerouslySetInnerHTML={{ __html: safeDescription }} />
+          </DescriptionBox>
 
           <Typography variant="h6" gutterBottom>
             Materiaalit
           </Typography>
-          <Box
-        sx={{
-          padding: 2,
-          backgroundColor: '#ffffff',
-          border: '1px solid #ddd',
-          borderRadius: 1,
-          maxHeight: 800, 
-          overflowY: 'auto',
-          fontSize: '16px',
-          color: 'black',
-          letterSpacing: '0.5px',
-          fontFamily: 'Arial, sans-serif',
-        }}
-      >
-        <div dangerouslySetInnerHTML={{__html: safeMaterials}} />
-      </Box>
+          <MaterialsBox>
+            <div dangerouslySetInnerHTML={{ __html: safeMaterials }} />
+          </MaterialsBox>
 
           <Typography variant="h6" gutterBottom>
             Ajankäyttö
           </Typography>
-          <TextField
-            disabled
-            variant="outlined"
-            value={project.duration}
-            slotProps={{
-              input: {
-                style: {
-                  color: 'black', 
-                  fontWeight: 'bold',
-                  fontSize: '16px',
-                  letterSpacing: '0.5px', 
-                },
-              },
-            }}
-            sx={{ mb: 3, backgroundColor: '#ffffff', width: '50%' }}
-          />
-        </Box>
+          <DurationField disabled variant="outlined" value={project.duration} />
+        </div>
 
-        <Box>
+        <div>
           <Typography variant="h6" gutterBottom>
             Teemat
           </Typography>
-          <Box sx={{ padding: 2, mb: 3 }}>
+          <TagsBox>
             {project.includedInQualificationUnitParts.map(
               (part: { id: string; name: string }) => (
-                <Chip
+                <StyledChip
                   key={part.id}
                   label={part.name}
                   variant="filled"
                   color="primary"
-                  sx={{ mr: 1, mb: 1 }}
                 />
               )
             )}
-          </Box>
+          </TagsBox>
 
           <Typography variant="h6" gutterBottom>
             Osaamiset
           </Typography>
-          <Box sx={{ flexDirection: 'column', padding: 2, mb: 3 }}>
-            <Box gap={1}>
-              {[].map((skill, index) => (
-                <Chip
-                  key={index}
-                  label={skill}
-                  variant="filled"
-                  color="primary"
-                />
-              ))}
-            </Box>
-          </Box>
+          <TagsBox>
+            {[].map((skill: string, index: number) => (
+              <StyledChip
+                key={index}
+                label={skill}
+                variant="filled"
+                color="primary"
+              />
+            ))}
+          </TagsBox>
 
           <Typography variant="h6" gutterBottom>
             Tunnisteet
           </Typography>
-          <Box sx={{ padding: 2, mb: 3 }}>
+          <TagsBox>
             {project.tags && project.tags.length > 0 ? (
               project.tags.map((tag: { name: string }, index: number) => (
-                <Chip
+                <StyledChip
                   key={index}
                   label={tag.name}
                   variant="filled"
                   color="primary"
-                  sx={{ mr: 1, mb: 1 }}
                 />
               ))
             ) : (
@@ -252,38 +176,30 @@ const ProjectDetails = () => {
                 Ei tunnisteita lisättynä.
               </Typography>
             )}
-          </Box>
-          <Box
-  sx={{
-    padding: 2,
-    mb: 3,
-    width: '50%', 
-    marginLeft: 0, 
-  }}
->
-  <Typography variant="h6" gutterBottom>
-    Projektin tila
-  </Typography>
-  <TextField
-    disabled
-    variant="outlined"
-    value={project.isActive ? 'Opiskelijoille näkyvissä' : 'Ei näkyvissä Opiskelijoille'}
-    slotProps={{
-      input: {
-        readOnly: true,
-      },
-    }}
-    sx={{
-      backgroundColor: '#f5f5f5',
-      borderRadius: 1,
-      width: '100%',
-    }}
-  />
-</Box>
-        </Box>
-        
-      </Box>
-    </Container>
+          </TagsBox>
+
+          <StatusBox>
+            <Typography variant="h6" gutterBottom>
+              Projektin tila
+            </Typography>
+            <StatusField
+              disabled
+              variant="outlined"
+              value={
+                project.isActive
+                  ? "Opiskelijoille näkyvissä"
+                  : "Ei näkyvissä Opiskelijoille"
+              }
+              slotProps={{
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          </StatusBox>
+        </div>
+      </MainGrid>
+    </StyledContainer>
   );
 };
 
