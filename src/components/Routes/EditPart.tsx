@@ -42,6 +42,16 @@ const EditPart: React.FC = () => {
     const { loading: projectsLoading, error: projectsError, data: projectsData } = useQuery(GET_PROJECTS);
 
     useEffect(() => {
+        console.log('Route partId:', partId);
+    }, [partId]);
+
+    useEffect(() => {
+        if (!loading && data?.part) {
+            console.log('Fetched part:', data.part);
+        }
+    }, [data, loading]);
+
+    useEffect(() => {
         if (!loading && data?.part) {
             setFormData({
                 name: data.part.name || '',
