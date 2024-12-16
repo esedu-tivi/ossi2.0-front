@@ -42,12 +42,21 @@ const ProjectDetails = () => {
 
   if (!project) return <Typography>Project not found</Typography>;
 
-  const md = new MarkdownIt();
-  const renderedDescription = md.render(project.description || '');
-  const renderedMaterials = md.render(project.materials || '');
+  const md = new MarkdownIt({
+    html: true,
+  });
 
-  const safeDescription = DOMPurify.sanitize(renderedDescription)
-  const safeMaterials = DOMPurify.sanitize(renderedMaterials)
+  const sanitizeHtml = (html: string | Node) =>
+    DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ["iframe", "p", "b", "i", "em", "strong", "a", "ul", "li", "ol", "img", "h1", "h2", "h3", "h4", "h5", "h6", "br", "span", "div"],
+      ALLOWED_ATTR: ["src", "title", "width", "height", "frameborder", "allowfullscreen", "href", "alt", "target", "rel", "style", "class"],
+    });
+
+  const renderedDescription = md.render(project.description || "");
+  const renderedMaterials = md.render(project.materials || "");
+
+  const safeDescription = sanitizeHtml(renderedDescription);
+  const safeMaterials = sanitizeHtml(renderedMaterials);
 
   const handleCopy = () => {
     navigate('/teacherprojects/new', {
