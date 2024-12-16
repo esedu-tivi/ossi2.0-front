@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip } from '@mui/material';
+import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, Switch } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SaveAsSharpIcon from '@mui/icons-material/SaveAsSharp';
 import UndoSharpIcon from '@mui/icons-material/UndoSharp';
@@ -95,6 +95,15 @@ const EditPart: React.FC = () => {
         setSelectedItems((prevSelectedItems) => ({
             ...prevSelectedItems,
             [field]: prevSelectedItems[field].filter((_, i) => i !== index),
+        }));
+    };
+
+    const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { checked } = event.target;
+        setFormData((prev) => ({
+            ...prev,
+            notifyStudents: checked,
+            notifyStudentsText: checked ? prev.notifyStudentsText : '',
         }));
     };
 
@@ -278,6 +287,13 @@ const EditPart: React.FC = () => {
                                 <IconButton onClick={() => handleAddItem('osaamiset')} color="primary" sx={buttonStyles.openModalButton}>
                                     <AddIcon />
                                 </IconButton>
+                            </Box>
+                        </FormControl>
+                        <FormControl sx={formStyles.formNotificationBox}>
+                            <Typography sx={{ mb: 1, textAlign: 'left' }}>Muutosilmoitus</Typography>
+                            <Box display="flex" alignItems="center" justifyContent="space-between">
+                                <Typography>{formData.notifyStudents ? 'Ilmoitetaan opiskelijoille' : 'Ei ilmoiteta'}</Typography>
+                                <Switch checked={formData.notifyStudents} onChange={handleNotifyStudents} name="notifyStudents" color="primary" />
                             </Box>
                         </FormControl>
                     </Box>
