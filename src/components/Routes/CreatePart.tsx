@@ -12,6 +12,8 @@ import Selector from '../Selector';
 
 const CreatePart: React.FC = () => {
     const navigate = useNavigate();
+
+    // State to manage form data
     const [formData, setFormData] = useState<CreatePartFormData>({
         name: '',
         description: '',
@@ -21,16 +23,23 @@ const CreatePart: React.FC = () => {
         qualificationUnit: [],
     });
 
+    // State to manage the visibility of the Selector component
     const [selectorOpen, setSelectorOpen] = useState(false);
+
+    // State to manage the current field being edited
     const [currentField, setCurrentField] = useState<keyof Pick<CreatePartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>>('osaamiset');
+
+    // State to manage selected items for each field
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
         osaamiset: [],
         projects: [],
         qualificationUnit: [],
     });
 
+    // Fetch projects data using Apollo Client's useQuery hook
     const { loading: projectsLoading, error: projectsError, data: projectsData } = useQuery(GET_PROJECTS);
 
+    // Handle input changes in the form fields
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -39,6 +48,7 @@ const CreatePart: React.FC = () => {
         }));
     };
 
+    // Handle adding selected items to the form data
     const handleAdd = (items: Item[]) => {
         setFormData((prevFormData) => ({
             ...prevFormData,
@@ -51,11 +61,13 @@ const CreatePart: React.FC = () => {
         setSelectorOpen(false);
     };
 
+    // Handle opening the Selector component for a specific field
     const handleAddItem = (field: keyof Pick<CreatePartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>) => {
         setCurrentField(field);
         setSelectorOpen(true);
     };
 
+    // Handle removing an item from the form data
     const handleRemoveItem = (field: keyof Pick<CreatePartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>, index: number) => {
         setFormData((prevFormData) => ({
             ...prevFormData,
@@ -67,6 +79,7 @@ const CreatePart: React.FC = () => {
         }));
     };
 
+    // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -78,6 +91,7 @@ const CreatePart: React.FC = () => {
         }
     };
 
+    // Get the title and button text for the Selector component based on the current field
     const getTitleAndButtonText = () => {
         switch (currentField) {
             case 'osaamiset':
@@ -91,6 +105,7 @@ const CreatePart: React.FC = () => {
         }
     };
 
+    // Get the items to be displayed in the Selector component based on the current field
     const getItems = () => {
         if (projectsLoading) {
             return ['Ladataan...'];
