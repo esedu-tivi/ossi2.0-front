@@ -1,26 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { TextField, Box, Switch, IconButton, Typography, Chip, FormControl, InputLabel } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import React, { useEffect } from 'react';
+import { TextField, Box, Switch, IconButton, Typography, FormControl } from '@mui/material';
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CreateProjectFormData } from '../../FormData';
 import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_PROJECT } from '../../graphql/CreateProject';
 import Selector from '../Selector';
 import { GET_PARTS } from '../../graphql/GetParts';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
-import { Item } from '../../FormData';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
-import { Editor } from '@tinymce/tinymce-react';
 import TurndownService from 'turndown';
+import RichTextEditor from '../common/RichTextEditor';
+import ChipSelector from '../common/ChipSelector';
+import { formHandleManager } from '../common/formHandleManager';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const turndownService = new TurndownService();
-    const [formData, setFormData] = useState<CreateProjectFormData>({
+    const initialState = {
         name: '',
         description: '',
         materials: '',
@@ -29,8 +28,25 @@ const NewProjectForm: React.FC = () => {
         tags: [],
         includedInParts: [],
         isActive: false,
-    });
+    };
 
+    // Usable handles imported from formHandleManager.tsx
+    const {
+        formData,
+        setFormData,
+        selectorOpen,
+        handleAdd,
+        currentField,
+        selectedItems,
+        setSelectorOpen,
+        handleChange,
+        handleToggleActivity,
+        handleEditorChange,
+        handleAddItem,
+        handleRemoveItem,
+    } = formHandleManager(initialState);
+
+    // Stores data between routes/modal
     useEffect(() => {
         if (location.state) {
             setFormData((prevFormData) => ({
@@ -42,74 +58,19 @@ const NewProjectForm: React.FC = () => {
         }
     }, [location.state]);
 
-    const [selectorOpen, setSelectorOpen] = useState(false);
-    const [currentField, setCurrentField] = useState<keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
-    const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
-        tags: [],
-        osaamiset: [],
-        includedInParts: [],
-    });
+    // Mutation for creating new project
     const [createProject, { loading, error, data }] = useMutation(CREATE_PROJECT, {
         refetchQueries: [{ query: GET_PROJECTS }],
     });
+
+    // Queries for QualificationUnitParts and Tags
     const { loading: partsLoading, error: partsError, data: partsData } = useQuery(GET_PARTS);
     const { loading: projectTagsLoading, error: projectTagsError, data: projectTagsData, refetch } = useQuery(GET_PROJECT_TAGS);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: name === 'duration' ? (value === '' ? '' : Number(value)) : value,
-        });
-    };
-
-    const handleToggleActivity = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, isActive: e.target.checked });
-    };
-
-    const handleAdd = (items: Item[]) => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [currentField]: items,
-        }));
-        setSelectedItems((prevSelectedItems) => ({
-            ...prevSelectedItems,
-            [currentField]: items,
-        }));
-        setSelectorOpen(false);
-    };
-
-    const handleAddItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
-        if (field !== 'includedInParts' && formData.includedInParts.length === 0) {
-            alert('Valitse ensin Teema.');
-            return;
-        }
-
-        setCurrentField(field);
-        setSelectorOpen(true);
-    };
-
-    const handleRemoveItem = (field: keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>, index: number) => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [field]: prevFormData[field].filter((_, i) => i !== index),
-        }));
-        setSelectedItems((prevSelectedItems) => ({
-            ...prevSelectedItems,
-            [field]: prevSelectedItems[field].filter((_, i) => i !== index),
-        }));
-    };
-
-    const handleEditorChange = (content: string, field: 'description' | 'materials') => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [field]: content,
-        }));
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Allows turndown to handle iframes and video as Markdown
         turndownService.addRule('iframes', {
             filter: ['iframe', 'video'],
             replacement: (content, node) => {
@@ -121,6 +82,7 @@ const NewProjectForm: React.FC = () => {
             }
         });
 
+        // Modifies HTML to Markdown language using turndown before creating the new project
         const markdownDescription = turndownService.turndown(formData.description);
         const markdownMaterials = turndownService.turndown(formData.materials);
 
@@ -173,6 +135,7 @@ const NewProjectForm: React.FC = () => {
             return ['Virhe ladattaessa tunnisteita'];
         }
 
+        // Returns selectable modal data based on selected field
         switch (currentField) {
             case 'tags':
                 return projectTagsData ? projectTagsData.projectTags : [];
@@ -220,51 +183,26 @@ const NewProjectForm: React.FC = () => {
                 sx={formStyles.formColumnBox}
             >
                 <Box sx={{ flex: 1 }}>
-                    <TextField label="Projektin nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
-                    <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingLeft: 1 }}>Projektin kuvaus</InputLabel>
-                    <Editor
-                        tinymceScriptSrc='/tinymce/tinymce.min.js'
-                        value={formData.description}
-                        onEditorChange={(content) => handleEditorChange(content, 'description')}
-                        licenseKey='gpl'
-                        init={{
-                            height: 400,
-                            menubar: false,
-                            paste_data_images: true,
-                            plugins: [
-                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                                'preview', 'anchor', 'searchreplace', 'visualblocks',
-                                'code', 'fullscreen', 'insertdatetime', 'media', 'table',
-                                'help', 'wordcount', 'paste'
-                            ],                            
-                            toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link image media',
-                            file_picker_types: 'image media',
-                            automatic_uploads: true,
-                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                        }}
+                    <TextField 
+                        label="Projektin nimi" 
+                        variant="outlined" 
+                        name="name" 
+                        value={formData.name} 
+                        onChange={handleChange} 
+                        fullWidth 
+                        sx={{ my: 2 }} 
                     />
 
-                    <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingTop: 2, paddingLeft: 1 }}>Materiaalit</InputLabel>
-                    <Editor
-                        tinymceScriptSrc='/tinymce/tinymce.min.js'
+                    <RichTextEditor
+                        label="Projektin kuvaus"
+                        value={formData.description}
+                        onChange={(content) => handleEditorChange(content, 'description')}
+                    />
+
+                    <RichTextEditor
+                        label="Materiaalit"
                         value={formData.materials}
-                        onEditorChange={(content) => handleEditorChange(content, 'materials')}
-                        licenseKey='gpl'
-                        init={{
-                            height: 400,
-                            menubar: false,
-                            paste_data_images: true,
-                            plugins: [
-                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                                'preview', 'anchor', 'searchreplace', 'visualblocks',
-                                'code', 'fullscreen', 'insertdatetime', 'media', 'table',
-                                'help', 'wordcount', 'paste'
-                            ],                            
-                            toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link image media',
-                            file_picker_types: 'image media',
-                            automatic_uploads: true,
-                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                        }}
+                        onChange={(content) => handleEditorChange(content, 'materials')}
                     />
                 </Box>
 
@@ -280,64 +218,26 @@ const NewProjectForm: React.FC = () => {
                         sx={{ my: 2 }}
                     />
 
-                    <FormControl fullWidth>
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Teemat</InputLabel>
-                        <Box
-                            sx={formStyles.formModalInputBox}
-                        >
-                            {formData.includedInParts.map((part, index) => (
-                                <Chip
-                                    key={part.id}
-                                    label={part.name}
-                                    onDelete={() => handleRemoveItem('includedInParts', index)}
-                                    sx={{ backgroundColor: '#E0E0E0' }}
-                                />
-                            ))}
-                            <IconButton
-                                onClick={() => handleAddItem('includedInParts')}
-                                color="primary"
-                                sx={buttonStyles.openModalButton}
-                            >
-                                <AddIcon />
-                            </IconButton>
-                        </Box>
-                    </FormControl>
+                    <ChipSelector
+                        label="Teemat"
+                        items={formData.includedInParts}
+                        onAdd={() => handleAddItem('includedInParts')}
+                        onDelete={(index) => handleRemoveItem('includedInParts', index)}
+                    />
 
-                    <FormControl fullWidth>
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Osaamiset</InputLabel>
-                        <Box
-                            sx={formStyles.formModalInputBox}
-                        >
-                            {formData.osaamiset.map((exp, index) => (
-                                <Chip key={exp.id} label={exp.name} onDelete={() => handleRemoveItem('osaamiset', index)} sx={{ backgroundColor: '#E0E0E0' }} />
-                            ))}
-                            <IconButton
-                                onClick={() => handleAddItem('osaamiset')}
-                                color="primary"
-                                sx={buttonStyles.openModalButton}
-                            >
-                                <AddIcon />
-                            </IconButton>
-                        </Box>
-                    </FormControl>
+                    <ChipSelector
+                        label="Osaamiset"
+                        items={formData.osaamiset}
+                        onAdd={() => handleAddItem('osaamiset')}
+                        onDelete={(index) => handleRemoveItem('osaamiset', index)}
+                    />
 
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tunnisteet</InputLabel>
-                        <Box
-                            sx={formStyles.formModalInputBox}
-                        >
-                            {formData.tags.map((tag, index) => (
-                                <Chip key={tag.id} label={tag.name} onDelete={() => handleRemoveItem('tags', index)} sx={{ backgroundColor: '#E0E0E0' }} />
-                            ))}
-                            <IconButton
-                                onClick={() => handleAddItem('tags')}
-                                color="primary"
-                                sx={buttonStyles.openModalButton}
-                            >
-                                <AddIcon />
-                            </IconButton>
-                        </Box>
-                    </FormControl>
+                    <ChipSelector
+                        label="Tunnisteet"
+                        items={formData.tags}
+                        onAdd={() => handleAddItem('tags')}
+                        onDelete={(index) => handleRemoveItem('tags', index)}
+                    />
                 </Box>
             </Box>
             <FormControl
