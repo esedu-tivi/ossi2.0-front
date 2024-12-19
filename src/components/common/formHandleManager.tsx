@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreateProjectFormData } from '../../FormData';
+import { EditProjectFormData } from '../../FormData';
 
 interface Item {
   id: string;
@@ -20,18 +20,27 @@ interface FormState {
 export const formHandleManager = (initialState: FormState) => {
   const [formData, setFormData] = useState<FormState>(initialState);
   const [selectorOpen, setSelectorOpen] = useState(false);
-  const [currentField, setCurrentField] = useState<keyof Pick<CreateProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
+  const [currentField, setCurrentField] = useState<keyof Pick<EditProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
   const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
       tags: [],
       osaamiset: [],
       includedInParts: [],
   });
 
+  // Handles data changes on non-TinyMCE input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: name === 'duration' ? (value === '' ? '' : Number(value)) : value,
+    }));
+  };
+
+  // Handles data changes on TinyMCE editor input fields
+  const handleEditorChange = (content: string, field: 'description' | 'materials') => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [field]: content,
     }));
   };
 
@@ -75,10 +84,12 @@ export const formHandleManager = (initialState: FormState) => {
     }));
   };
 
-  const handleEditorChange = (content: string, field: 'description' | 'materials') => {
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [field]: content,
+  const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { checked } = event.target;
+    setFormData((prev) => ({
+      ...prev,
+      notifyStudents: checked,
+      notifyStudentsText: checked ? prev.notifyStudentsText : '',
     }));
   };
 
@@ -97,5 +108,6 @@ export const formHandleManager = (initialState: FormState) => {
     handleAddItem,
     handleRemoveItem,
     handleEditorChange,
+    handleNotifyStudents,
   };
 };

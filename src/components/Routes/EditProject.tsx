@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { TextField, Box, Switch, IconButton, Typography, Chip, FormControl, InputLabel } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { TextField, Box, Switch, IconButton, Typography, FormControl} from '@mui/material';
 import DriveFolderUploadSharpIcon from '@mui/icons-material/DriveFolderUploadSharp';
 import UndoSharpIcon from '@mui/icons-material/UndoSharp';
 import SaveAsSharpIcon from '@mui/icons-material/SaveAsSharp';
-import { EditProjectFormData } from '../../FormData';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
@@ -13,20 +11,21 @@ import { UPDATE_PROJECT } from '../../graphql/UpdateProject';
 import { GET_PARTS } from '../../graphql/GetParts';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 import Selector from '../Selector';
-import { Item } from '../../FormData';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
-import { Editor } from '@tinymce/tinymce-react';
 import TurndownService from 'turndown';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
+import RichTextEditor from '../common/RichTextEditor';
+import ChipSelector from '../common/ChipSelector';
+import { formHandleManager } from '../common/formHandleManager';
 
 const EditProject: React.FC = () => {
     const navigate = useNavigate();
     const turndownService = new TurndownService();
     const { projectId } = useParams();
 
-    const [formData, setFormData] = useState<EditProjectFormData>({
+    const initialState = {
         name: '',
         description: '',
         materials: '',
@@ -35,24 +34,36 @@ const EditProject: React.FC = () => {
         tags: [],
         includedInParts: [],
         isActive: false,
-        notifyStudents: false,
-        notifyStudentsText: '',
-    });
+    };
 
-    const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
-        tags: [],
-        osaamiset: [],
-        includedInParts: [],
-    });
+    // Usable handles imported from formHandleManager.tsx
+    const {
+        formData,
+        setFormData,
+        selectorOpen,
+        handleAdd,
+        currentField,
+        selectedItems,
+        setSelectedItems,
+        setSelectorOpen,
+        handleChange,
+        handleToggleActivity,
+        handleEditorChange,
+        handleAddItem,
+        handleRemoveItem,
+        handleNotifyStudents,
+    } = formHandleManager(initialState);
 
     const { loading, error, data } = useQuery(GET_PROJECT_BY_ID, {
         variables: { id: projectId },
     });
 
+    // Reverts Markdown back to HTML for TinyMCE editor fields
     const md = new MarkdownIt({
         html: true,
     });
 
+    // Enforces allowed HTML tags and attributes using DOMPurify
     const sanitizeHtml = (html: string) =>
         DOMPurify.sanitize(html, {
         ALLOWED_TAGS: [
@@ -65,10 +76,14 @@ const EditProject: React.FC = () => {
         ],
     });
 
+    // Fills the input fields with data based on which project is currently being edited
     useEffect(() => {
         if (!loading && data?.project) {
+
+            // Uses markdown-it to modify markdown to HTML, then checks the validity of HTML with sanitizeHTML
             const sanitizedDescription = sanitizeHtml(md.render(data.project.description || ''));
             const sanitizedMaterials = sanitizeHtml(md.render(data.project.materials || ''));
+            
             setFormData((prevFormData) => {
                 const newFormData = {
                     ...prevFormData,
@@ -97,6 +112,7 @@ const EditProject: React.FC = () => {
 
     const project = data?.project;
 
+    // Mutation for updating the project
     const [updateProject] = useMutation(UPDATE_PROJECT, {
         onCompleted() {
             navigate('/teacherprojects');
@@ -104,67 +120,8 @@ const EditProject: React.FC = () => {
         refetchQueries: [{ query: GET_PROJECTS }],
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: name === 'duration' ? (value === '' ? 0 : Number(value)) : value,
-        });
-    };
-
-    const handleEditorChange = (content: string, field: 'description' | 'materials') => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [field]: content,
-        }));
-    };
-
-    const handleTabChange = (isActive: boolean) => {
-        setFormData((prev) => ({ ...prev, isActive }));
-    };
-
-    const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { checked } = event.target;
-        setFormData((prev) => ({
-            ...prev,
-            notifyStudents: checked,
-            notifyStudentsText: checked ? prev.notifyStudentsText : '',
-        }));
-    };
-
-    const [selectorOpen, setSelectorOpen] = useState(false);
-    const [currentField, setCurrentField] = useState<keyof Pick<EditProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
-
     const { loading: partsLoading, error: partsError, data: partsData } = useQuery(GET_PARTS);
     const { loading: projectTagsLoading, error: projectTagsError, data: projectTagsData, refetch } = useQuery(GET_PROJECT_TAGS);
-
-    const handleAdd = (items: Item[]) => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [currentField]: items,
-        }));
-        setSelectedItems((prevSelectedItems) => ({
-            ...prevSelectedItems,
-            [currentField]: items,
-        }));
-        setSelectorOpen(false);
-    };
-
-    const handleAddItem = (field: keyof Pick<EditProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>) => {
-        setCurrentField(field);
-        setSelectorOpen(true);
-    };
-
-    const handleRemoveItem = (field: keyof Pick<EditProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>, index: number) => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [field]: prevFormData[field].filter((_, i) => i !== index),
-        }));
-        setSelectedItems((prevSelectedItems) => ({
-            ...prevSelectedItems,
-            [field]: prevSelectedItems[field].filter((_, i) => i !== index),
-        }));
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -184,6 +141,7 @@ const EditProject: React.FC = () => {
             }
         });
 
+        // Modifies HTML to Markdown language using turndown before submitting the changes
         const markdownDescription = turndownService.turndown(sanitizeHtml(formData.description));
         const markdownMaterials = turndownService.turndown(sanitizeHtml(formData.materials));
 
@@ -324,52 +282,16 @@ const EditProject: React.FC = () => {
                             sx={{ my: 2 }}
                         />
 
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingLeft: 1 }}>Projektin kuvaus</InputLabel>
-                        <Editor
-                            tinymceScriptSrc='/tinymce/tinymce.min.js'
+                        <RichTextEditor
+                            label="Projektin kuvaus"
                             value={formData.description}
-                            onEditorChange={(content) => handleEditorChange(content, 'description')}
-                            licenseKey='gpl'
-                            init={{
-                                height: 400,
-                                menubar: false,
-                                paste_data_images: true,
-                                plugins: [
-                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                                    'preview', 'anchor', 'searchreplace', 'visualblocks',
-                                    'code', 'fullscreen', 'insertdatetime', 'media', 'table',
-                                    'help', 'wordcount', 'paste'
-                                ],                            
-                                toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link image media',
-                                file_picker_types: 'image media',
-                                automatic_uploads: true,
-                                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                                media_live_embeds: true,
-                            }}
+                            onChange={(content) => handleEditorChange(content, 'description')}
                         />
 
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 1, paddingTop: 2, paddingLeft: 1 }}>Materiaalit</InputLabel>
-                        <Editor
-                            tinymceScriptSrc='/tinymce/tinymce.min.js'
+                        <RichTextEditor
+                            label="Materiaalit"
                             value={formData.materials}
-                            onEditorChange={(content) => handleEditorChange(content, 'materials')}
-                            licenseKey='gpl'
-                            init={{
-                                height: 400,
-                                menubar: false,
-                                paste_data_images: true,
-                                plugins: [
-                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                                    'preview', 'anchor', 'searchreplace', 'visualblocks',
-                                    'code', 'fullscreen', 'insertdatetime', 'media', 'table',
-                                    'help', 'wordcount', 'paste'
-                                ],                            
-                                toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link image media',
-                                file_picker_types: 'image media',
-                                automatic_uploads: true,
-                                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                                media_live_embeds: true,
-                            }}
+                            onChange={(content) => handleEditorChange(content, 'materials')}
                         />
 
                         {formData.notifyStudents && (
@@ -399,93 +321,26 @@ const EditProject: React.FC = () => {
                             sx={{ my: 2 }}
                         />
 
-                        <FormControl fullWidth>
-                            <InputLabel
-                                sx={{
-                                    display: 'flex',
-                                    position: 'relative',
-                                    paddingBottom: 3,
-                                }}
-                            >
-                                Teemat
-                            </InputLabel>
-                            <Box
-                                sx={formStyles.formModalInputBox}
-                            >
-                                {formData.includedInParts.map((part, index) => (
-                                    <Chip
-                                        key={part.id}
-                                        label={part.name}
-                                        onDelete={() => handleRemoveItem('includedInParts', index)}
-                                        sx={{ backgroundColor: '#E0E0E0' }}
-                                    />
-                                ))}
-                                <IconButton
-                                    onClick={() => handleAddItem('includedInParts')}
-                                    color="primary"
-                                    sx={buttonStyles.openModalButton}
-                                >
-                                    <AddIcon />
-                                </IconButton>
-                            </Box>
-                        </FormControl>
+                        <ChipSelector
+                            label="Teemat"
+                            items={formData.includedInParts}
+                            onAdd={() => handleAddItem('includedInParts')}
+                            onDelete={(index) => handleRemoveItem('includedInParts', index)}
+                        />
 
-                        <FormControl fullWidth>
-                            <InputLabel
-                                sx={{
-                                    display: 'flex',
-                                    position: 'relative',
-                                    paddingBottom: 3,
-                                }}
-                            >
-                                Osaamiset
-                            </InputLabel>
-                            <Box
-                                sx={formStyles.formModalInputBox}
-                            >
-                                {formData.osaamiset.map((exp, index) => (
-                                    <Chip
-                                        key={exp.id}
-                                        label={exp.name}
-                                        onDelete={() => handleRemoveItem('osaamiset', index)}
-                                        sx={{ backgroundColor: '#E0E0E0' }}
-                                    />
-                                ))}
-                                <IconButton
-                                    onClick={() => handleAddItem('osaamiset')}
-                                    color="primary"
-                                    sx={buttonStyles.openModalButton}
-                                >
-                                    <AddIcon />
-                                </IconButton>
-                            </Box>
-                        </FormControl>
+                        <ChipSelector
+                            label="Osaamiset"
+                            items={formData.osaamiset}
+                            onAdd={() => handleAddItem('osaamiset')}
+                            onDelete={(index) => handleRemoveItem('osaamiset', index)}
+                        />
 
-                        <FormControl fullWidth sx={{ mb: 2 }}>
-                            <InputLabel
-                                sx={{
-                                    display: 'flex',
-                                    position: 'relative',
-                                    paddingBottom: 3,
-                                }}
-                            >
-                                Tunnisteet
-                            </InputLabel>
-                            <Box
-                                sx={formStyles.formModalInputBox}
-                            >
-                                {formData.tags.map((tag, index) => (
-                                    <Chip key={tag.id} label={tag.name} onDelete={() => handleRemoveItem('tags', index)} sx={{ backgroundColor: '#E0E0E0' }} />
-                                ))}
-                                <IconButton
-                                    onClick={() => handleAddItem('tags')}
-                                    color="primary"
-                                    sx={buttonStyles.openModalButton}
-                                >
-                                    <AddIcon />
-                                </IconButton>
-                            </Box>
-                        </FormControl>
+                        <ChipSelector
+                            label="Tunnisteet"
+                            items={formData.tags}
+                            onAdd={() => handleAddItem('tags')}
+                            onDelete={(index) => handleRemoveItem('tags', index)}
+                        />
 
                         <FormControl
                             sx={formStyles.formActivityBox}
@@ -493,7 +348,7 @@ const EditProject: React.FC = () => {
                             <Typography sx={{ mb: 1, textAlign: 'left' }}>Projektin tila</Typography>
                             <Box display="flex" alignItems="center" justifyContent="space-between">
                                 <Typography>{formData.isActive ? 'Aktiivinen' : 'Ei aktiivinen'}</Typography>
-                                <Switch checked={formData.isActive} onChange={(e) => handleTabChange(e.target.checked)} name="isActive" color="primary" />
+                                <Switch checked={formData.isActive} onChange={handleToggleActivity} name="isActive" color="primary" />
                             </Box>
                         </FormControl>
 
