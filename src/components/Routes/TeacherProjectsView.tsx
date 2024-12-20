@@ -21,86 +21,64 @@ import SearchIcon from "@mui/icons-material/Search";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { GET_PROJECTS } from "../../graphql/GetProjects";
-
-export interface Project {
-  id: number;
-  name: string;
-  includedInQualificationUnitParts: { id: number; name: string }[];
-}
+import { Project, SortConfig, filterProjects, sortProjects } from "../common/teacherHelpers";
 
 export default function ProjectTable() {
   const navigate = useNavigate();
 
+  //GraphQL query to fetch projects
   const { loading, error, data } = useQuery(GET_PROJECTS);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortConfig, setSortConfig] = useState<{
-    column: string | null;
-    order: "asc" | "desc" | null;
-  }>({ column: null, order: null });
 
+  // State for controlling the search query entered by the user
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // State that holds the current filtering configs.
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    column: null,
+    order: null,
+  });
+
+  //Update the search query state as the user types in the search field.
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setSearchQuery(event.target.value);
 
+  // Update the sorting configuration when a column header is clicked.
+  // If the column is already sorted by, change the order ascending -> descending -> none.
   const handleSort = (column: string) => {
     setSortConfig((prevConfig) => {
       if (prevConfig.column !== column) {
+        // If we're sorting by a new column, start with ascending order
         return { column, order: "asc" };
       }
 
+      // If we're sorting the same column, cycle through the sort orders
       if (prevConfig.order === "asc") {
         return { column, order: "desc" };
       }
+
+      // Remove sorting if clicked again
       if (prevConfig.order === "desc") {
         return { column: null, order: null };
       }
+
       return { column, order: "asc" };
     });
   };
 
-  const projects: Project[] = data?.projects || [];
-  const sortedProjects = [...projects]
-    .filter(
-      (project) =>
-        project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.includedInQualificationUnitParts.some((part) =>
-          part.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    )
-    .sort((a, b) => {
-      if (sortConfig.order === null || sortConfig.column === null) return 0;
-      let valueA, valueB;
-
-      switch (sortConfig.column) {
-        case "name":
-          valueA = a.name.toLowerCase();
-          valueB = b.name.toLowerCase();
-          break;
-        case "id":
-          valueA = a.id;
-          valueB = b.id;
-          break;
-        case "themes":
-          valueA = a.includedInQualificationUnitParts
-            .map((part) => part.name)
-            .join(", ")
-            .toLowerCase();
-          valueB = b.includedInQualificationUnitParts
-            .map((part) => part.name)
-            .join(", ")
-            .toLowerCase();
-          break;
-        default:
-          return 0;
-      }
-
-      if (valueA > valueB) return sortConfig.order === "asc" ? 1 : -1;
-      if (valueA < valueB) return sortConfig.order === "asc" ? -1 : 1;
-      return 0;
-    });
-
+  // If the data is still loading, display a loading message.
+  // If there was an error fetching data, display the error message
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+
+  // Extract the projects from the data object. If there are no projects, default to an empty array.
+  const projects: Project[] = data?.projects || [];
+
+  // Filter and sort the projects based on the search query and sorting configuration in the helper file.
+  const filteredProjects = filterProjects(projects, searchQuery);
+
+  // Sort the already filtered projects according to the chosen column and order
+  const sortedProjects = sortProjects(filteredProjects, sortConfig);
 
   return (
     <div className="project-table-container">
