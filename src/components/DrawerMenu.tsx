@@ -12,6 +12,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import EventIcon from '@mui/icons-material/Event';
 import WorkIcon from '@mui/icons-material/Work';
 import GradeIcon from '@mui/icons-material/Grade';
+import ChatIcon from '@mui/icons-material/Chat';
 import UserProfile from './UserProfile';
 import '../css/DrawerMenu.css';
 
@@ -28,6 +29,7 @@ const DrawerMenu = () => {
     { text: 'Teemat', icon: <EventIcon />, route: '/qualificationunitparts' },
     { text: 'Työpaikat', icon: <WorkIcon />, route: '/' },
     { text: 'Tutkinnot', icon: <GradeIcon />, route: '/' },
+    { text: 'Viestit', icon: <ChatIcon />, route: '/messages' },
   ];
 
   return (

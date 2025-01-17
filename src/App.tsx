@@ -14,6 +14,7 @@ import QualificationUnitPartList from './components/QualificationUnitPartList';
 import QualificationUnitPartDetails from './components/Routes/QualificationUnitPartDetails';
 import CreatePart from './components/Routes/CreatePart';
 import EditPart from './components/Routes/EditPart';
+import MessagingView from './components/Messaging/MessagingView';
 
 const App = () => {
     const { isAuthenticated, userEmail } = useAuth();
@@ -32,7 +33,8 @@ const App = () => {
                 isTeacherRoute &&
                 !location.pathname.startsWith('/teacherdashboard') &&
                 !location.pathname.startsWith('/teacherprojects') &&
-                !location.pathname.startsWith('/qualificationunitparts')
+                !location.pathname.startsWith('/qualificationunitparts') &&
+                !location.pathname.startsWith('/messages')
             ) {
                 console.log('Redirecting to /teacherdashboard');
                 navigate('/teacherdashboard');
@@ -162,6 +164,18 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <EditPart />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/messages"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <MessagingView />
                             </AppLayout>
                         }
                     />
