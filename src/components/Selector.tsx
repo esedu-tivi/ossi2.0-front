@@ -23,11 +23,13 @@ import AddIcon from '@mui/icons-material/Add';
 import { useMutation } from '@apollo/client';
 import { CREATE_PROJECT_TAG } from '../graphql/CreateProjectTag';
 
+// Define the Item interface
 interface Item {
     id: string;
     name: string;
 }
 
+// Define the props for the Selector component
 interface SelectorProps {
     items: Item[];
     title: string;
@@ -40,6 +42,7 @@ interface SelectorProps {
     updateProjectTags: (newTag: Item) => void;
 }
 
+// Selector component
 const Selector: React.FC<SelectorProps> = ({
     items,
     title,
@@ -51,13 +54,16 @@ const Selector: React.FC<SelectorProps> = ({
     currentField,
     updateProjectTags,
 }) => {
+    // State for selected items and search term
     const [selectedItems, setSelectedItems] = useState<Item[]>(initialSelectedItems);
     const [searchTerm, setSearchTerm] = useState('');
     const [createProjectTag] = useMutation(CREATE_PROJECT_TAG);
 
+    // Get the theme and check if the screen size is mobile
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+    // Effect to reset selected items and search term when the dialog opens
     useEffect(() => {
         if (open) {
             setSelectedItems(initialSelectedItems);
@@ -65,6 +71,7 @@ const Selector: React.FC<SelectorProps> = ({
         }
     }, [open, initialSelectedItems]);
 
+    // Handle toggling the selection of an item
     const handleToggle = (value: Item) => () => {
         const currentIndex = selectedItems.findIndex((item) => item.id === value.id);
         const newChecked = [...selectedItems];
@@ -78,16 +85,19 @@ const Selector: React.FC<SelectorProps> = ({
         setSelectedItems(newChecked);
     };
 
+    // Handle adding the selected items
     const handleAdd = () => {
         console.log('selectedItems', selectedItems);
         onAdd(selectedItems);
         onClose();
     };
 
+    // Handle search term change
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
     };
 
+    // Handle adding a new item (tag)
     const handleAddNewItem = async () => {
         if (searchTerm && !items.some((item) => item.name === searchTerm)) {
             try {
@@ -96,13 +106,14 @@ const Selector: React.FC<SelectorProps> = ({
                 });
                 const newTag = { id: data.createProjectTag.id, name: data.createProjectTag.name };
                 setSearchTerm('');
-                updateProjectTags(newTag); // Päivitä tunnisteet lista
+                updateProjectTags(newTag); // Update the tags list
             } catch (error) {
                 console.error('Error creating new tag:', error);
             }
         }
     };
 
+    // Filter items based on the search term
     const filteredItems = items.filter((item) => item && item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
