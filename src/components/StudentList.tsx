@@ -19,34 +19,33 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { GET_STUDENTS } from "../graphql/GetStudents";
 import "../css/StudentList.css";
+import { filterStudents, sortStudents, StudentData, SortConfig } from "./common/studentHelpers";
 
-type StudentData = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  groupId: string;
-  studyingQualificationTitle: {
-    name: string;
-  };
-};
 
-const StudentList: React.FC = () => {
+  const StudentList: React.FC = () => {
+  
+  //GraphQL query to fetch student data
   const { loading, error, data } = useQuery(GET_STUDENTS);
+
+  // State for the user-entered search query, used to filter displayed students
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof StudentData | null;
-    order: "asc" | "desc" | null;
-  }>({
+
+  // State for the current sorting configuration
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
     order: null,
   });
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+  // Update the search query state as the user types in the search field
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
+  };
 
+  // Update the sorting configuration when a column header is clicked
   const handleSort = (key: keyof StudentData) => {
     setSortConfig((prev) => {
       if (prev.key === key) {
+        // Cycle through asc -> desc -> null
         const nextOrder =
           prev.order === "asc" ? "desc" : prev.order === "desc" ? null : "asc";
         return { key: nextOrder ? key : null, order: nextOrder };
@@ -55,30 +54,17 @@ const StudentList: React.FC = () => {
     });
   };
 
+  // Display loading message while fetching data
+  // Display error message if fetching data fails
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
+  // Extract student data from the GraphQL data fetch
   const students: StudentData[] = data.students || [];
-  const filteredStudents = students.filter(
-    (student) =>
-      `${student.firstName} ${student.lastName}`
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      student.groupId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.studyingQualificationTitle.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-  );
 
-  const sortedStudents = [...filteredStudents].sort((a, b) => {
-    if (!sortConfig.order || !sortConfig.key) return 0;
-    const key = sortConfig.key;
-    const valueA = a[key] ? String(a[key]).toLowerCase() : "";
-    const valueB = b[key] ? String(b[key]).toLowerCase() : "";
-
-    if (sortConfig.order === "asc") return valueA > valueB ? 1 : -1;
-    return valueA < valueB ? 1 : -1;
-  });
+  // Filter students based on the current search query and sort config
+  const filteredStudents = filterStudents(students, searchQuery);
+  const sortedStudents = sortStudents(filteredStudents, sortConfig);
 
   return (
     <div className="student-list-container">
