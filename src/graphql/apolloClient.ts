@@ -15,8 +15,9 @@ const httpLink = new HttpLink({
     },
 });
 
+// Päivitetään WebSocket-yhteys osoittamaan API Gatewayhin messaging-serverin sijaan
 const wsLink = new GraphQLWsLink(createClient({
-    url: 'ws://localhost:3002/graphql',
+    url: 'ws://localhost:3000/graphql',
     connectionParams: {
         Authorization: sessionStorage.getItem('mutatedToken'),
     },
