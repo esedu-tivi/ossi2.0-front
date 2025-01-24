@@ -14,6 +14,7 @@ import QualificationUnitPartList from './components/QualificationUnitPartList';
 import QualificationUnitPartDetails from './components/Routes/QualificationUnitPartDetails';
 import CreatePart from './components/Routes/CreatePart';
 import EditPart from './components/Routes/EditPart';
+import EditStudies from './components/Routes/EditStudies';
 
 const App = () => {
     const { isAuthenticated, userEmail } = useAuth();
@@ -24,10 +25,10 @@ const App = () => {
     useEffect(() => {
         if (isAuthenticated) {
             console.log('Current location:', location.pathname);
-    
+
             const isTeacherRoute = userEmail.endsWith('@esedulainen.fi');
             const isStudentRoute = userEmail.endsWith('@esedu.fi');
-    
+
             if (
                 isTeacherRoute &&
                 !location.pathname.startsWith('/teacherdashboard') &&
@@ -42,7 +43,6 @@ const App = () => {
             }
         }
     }, [isAuthenticated, userEmail, navigate, location]);
-    
 
     return (
         <Routes>
@@ -162,6 +162,18 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <EditPart />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/teacherdashboard/teacherstudies"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <EditStudies />
                             </AppLayout>
                         }
                     />
