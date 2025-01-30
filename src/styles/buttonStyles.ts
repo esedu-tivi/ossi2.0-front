@@ -30,6 +30,7 @@ const buttonStyles = {
     mb: 2,
     fontSize: '1rem',
     fontWeight: 400,
+    textTransform: 'none',
     '&:hover': {
       backgroundColor: '#4e4574',
     },
@@ -50,7 +51,23 @@ const buttonStyles = {
       backgroundColor: '#4e4574',
     },
     boxShadow: 3,
-  }
+  },
+
+  educationButton: {
+    visibility: 'hidden',
+    backgroundColor: '#65558F',
+    color: '#fff',
+    borderRadius: 3,
+    width: 'auto',
+    paddingX: 1.5,
+    fontSize: '1rem',
+    fontWeight: 200,
+    textTransform: 'none',
+    '&:hover': {
+      backgroundColor: '#4e4574',
+    },
+    boxShadow: 3,
+  },
 }
 
 export default buttonStyles

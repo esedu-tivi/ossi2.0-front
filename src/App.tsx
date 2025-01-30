@@ -15,6 +15,7 @@ import QualificationUnitPartDetails from './components/Routes/QualificationUnitP
 import CreatePart from './components/Routes/CreatePart';
 import EditPart from './components/Routes/EditPart';
 import EditStudies from './components/Routes/EditStudies';
+import EducationPath from './components/Routes/EducationPath';
 
 const App = () => {
     const { isAuthenticated, userEmail } = useAuth();
@@ -174,6 +175,18 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <EditStudies />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/teacherdashboard/educationpath"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <EducationPath />
                             </AppLayout>
                         }
                     />

@@ -7,7 +7,9 @@ export interface BasePartFormData {
   name: string;
   description: string;
   materials: string;
+  projects: Item[];
   osaamiset: Item[];
+  qualificationUnit: Item[];
 }
 
 export interface CreatePartFormData extends BasePartFormData {}

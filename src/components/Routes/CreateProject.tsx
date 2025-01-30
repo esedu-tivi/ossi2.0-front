@@ -14,6 +14,7 @@ import TurndownService from 'turndown';
 import RichTextEditor from '../common/RichTextEditor';
 import ChipSelector from '../common/ChipSelector';
 import { formHandleManager } from '../common/formHandleManager';
+import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
@@ -172,9 +173,19 @@ const NewProjectForm: React.FC = () => {
             textAlign={'center'}
             sx={formStyles.formOuterBox}
         >
-            <Box
-                sx={formStyles.formBannerBox}
-            >
+            <Box sx={{ ...formStyles.formBannerBox, textAlign: "center", marginBottom: 3, position: 'relative', }}>
+                <IconButton
+                    onClick={() => navigate("/teacherprojects")}
+                    sx={{
+                        position: 'absolute',
+                        left: '16px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'white',
+                    }}
+                    >
+                    <ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
+                </IconButton>
                 <Typography variant="h4" align="center" color="white">
                     Luo Projekti
                 </Typography>
