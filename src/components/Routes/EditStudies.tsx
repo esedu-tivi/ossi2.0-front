@@ -1,15 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  Tabs,
-  Tab,
-  Box,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  LinearProgress,
-} from '@mui/material';
+import { Tabs, Tab, Box, Accordion, AccordionSummary, AccordionDetails, Typography, LinearProgress } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -41,26 +32,24 @@ const EditStudies: React.FC = () => {
 
   // This subtopic state must match the same interface from StudiesData
   const [selectedSubtopic, setSelectedSubtopic] = useState<Subtopic | null>(null);
+  const [expandedSubtopicId, setExpandedSubtopicId] = useState<number | null>(null);
+
+  // Handle subtopic click
+  const handleSubtopicClick = (subtopic: Subtopic) => {
+    setSelectedSubtopic(subtopic);
+    setExpandedSubtopicId((prevId) => (prevId === subtopic.id ? null : subtopic.id));
+  };
 
   // Render tasks
   const renderTasks = (tasks: Task[]) => {
     return tasks.map((task) => (
-      <Accordion
-        key={task.id}
-        sx={{ backgroundColor: task.done ? '#94FF7C' : '#F5F5F5' }}
-      >
+      <Accordion key={task.id} sx={{ border: '1px solid #95a5a6', backgroundColor: task.done ? '#94FF7C' : '#F5F5F5' }}>
         <AccordionDetails>
-          <Typography
-            component="div"
-            sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}
-          >
+          <Typography component="div" sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
             {task.name}
             <Box sx={{ display: 'flex', alignItems: 'right' }}>
               {task.done && <CheckIcon />}
-              <InfoOutlinedIcon
-                onClick={() => handleInfoClick(task.id)}
-                sx={{ cursor: 'pointer', marginLeft: 1 }}
-              />
+              <InfoOutlinedIcon onClick={() => handleInfoClick(task.id)} sx={{ cursor: 'pointer', marginLeft: 1 }} />
             </Box>
           </Typography>
         </AccordionDetails>
@@ -78,9 +67,10 @@ const EditStudies: React.FC = () => {
       return (
         <Accordion
           key={subtopic.id}
-          sx={{ backgroundColor: progress === 100 ? '#94FF7C' : '#F5F5F5' }}
-          // Clicking sets parent state
-          onClick={() => setSelectedSubtopic(subtopic)}
+          disableGutters={true}
+          expanded={expandedSubtopicId === subtopic.id}
+          onChange={() => handleSubtopicClick(subtopic)}
+          sx={{ border: '1px solid #95a5a6', backgroundColor: progress === 100 ? '#94FF7C' : '#F5F5F5' }}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography sx={{ flexGrow: 1 }}>{subtopic.name}</Typography>
@@ -110,15 +100,10 @@ const EditStudies: React.FC = () => {
   // Render studies
   const renderStudies = (studies: Study[]) => {
     return studies.map((study) => {
-      const progress = calculateProgress(
-        study.subtopics.flatMap((subtopic) => subtopic.tasks),
-      );
+      const progress = calculateProgress(study.subtopics.flatMap((subtopic) => subtopic.tasks));
 
       return (
-        <Accordion
-          key={study.id}
-          sx={{ backgroundColor: progress === 100 ? '#94FF7C' : '#F5F5F5' }}
-        >
+        <Accordion key={study.id} disableGutters={true} sx={{ backgroundColor: progress === 100 ? '#94FF7C' : '#F5F5F5' }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>{study.name}</Typography>
           </AccordionSummary>
@@ -157,7 +142,7 @@ const EditStudies: React.FC = () => {
           },
           '& .Mui-selected': {
             backgroundColor: '#65558f',
-            color: '#ffffff',
+            color: '#ffffff !important',
             borderRadius: '10px 10px 0 0',
           },
         }}
@@ -178,18 +163,9 @@ const EditStudies: React.FC = () => {
           )}
 
           {/* Provide fallback if subtopics is missing */}
-          <HoksGraphsComponent
-            subtopics={StudiesData[0]?.subtopics ?? []}
-            selectedSubtopic={selectedSubtopic}
-          />
+          <HoksGraphsComponent subtopics={StudiesData[0]?.subtopics ?? []} selectedSubtopic={selectedSubtopic} />
 
           {renderStudies(StudiesData)}
-        </Box>
-      )}
-
-      {tabIndex === 1 && (
-        <Box>
-          <Typography>Content for the other page goes here.</Typography>
         </Box>
       )}
     </div>
