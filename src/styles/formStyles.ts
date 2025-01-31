@@ -1,6 +1,6 @@
 const formStyles = {
   formOuterBox: {
-    maxWidth: 1600,
+    maxWidth: '100%',
     margin: 'auto',
     padding: 3,
     borderRadius: 2,
