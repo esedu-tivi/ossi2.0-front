@@ -121,9 +121,9 @@ const EditStudies: React.FC = () => {
   // Tab logic
   const handleTabChange = (_event: React.SyntheticEvent, newIndex: number) => {
     if (newIndex === 0) {
-      navigate('/teacherdashboard/teacherstudies');
+      navigate('/teacherdashboard/teacherstudies', { state: { student } });
     } else if (newIndex === 1) {
-      navigate('/teacherdashboard/educationpath');
+      navigate('/teacherdashboard/educationpath', { state: { student } });
     }
   };
 

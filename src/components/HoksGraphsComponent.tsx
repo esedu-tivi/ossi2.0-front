@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Subtopic } from '../data/StudiesData';
 
@@ -8,10 +8,10 @@ interface HoksGraphsProps {
   selectedSubtopic: Subtopic | null;
 }
 
-const HoksGraphsComponent: React.FC<HoksGraphsProps> = ({
-  subtopics,
-  selectedSubtopic,
-}) => {
+const HoksGraphsComponent: React.FC<HoksGraphsProps> = ({ subtopics, selectedSubtopic }) => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
   console.log('HoksGraphsComponent: subtopics = ', subtopics);
   console.log('HoksGraphsComponent: selectedSubtopic = ', selectedSubtopic);
 
@@ -26,7 +26,7 @@ const HoksGraphsComponent: React.FC<HoksGraphsProps> = ({
   const leftChartColors = subtopics.map((sub) => {
     // Hard-code yellow for TVP2 (Couldn't find a better way to do this)
     if (sub.id === 12) {
-      return '#fffa65'; 
+      return '#fffa65';
     }
     // Otherwise, check if all tasks are done => #94FF7C (green), else #dfe6e9 (grey)
     const allDone = sub.tasks.every((t) => t.done);
@@ -43,40 +43,32 @@ const HoksGraphsComponent: React.FC<HoksGraphsProps> = ({
     : [];
 
   // For each task, green if done => #94FF7C, else grey => #dfe6e9
-  const rightChartColors = selectedSubtopic
-    ? selectedSubtopic.tasks.map((t) => (t.done ? '#94FF7C' : '#dfe6e9'))
-    : [];
+  const rightChartColors = selectedSubtopic ? selectedSubtopic.tasks.map((t) => (t.done ? '#94FF7C' : '#dfe6e9')) : [];
 
   return (
-    <Box display="flex" justifyContent="space-between" padding={4}>
+    <Box display="flex" flexDirection={isSmallScreen ? 'column' : 'row'} justifyContent="space-evenly" alignItems="center" padding={4}>
       {/* LEFT side: subtopics */}
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="flex-start"
-        style={{ maxWidth: '800px' }}
-      >
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" sx={{ maxWidth: '100%', marginBottom: isSmallScreen ? 4 : 0 }}>
         <Box
-          style={{
-            marginBottom: '10px',
-            marginLeft: '320px',
-            fontSize: '22px',
-            
+          sx={{
+            marginBottom: 2,
+            fontSize: '18px',
             fontFamily: 'Verdana, sans-serif',
+            textAlign: 'center',
           }}
         >
           Teemat
         </Box>
 
-        <Box style={{ marginLeft: '250px' }}>
+        <Box display="flex" justifyContent="center" alignItems="center">
           <PieChart
-            width={325}
-            height={325}
+            margin={{ right: 0 }}
+            width={isSmallScreen ? 250 : 325}
+            height={isSmallScreen ? 250 : 325}
             // Data array (one slice per subtopic)
             series={[
               {
                 data: leftChartData,
-                // The label text
                 valueFormatter: (item) => String(item.id ?? ''),
               },
             ]}
@@ -87,39 +79,32 @@ const HoksGraphsComponent: React.FC<HoksGraphsProps> = ({
 
       {/* RIGHT side: tasks in selectedSubtopic */}
       {selectedSubtopic && (
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="flex-start"
-          style={{ maxWidth: '900px' }}
-          marginRight="300px"
-        >
+        <Box display="flex" flexDirection="column" alignItems="center" sx={{ maxWidth: '100%' }}>
           <Box
-            style={{
-              marginBottom: '10px',
-              marginLeft: '155px',
+            sx={{
+              marginBottom: 2,
               fontSize: '18px',
-              width: '325px',
+              width: '100%',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               fontFamily: 'Verdana, sans-serif',
+              textAlign: 'center',
             }}
           >
             {selectedSubtopic.name}
           </Box>
-          <Box style={{ marginLeft: '150px', marginBottom: '20px' }}>
+          <Box display="flex" justifyContent="center" alignItems="center">
             <PieChart
-              width={325}
-              height={325}
-              // One slice per task
+              margin={{ right: 0 }}
+              width={isSmallScreen ? 250 : 325}
+              height={isSmallScreen ? 250 : 325}
               series={[
                 {
                   data: rightChartData,
                   valueFormatter: (item) => String(item.id ?? ''),
                 },
               ]}
-              // Match color order to rightChartData
               colors={rightChartColors}
             />
           </Box>

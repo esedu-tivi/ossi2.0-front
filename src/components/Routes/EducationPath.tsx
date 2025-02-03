@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Accordion,
@@ -14,15 +14,15 @@ import {
   FormControlLabel,
   Tabs,
   Tab,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import buttonStyles from "../../styles/buttonStyles";
-import formStyles from "../../styles/formStyles";
-import modalStyles from "../../styles/modalStyles";
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import buttonStyles from '../../styles/buttonStyles';
+import formStyles from '../../styles/formStyles';
+import modalStyles from '../../styles/modalStyles';
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import CheckBoxSharpIcon from '@mui/icons-material/CheckBoxSharp';
 import AddCircleOutlineSharpIcon from '@mui/icons-material/AddCircleOutlineSharp';
-import { mandatoryModules, choiceModules, optionalModulesList } from "../../data/EducationPathData";
+import { mandatoryModules, choiceModules, optionalModulesList } from '../../data/EducationPathData';
 import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
 
 interface ModulePart {
@@ -57,23 +57,16 @@ const EducationPath: React.FC = () => {
   };
 
   const handleCheckboxChange = (id: number) => {
-    setSelectedOptionalModules((prev) =>
-      prev.includes(id) ? prev.filter((moduleId) => moduleId !== id) : [...prev, id]
-    );
+    setSelectedOptionalModules((prev) => (prev.includes(id) ? prev.filter((moduleId) => moduleId !== id) : [...prev, id]));
   };
-  
+
   const [previousEducation, setPreviousEducation] = useState<number>(5);
 
   const totalPoints = [...modules, ...optionalModules].reduce((sum, module) => sum + module.points, previousEducation);
-  const completedPoints = [...modules, ...optionalModules].reduce(
-    (sum, module) => sum + (module.completed ? module.points : 0),
-    previousEducation
-  );
+  const completedPoints = [...modules, ...optionalModules].reduce((sum, module) => sum + (module.completed ? module.points : 0), previousEducation);
 
   const addSelectedModules = () => {
-    const selectedModulesToAdd = optionalModulesList.filter((module) =>
-      selectedOptionalModules.includes(module.id)
-    );
+    const selectedModulesToAdd = optionalModulesList.filter((module) => selectedOptionalModules.includes(module.id));
 
     setOptionalModules((prev) => [...prev, ...selectedModulesToAdd]);
     handleAddModalClose();
@@ -81,23 +74,23 @@ const EducationPath: React.FC = () => {
 
   const handleTabChange = (_event: React.SyntheticEvent, newIndex: number) => {
     if (newIndex === 0) {
-      navigate('/teacherdashboard/educationpath');
+      navigate('/teacherdashboard/educationpath', { state: { student } });
     } else if (newIndex === 1) {
-      navigate('/teacherdashboard/teacherstudies');
+      navigate('/teacherdashboard/teacherstudies', { state: { student } });
     }
   };
 
   const tabIndex = location.pathname === '/teacherdashboard/educationpath' ? 0 : 1;
-  
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "stretch", mx: "10%" }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', mx: '10%' }}>
       <Box>
         <Tabs
           value={tabIndex}
           onChange={handleTabChange}
           aria-label="edit studies tabs"
           sx={{
-            alignSelf: "flex-start",
+            alignSelf: 'flex-start',
             '& .MuiTab-root': {
               backgroundColor: '#eaddff',
               borderRadius: '10px 10px 0 0',
@@ -113,9 +106,9 @@ const EducationPath: React.FC = () => {
           <Tab label="OPINNOT" />
         </Tabs>
         <Box sx={formStyles.formOuterBox}>
-          <Box sx={{ ...formStyles.formBannerBox, textAlign: "center", marginBottom: 3, position: 'relative', borderTopLeftRadius: "0px" }}>
+          <Box sx={{ ...formStyles.formBannerBox, textAlign: 'center', marginBottom: 3, position: 'relative', borderTopLeftRadius: '0px' }}>
             <IconButton
-              onClick={() => navigate("/teacherdashboard")}
+              onClick={() => navigate('/teacherdashboard')}
               sx={{
                 position: 'absolute',
                 left: '16px',
@@ -134,7 +127,9 @@ const EducationPath: React.FC = () => {
                 {student.firstName} {student.lastName} (Ohjelmistokehittäjä)
               </Typography>
             ) : (
-              <Typography variant="h4" color="white">Opiskelija (Ohjelmistokehittäjä)</Typography>
+              <Typography variant="h4" color="white">
+                Opiskelija (Ohjelmistokehittäjä)
+              </Typography>
             )}
           </Box>
 
@@ -146,8 +141,8 @@ const EducationPath: React.FC = () => {
               key={module.id}
               sx={{
                 marginBottom: 2,
-                backgroundColor: module.completed ? "#afe3b2" : "#f3f3f3",
-                border: "1px solid #ccc",
+                backgroundColor: module.completed ? '#afe3b2' : '#f3f3f3',
+                border: '1px solid #ccc',
                 borderRadius: 2,
                 position: 'relative',
                 '&:hover .hover-button': { visibility: 'visible' },
@@ -175,17 +170,17 @@ const EducationPath: React.FC = () => {
                     <Box
                       key={part.id}
                       sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
                         padding: 1,
-                        backgroundColor: part.completed ? "#93cf96" : "#fff",
+                        backgroundColor: part.completed ? '#93cf96' : '#fff',
                         borderRadius: 1,
                         marginBottom: 1,
                         border: 1,
                       }}
                     >
-                      <Accordion sx={{ boxShadow: "none", backgroundColor: "transparent" }}>
+                      <Accordion sx={{ boxShadow: 'none', backgroundColor: 'transparent' }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                           <Typography variant="subtitle1" fontWeight="bold">
                             {part.title} ({part.points} osp)
@@ -227,8 +222,8 @@ const EducationPath: React.FC = () => {
               key={module.id}
               sx={{
                 marginBottom: 2,
-                backgroundColor: module.completed ? "#afe3b2" : "#f3f3f3",
-                border: "1px solid #ccc",
+                backgroundColor: module.completed ? '#afe3b2' : '#f3f3f3',
+                border: '1px solid #ccc',
                 borderRadius: 2,
                 position: 'relative',
                 '&:hover .hover-button': { visibility: 'visible' },
@@ -256,17 +251,17 @@ const EducationPath: React.FC = () => {
                     <Box
                       key={part.id}
                       sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
                         padding: 1,
-                        backgroundColor: part.completed ? "#93cf96" : "#fff",
+                        backgroundColor: part.completed ? '#93cf96' : '#fff',
                         borderRadius: 1,
                         marginBottom: 1,
                         border: 1,
                       }}
                     >
-                      <Accordion sx={{ boxShadow: "none", backgroundColor: "transparent" }}>
+                      <Accordion sx={{ boxShadow: 'none', backgroundColor: 'transparent' }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                           <Typography variant="subtitle1" fontWeight="bold">
                             {part.title} ({part.points} osp)
@@ -300,10 +295,7 @@ const EducationPath: React.FC = () => {
             </Accordion>
           ))}
 
-          <IconButton
-            sx={buttonStyles.saveButton}
-            onClick={handleAddModalOpen}
-          >
+          <IconButton sx={buttonStyles.saveButton} onClick={handleAddModalOpen}>
             <AddCircleOutlineSharpIcon
               sx={{
                 mr: 1,
@@ -313,11 +305,9 @@ const EducationPath: React.FC = () => {
           </IconButton>
 
           <Modal open={isAddModalOpen} onClose={handleAddModalClose}>
-            <Box sx={{...modalStyles.outerBox, maxWidth: '600px'}}>
+            <Box sx={{ ...modalStyles.outerBox, maxWidth: '600px' }}>
               <Box sx={modalStyles.header}>
-                <Typography sx={modalStyles.title}>
-                  Lisää valinnaisia opintoja
-                </Typography>
+                <Typography sx={modalStyles.title}>Lisää valinnaisia opintoja</Typography>
               </Box>
               <Box
                 sx={{
@@ -325,33 +315,27 @@ const EducationPath: React.FC = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 1,
-                  marginLeft: '80px'
+                  marginLeft: '80px',
                 }}
               >
                 {optionalModulesList.map((module) => (
                   <FormControlLabel
                     key={module.id}
-                    control={
-                      <Checkbox
-                        checked={selectedOptionalModules.includes(module.id)}
-                        onChange={() => handleCheckboxChange(module.id)}
-                      />
-                    }
+                    control={<Checkbox checked={selectedOptionalModules.includes(module.id)} onChange={() => handleCheckboxChange(module.id)} />}
                     label={module.title}
                   />
                 ))}
               </Box>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                paddingTop: 2, 
-                borderTop: 2, 
-                backgroundColor: "#ebe9e6" ,
-              }}>
-                <Button
-                  sx={{...buttonStyles.cancelButton, minWidth: '250px'}}
-                  onClick={addSelectedModules}
-                >
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  paddingTop: 2,
+                  borderTop: 2,
+                  backgroundColor: '#ebe9e6',
+                }}
+              >
+                <Button sx={{ ...buttonStyles.cancelButton, minWidth: '250px' }} onClick={addSelectedModules}>
                   Lisää valitut
                 </Button>
                 <Button
@@ -371,17 +355,14 @@ const EducationPath: React.FC = () => {
           <Typography variant="h6" gutterBottom mt={5}>
             Aikaisemmat opinnot
           </Typography>
-          <Box sx={{ ...formStyles.formNotificationBox, backgroundColor: "#afe3b2" }}>
+          <Box sx={{ ...formStyles.formNotificationBox, backgroundColor: '#afe3b2' }}>
             <Typography>Hyväksytty aikaisempi koulutus</Typography>
             <Typography>{previousEducation} osp</Typography>
           </Box>
 
           <Divider sx={{ marginY: 3 }} />
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <IconButton
-              type="submit"
-              sx={buttonStyles.saveButton}
-            >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <IconButton type="submit" sx={buttonStyles.saveButton}>
               <SaveSharpIcon
                 sx={{
                   mr: 1,
@@ -389,44 +370,44 @@ const EducationPath: React.FC = () => {
               />
               Tallenna Opintosuunnitelma
             </IconButton>
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
               <Box>
-                <Typography 
-                sx={{
+                <Typography
+                  sx={{
                     border: 2,
-                    borderRadius:1,
+                    borderRadius: 1,
                     margin: 1,
                     padding: 1,
-                    fontWeight: "bold",
-                    backgroundColor: "#ebe9e6",
+                    fontWeight: 'bold',
+                    backgroundColor: '#ebe9e6',
                   }}
                 >
                   Osp suoritettu: {completedPoints}
                 </Typography>
               </Box>
               <Box>
-                <Typography 
+                <Typography
                   sx={{
                     border: 2,
-                    borderRadius:1,
+                    borderRadius: 1,
                     margin: 1,
                     padding: 1,
-                    fontWeight: "bold",
-                    backgroundColor: "#ebe9e6",
+                    fontWeight: 'bold',
+                    backgroundColor: '#ebe9e6',
                   }}
                 >
                   Osp valittu: {totalPoints}
                 </Typography>
               </Box>
               <Box>
-                <Typography 
+                <Typography
                   sx={{
                     border: 2,
-                    borderRadius:1,
+                    borderRadius: 1,
                     margin: 1,
                     padding: 1,
-                    fontWeight: "bold",
-                    backgroundColor: "#ebe9e6",
+                    fontWeight: 'bold',
+                    backgroundColor: '#ebe9e6',
                   }}
                 >
                   Tutkintoon vaadittu osp: 145
