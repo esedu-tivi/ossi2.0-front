@@ -5,7 +5,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import StudiesData, { Task, Subtopic, Study } from '../../data/StudiesData';
-import HoksGraphsComponent from '../HoksGraphsComponent';
+// import HoksGraphsComponent from '../HoksGraphsComponent';
 
 interface Student {
   firstName: string;
@@ -31,12 +31,12 @@ const EditStudies: React.FC = () => {
   const student = location.state?.student as Student | undefined;
 
   // This subtopic state must match the same interface from StudiesData
-  const [selectedSubtopic, setSelectedSubtopic] = useState<Subtopic | null>(null);
+  // const [selectedSubtopic, setSelectedSubtopic] = useState<Subtopic | null>(null);
   const [expandedSubtopicId, setExpandedSubtopicId] = useState<number | null>(null);
 
   // Handle subtopic click
   const handleSubtopicClick = (subtopic: Subtopic) => {
-    setSelectedSubtopic(subtopic);
+    // setSelectedSubtopic(subtopic);
     setExpandedSubtopicId((prevId) => (prevId === subtopic.id ? null : subtopic.id));
   };
 
@@ -163,7 +163,7 @@ const EditStudies: React.FC = () => {
           )}
 
           {/* Provide fallback if subtopics is missing */}
-          <HoksGraphsComponent subtopics={StudiesData[0]?.subtopics ?? []} selectedSubtopic={selectedSubtopic} />
+          {/* <HoksGraphsComponent subtopics={StudiesData[0]?.subtopics ?? []} selectedSubtopic={selectedSubtopic} /> */}
 
           {renderStudies(StudiesData)}
         </Box>
