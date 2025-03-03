@@ -157,14 +157,20 @@ const ProjectDetails = () => {
             Osaamiset
           </Typography>
           <TagsBox>
-            {[].map((skill: string, index: number) => (
-              <StyledChip
-                key={index}
-                label={skill}
-                variant="filled"
-                color="primary"
-              />
-            ))}
+            {project.competenceRequirements && project.competenceRequirements.length > 0 ? (
+              project.competenceRequirements.map((competence: { id: string; description: string }) => (
+                <StyledChip
+                  key={competence.id}
+                  label={competence.description}
+                  variant="filled"
+                  color="primary"
+                />
+              ))
+            ) : (
+              <Typography variant="body2" color="textSecondary">
+                Ei osaamisia lisättynä.
+              </Typography>
+            )}
           </TagsBox>
 
           <Typography variant="h6" gutterBottom>

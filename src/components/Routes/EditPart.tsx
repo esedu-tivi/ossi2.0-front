@@ -61,6 +61,10 @@ const EditPart: React.FC = () => {
         fetchPolicy: "no-cache",
     });    
 
+    useEffect(() => {
+        console.log('GraphQL Response:', data);
+    }, [data]);
+
     // Reverts Markdown back to HTML for TinyMCE editor fields
     const md = new MarkdownIt({
         html: true,
