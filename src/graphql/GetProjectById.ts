@@ -17,6 +17,10 @@ export const GET_PROJECT_BY_ID = gql`
                 id
                 name
             }
+            competenceRequirements {
+                description
+                id
+            }
         }
     }
 `;

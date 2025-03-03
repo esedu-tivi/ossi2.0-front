@@ -1,28 +1,33 @@
-import React, { useState } from 'react';
-import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip } from '@mui/material';
+import React, { useState, useEffect } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@apollo/client';
-import { CreatePartFormData, Item } from '../../FormData';
-import { GET_PROJECTS } from '../../graphql/GetProjects';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
 import Selector from '../Selector';
 import RichTextEditor from '../common/RichTextEditor';
 import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
+import TurndownService from 'turndown';
+
+import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation } from '@apollo/client';
+import { CreatePartFormData, Item } from '../../FormData';
+import { GET_PROJECTS } from '../../graphql/GetProjects';
+import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnitParts';
+import { CREATE_PART } from '../../graphql/CreatePart';
+import { GET_QUALIFICATION_UNITS } from '../../graphql/GetQualificationUnits';
 
 const CreatePart: React.FC = () => {
     const navigate = useNavigate();
+    const turndownService = new TurndownService();
 
     // State to manage form data
     const [formData, setFormData] = useState<CreatePartFormData>({
         name: '',
         description: '',
         materials: '',
-        osaamiset: [],
         projects: [],
-        qualificationUnit: [],
+        parentQualificationUnit: [],
     });
 
     // Handles data changes on TinyMCE editor input fields
@@ -37,17 +42,22 @@ const CreatePart: React.FC = () => {
     const [selectorOpen, setSelectorOpen] = useState(false);
 
     // State to manage the current field being edited
-    const [currentField, setCurrentField] = useState<keyof Pick<CreatePartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>>('osaamiset');
+    const [currentField, setCurrentField] = useState<keyof Pick<CreatePartFormData, 'projects' | 'parentQualificationUnit'>>();
 
     // State to manage selected items for each field
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
-        osaamiset: [],
         projects: [],
-        qualificationUnit: [],
+        parentQualificationUnit: [],
     });
 
     // Fetch projects data using Apollo Client's useQuery hook
     const { loading: projectsLoading, error: projectsError, data: projectsData } = useQuery(GET_PROJECTS);
+
+    const { loading: qualificationLoading, error: qualificationError, data: qualificationData } = useQuery(GET_QUALIFICATION_UNITS);
+
+    useEffect(() => {
+        console.log('Qualification Units:', qualificationData);
+    }, [qualificationData]);
 
     // Handle input changes in the form fields
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -58,8 +68,9 @@ const CreatePart: React.FC = () => {
         }));
     };
 
-    // Handle adding selected items to the form data
     const handleAdd = (items: Item[]) => {
+        if (!currentField) return;
+    
         setFormData((prevFormData) => ({
             ...prevFormData,
             [currentField]: items,
@@ -72,13 +83,13 @@ const CreatePart: React.FC = () => {
     };
 
     // Handle opening the Selector component for a specific field
-    const handleAddItem = (field: keyof Pick<CreatePartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>) => {
+    const handleAddItem = (field: keyof Pick<CreatePartFormData, 'projects' | 'parentQualificationUnit'>) => {
         setCurrentField(field);
         setSelectorOpen(true);
     };
 
     // Handle removing an item from the form data
-    const handleRemoveItem = (field: keyof Pick<CreatePartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>, index: number) => {
+    const handleRemoveItem = (field: keyof Pick<CreatePartFormData, 'projects' | 'parentQualificationUnit'>, index: number) => {
         setFormData((prevFormData) => ({
             ...prevFormData,
             [field]: prevFormData[field].filter((_, i) => i !== index),
@@ -89,13 +100,57 @@ const CreatePart: React.FC = () => {
         }));
     };
 
+    const [createPart] = useMutation(CREATE_PART, {
+        refetchQueries: [
+            { query: GET_QUALIFICATION_UNIT_PARTS },
+            { query: GET_PROJECTS }   
+        ],
+    });
+
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Allows turndown to handle iframes and video as Markdown
+        turndownService.addRule('iframes', {
+            filter: ['iframe', 'video'],
+            replacement: (content, node) => {
+                const element = node as HTMLElement;
+                const attrs = Array.from(element.attributes)
+                    .map(attr => `${attr.name}="${attr.value}"`)
+                    .join(' ');
+                return `<${element.nodeName.toLowerCase()} ${attrs}>${content}</${element.nodeName.toLowerCase()}>`;
+            }
+        });
+
+        // Modifies HTML to Markdown language using turndown before creating the new project
+        const markdownDescription = turndownService.turndown(formData.description);
+        const markdownMaterials = turndownService.turndown(formData.materials);
+
+        console.log("Submitting CreatePart with:", JSON.stringify({
+            name: formData.name,
+            description: markdownDescription,
+            materials: markdownMaterials,
+            projects: formData.projects.map((project) => project.id),
+            parentQualificationUnit: formData.parentQualificationUnit[0]?.id || "",
+        }, null, 2));
+
         try {
-            console.log('Nothing to see here yet');
-            navigate('/qualificationunitparts');
+            const response = await createPart({
+                variables: {
+                    part: {
+                        name: formData.name,
+                        description: markdownDescription,
+                        materials: markdownMaterials,
+                        projects: formData.projects.map(project => project.id),
+                        parentQualificationUnit: formData.parentQualificationUnit[0]?.id || "",
+                    },
+                },
+            });
+            console.log('GraphQL Response:', response.data);
+            if (response.data?.createPart) {
+                navigate('/qualificationunitparts');
+            }
         } catch (err) {
             console.error('Submission Error:', err);
         }
@@ -104,11 +159,9 @@ const CreatePart: React.FC = () => {
     // Get the title and button text for the Selector component based on the current field
     const getTitleAndButtonText = () => {
         switch (currentField) {
-            case 'osaamiset':
-                return { title: 'Valitse Osaamiset', buttonText: 'Lisää Osaamiset' };
             case 'projects':
                 return { title: 'Valitse Projektit', buttonText: 'Lisää Projektit' };
-            case 'qualificationUnit':
+            case 'parentQualificationUnit':
                 return { title: 'Valitse Tutkinnon osa', buttonText: 'Lisää Tutkinnon osa' };
             default:
                 return { title: '', buttonText: '' };
@@ -117,43 +170,18 @@ const CreatePart: React.FC = () => {
 
     // Get the items to be displayed in the Selector component based on the current field
     const getItems = () => {
-        if (projectsLoading) {
-            return ['Ladataan...'];
+        if (projectsLoading || qualificationLoading) {
+            return [];
         }
-        if (projectsError) {
-            return ['Virhe ladattaessa projekteja'];
+        if (projectsError || qualificationError) {
+            console.error('Error loading data:', projectsError || qualificationError);
+            return [];
         }
-        if (currentField === 'projects') {
-            return projectsData ? projectsData.projects : [];
-        }
-        if (currentField === 'osaamiset') {
-            return [
-                { id: '1', name: 'Osaaminen 1' },
-                { id: '2', name: 'Osaaminen 2' },
-                { id: '3', name: 'Osaaminen 3' },
-                { id: '4', name: 'Osaaminen 4' },
-                { id: '5', name: 'Osaaminen 5' },
-                { id: '6', name: 'sopii tehtävistä tiimin muiden jäsenten kanssa' },
-                { id: '7', name: 'etsii ratkaisuvaihtoehtoja ja ratkoo ongelmia yhdessä tiimin kanssa' },
-                { id: '8', name: 'arvioi ratkaisujen toimivuuden yhdessä tiimin kanssa' },
-                { id: '9', name: 'arvioi omaa toimintaa tiimin jäsenenä' },
-            ];
-        }
-        if (currentField === 'qualificationUnit') {
-            return [
-                { id: '1', name: 'Tutkinnon osa 1' },
-                { id: '2', name: 'Tutkinnon osa 2' },
-                { id: '3', name: 'Tutkinnon osa 3' },
-                { id: '4', name: 'Tutkinnon osa 4' },
-                { id: '5', name: 'Tutkinnon osa 5' },
-                { id: '6', name: 'Tutkinnon osa 6' },
-                { id: '7', name: 'Tutkinnon osa 7' },
-                { id: '8', name: 'Tutkinnon osa 8' },
-                { id: '9', name: 'Tutkinnon osa 9' },
-                { id: '10', name: 'Tutkinnon osa 10' },
-            ];
-        }
-        return [];
+        return currentField === 'projects'
+            ? projectsData?.projects ?? []
+            : currentField === 'parentQualificationUnit'
+            ? qualificationData?.units ?? []
+            : [];
     };
 
     const { title, buttonText } = getTitleAndButtonText();
@@ -199,15 +227,15 @@ const CreatePart: React.FC = () => {
                     <FormControl fullWidth>
                         <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tutkinnon osa</InputLabel>
                         <Box sx={formStyles.formModalInputBox}>
-                            {formData.qualificationUnit.map((unit, index) => (
+                            {formData.parentQualificationUnit.map((unit, index) => (
                                 <Chip
                                     key={unit.id}
                                     label={unit.name}
-                                    onDelete={() => handleRemoveItem('qualificationUnit', index)}
+                                    onDelete={() => handleRemoveItem('parentQualificationUnit', index)}
                                     sx={{ backgroundColor: '#E0E0E0' }}
                                 />
                             ))}
-                            <IconButton onClick={() => handleAddItem('qualificationUnit')} color="primary" sx={buttonStyles.openModalButton}>
+                            <IconButton onClick={() => handleAddItem('parentQualificationUnit')} color="primary" sx={buttonStyles.openModalButton}>
                                 <AddIcon />
                             </IconButton>
                         </Box>
@@ -225,23 +253,6 @@ const CreatePart: React.FC = () => {
                                 />
                             ))}
                             <IconButton onClick={() => handleAddItem('projects')} color="primary" sx={buttonStyles.openModalButton}>
-                                <AddIcon />
-                            </IconButton>
-                        </Box>
-                    </FormControl>
-
-                    <FormControl fullWidth>
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Osaamiset</InputLabel>
-                        <Box sx={formStyles.formModalInputBox}>
-                            {formData.osaamiset.map((osaaminen, index) => (
-                                <Chip
-                                    key={osaaminen.id}
-                                    label={osaaminen.name}
-                                    onDelete={() => handleRemoveItem('osaamiset', index)}
-                                    sx={{ backgroundColor: '#E0E0E0' }}
-                                />
-                            ))}
-                            <IconButton onClick={() => handleAddItem('osaamiset')} color="primary" sx={buttonStyles.openModalButton}>
                                 <AddIcon />
                             </IconButton>
                         </Box>
@@ -265,11 +276,11 @@ const CreatePart: React.FC = () => {
                 title={title}
                 buttonText={buttonText}
                 open={selectorOpen}
-                selectedItems={selectedItems[currentField]}
+                selectedItems={currentField ? selectedItems[currentField] : []}
                 onAdd={handleAdd}
                 onClose={() => setSelectorOpen(false)}
-                currentField={currentField}
-                updateProjectTags={() => {}} // Replace with actual function if needed
+                currentField={currentField ?? ''}
+                updateProjectTags={() => {}}
             />
         </Box>
     );

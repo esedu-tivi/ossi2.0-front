@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { EditProjectFormData } from '../../FormData';
+import { useLazyQuery } from '@apollo/client';
+import { GET_COMPETENCE_REQUIREMENTS } from '../../graphql/GetCompetenceRequirements';
 
 interface Item {
   id: string;
@@ -11,22 +13,146 @@ interface FormState {
   duration: number | string;
   isActive: boolean;
   tags: Item[];
-  osaamiset: Item[];
+  competenceRequirements: Item[];
   includedInParts: Item[];
   description: string;
   materials: string;
 }
 
+interface Requirement {
+  id: string;
+  description: string;
+}
+
+interface CompetenceRequirementGroup {
+  requirements: Requirement[];
+}
+
+interface ParentQualificationUnit {
+  competenceRequirementGroups: CompetenceRequirementGroup[];
+}
+
+interface Part {
+  parentQualificationUnit: ParentQualificationUnit;
+}
+
+interface CompetenceRequirementsData {
+  part: Part;
+}
+
 export const formHandleManager = (initialState: FormState) => {
   const [formData, setFormData] = useState<FormState>(initialState);
   const [selectorOpen, setSelectorOpen] = useState(false);
-  const [currentField, setCurrentField] = useState<keyof Pick<EditProjectFormData, 'tags' | 'osaamiset' | 'includedInParts'>>('tags');
+  const [currentField, setCurrentField] = useState<
+  keyof Pick<
+    EditProjectFormData & { includedInParts?: Item[] }, 
+    'tags' | 'competenceRequirements' | 'includedInParts'
+    >
+  >('tags');
   const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
       tags: [],
-      osaamiset: [],
+      competenceRequirements: [],
       includedInParts: [],
   });
 
+  const [competenceOptions, setCompetenceOptions] = useState<Item[]>([]);
+  const [fetchCompetenceRequirements] = useLazyQuery<CompetenceRequirementsData>(GET_COMPETENCE_REQUIREMENTS, {
+    fetchPolicy: "network-only",
+    onCompleted: (data) => {
+      console.log('Competence Requirements Data:', data);
+      if (data?.part?.parentQualificationUnit?.competenceRequirementGroups) {
+        const newCompetences = data.part.parentQualificationUnit.competenceRequirementGroups.flatMap(group =>
+          group.requirements.map(req => ({ id: req.id, name: req.description }))
+        );
+        console.log("New Competence Options:", newCompetences);
+        setCompetenceOptions([...newCompetences]);
+      }
+    },
+  });
+
+  useEffect(() => {
+    const selectedTeemaIds = formData.includedInParts.map(teema => teema.id);
+  
+    if (selectedTeemaIds.length > 0) {
+      console.log("Fetching competence requirements for multiple Teema IDs:", selectedTeemaIds);
+      fetchCompetenceRequirementsForMultipleTeema(selectedTeemaIds);
+    }
+  }, [formData.includedInParts]);
+
+  const handleChangeTeema = (newTeema: Item[]) => {
+    setFormData((prevFormData) => {
+        const updatedTeema = newTeema;   
+        const isTeemaChanged = JSON.stringify(prevFormData.includedInParts) !== JSON.stringify(updatedTeema);
+    
+        if (isTeemaChanged) {
+            console.log("Teema changed, clearing previous Osaamiset & fetching new competence requirements");
+            const selectedTeemaIds = updatedTeema.map(teema => teema.id);
+            console.log("Selected Teema IDs in handleChangeTeema:", selectedTeemaIds);
+    
+            setFormData((prev) => ({
+                ...prev,
+                competenceRequirements: [],
+            }));
+
+            setCompetenceOptions([]);
+            fetchCompetenceRequirementsForMultipleTeema(selectedTeemaIds);
+        }
+    
+        return {
+            ...prevFormData,
+            includedInParts: updatedTeema,
+        };
+    });
+
+    setSelectedItems((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        includedInParts: newTeema,
+        competenceRequirements: [],
+    }));
+  };
+
+  const fetchCompetenceRequirementsForMultipleTeema = (teemaIds: string[]) => {
+    console.log("Fetching competence requirements for Teema IDs:", teemaIds);
+  
+    setCompetenceOptions([]); 
+
+    Promise.all(
+        teemaIds.map((teemaId) => {
+            console.log(`Querying for Teema ID: ${teemaId}`);
+            return fetchCompetenceRequirements({ variables: { partId: teemaId } });
+        })
+    )
+    .then((responses) => {
+        const allCompetenceRequirements: Item[] = [];
+
+        responses.forEach(({ data }) => {
+            if (data?.part?.parentQualificationUnit?.competenceRequirementGroups) {
+                const newCompetences = data.part.parentQualificationUnit.competenceRequirementGroups.flatMap(
+                    (group: CompetenceRequirementGroup) =>
+                        group.requirements.map((req: Requirement) => ({
+                            id: req.id,
+                            name: req.description,
+                        }))
+                );
+
+                allCompetenceRequirements.push(...newCompetences);
+            }
+        });
+
+        // Remove duplicates using Map
+        const uniqueCompetenceRequirements = Array.from(
+            new Map(allCompetenceRequirements.map((item) => [item.id, item])).values()
+        );
+
+        //  Update competence options with the new list
+        console.log("Final Combined Competence Requirements:", uniqueCompetenceRequirements);
+        setCompetenceOptions(uniqueCompetenceRequirements);
+    })
+    .catch((error) => {
+        console.error("Error fetching competence requirements:", error);
+    });
+  };
+  
   // Handles data changes on non-TinyMCE input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -53,34 +179,53 @@ export const formHandleManager = (initialState: FormState) => {
 
   const handleAdd = (items: Item[]) => {
     if (!currentField) return;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [currentField]: items,
-    }));
-    setSelectedItems((prevSelectedItems) => ({
-      ...prevSelectedItems,
-      [currentField]: items,
-    }));
+
+    if (currentField === 'includedInParts') {
+        handleChangeTeema(items); 
+    } else {
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [currentField]: items,
+        }));
+
+        setSelectedItems((prevSelectedItems) => ({
+            ...prevSelectedItems,
+            [currentField]: items,
+        }));
+    }
+
     setSelectorOpen(false);
   };
 
-  const handleAddItem = (field: keyof Pick<FormState, 'tags' | 'osaamiset' | 'includedInParts'>) => {
-    if (field !== 'includedInParts' && formData.includedInParts.length === 0) {
+  const handleAddItem = (field: keyof Pick<FormState, 'tags' | 'competenceRequirements' | 'includedInParts'>) => {
+    if (field === 'includedInParts') {
+      setCurrentField(field);
+      setSelectorOpen(true);
+      return;
+    }
+  
+    if (field === 'competenceRequirements' && formData.includedInParts.length === 0) {
       alert('Valitse ensin Teema.');
       return;
     }
+  
+    if (field === 'competenceRequirements') {
+      console.log("Using competenceOptions for modal:", competenceOptions);
+    }
+  
     setCurrentField(field);
     setSelectorOpen(true);
   };
-
-  const handleRemoveItem = (field: keyof Pick<FormState, 'tags' | 'osaamiset' | 'includedInParts'>, index: number) => {
+  
+  const handleRemoveItem = (field: keyof Pick<FormState, 'tags' | 'competenceRequirements' | 'includedInParts'>, index: number) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
-      [field]: prevFormData[field].filter((_, i) => i !== index),
+      [field]: field === 'includedInParts' ? [] : prevFormData[field].filter((_, i) => i !== index),
     }));
+  
     setSelectedItems((prevSelectedItems) => ({
       ...prevSelectedItems,
-      [field]: prevSelectedItems[field].filter((_, i) => i !== index),
+      [field]: field === 'includedInParts' ? [] : prevSelectedItems[field].filter((_, i) => i !== index),
     }));
   };
 
@@ -109,5 +254,8 @@ export const formHandleManager = (initialState: FormState) => {
     handleRemoveItem,
     handleEditorChange,
     handleNotifyStudents,
+    competenceOptions,
+    setCompetenceOptions,
+    handleChangeTeema,
   };
 };

@@ -1,99 +1,130 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, Switch } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SaveAsSharpIcon from '@mui/icons-material/SaveAsSharp';
 import UndoSharpIcon from '@mui/icons-material/UndoSharp';
 import DriveFolderUploadSharpIcon from '@mui/icons-material/DriveFolderUploadSharp';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@apollo/client';
-import { EditPartFormData, Item } from '../../FormData';
-import { GET_QUALIFICATION_UNIT_PART_BY_ID } from '../../graphql/GetQualificationUnitPartById';
-import { GET_PROJECTS } from '../../graphql/GetProjects';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
 import Selector from '../Selector';
 import RichTextEditor from '../common/RichTextEditor';
+import TurndownService from 'turndown';
+import MarkdownIt from 'markdown-it';
+import DOMPurify from 'dompurify';
+
+import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, Switch } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useMutation } from '@apollo/client';
+import { EditPartFormData, Item } from '../../FormData';
+import { GET_QUALIFICATION_UNIT_PART_BY_ID } from '../../graphql/GetQualificationUnitPartById';
+import { GET_PROJECTS } from '../../graphql/GetProjects';
+import { GET_QUALIFICATION_UNITS } from '../../graphql/GetQualificationUnits';
+import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnitParts';
+import { UPDATE_PART } from '../../graphql/UpdatePart';
 
 const EditPart: React.FC = () => {
     const navigate = useNavigate();
     const { partId } = useParams();
+    const turndownService = new TurndownService();
+    const numericPartId = String(partId);
 
-    // State to manage form data
     const [formData, setFormData] = useState<EditPartFormData>({
         name: '',
         description: '',
         materials: '',
-        osaamiset: [],
         projects: [],
-        qualificationUnit: [],
+        parentQualificationUnit: [],
         notifyStudents: false,
         notifyStudentsText: '',
     });
 
-    // Handles data changes on TinyMCE editor input fields
     const handleEditorChange = (content: string, field: 'description' | 'materials') => {
-      setFormData((prevFormData) => ({
-      ...prevFormData,
-      [field]: content,
-      }));
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [field]: content,
+        }));
     };
 
-    // State to manage the visibility of the Selector component
+    const handleCloseSelector = () => {
+        setSelectorOpen(false);
+        setCurrentField(null as any);
+    };
+
     const [selectorOpen, setSelectorOpen] = useState(false);
-
-    // State to manage the current field being edited
-    const [currentField, setCurrentField] = useState<keyof Pick<EditPartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>>('osaamiset');
-
-    // State to manage selected items for each field
+    const [currentField, setCurrentField] = useState<'projects' | 'parentQualificationUnit'>('parentQualificationUnit');
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
-        osaamiset: [],
         projects: [],
-        qualificationUnit: [],
+        parentQualificationUnit: [],
     });
 
-    // Fetch part data using Apollo Client's useQuery hook
     const { loading, error, data } = useQuery(GET_QUALIFICATION_UNIT_PART_BY_ID, {
-        variables: { partId },
+        variables: { partId: numericPartId },
+        fetchPolicy: "no-cache",
+    });    
+
+    // Reverts Markdown back to HTML for TinyMCE editor fields
+    const md = new MarkdownIt({
+        html: true,
     });
 
-    // Fetch projects data using Apollo Client's useQuery hook
+    // Enforces allowed HTML tags and attributes using DOMPurify
+    const sanitizeHtml = (html: string) =>
+        DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: [
+            'iframe', 'p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'li', 'ol', 
+            'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'span', 'div'
+        ],
+        ALLOWED_ATTR: [
+            'src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen', 
+            'href', 'alt', 'target', 'rel', 'style', 'class'
+        ],
+    });
+
     const { loading: projectsLoading, error: projectsError, data: projectsData } = useQuery(GET_PROJECTS);
+    const { loading: qualificationLoading, error: qualificationError, data: qualificationData } = useQuery(GET_QUALIFICATION_UNITS);
 
-    // Log the partId when the component mounts or partId changes
+    // Fills the fields with saved Part data when page opens
     useEffect(() => {
-        console.log('Route partId:', partId);
-    }, [partId]);
+        if (!loading && data) {
 
-    // Log the fetched part data when it changes
-    useEffect(() => {
-        if (!loading && data?.part) {
-            console.log('Fetched part:', data.part);
+            const sanitizedDescription = sanitizeHtml(md.render(data.part.description || ''));
+            const sanitizedMaterials = sanitizeHtml(md.render(data.part.materials || ''));
+
+            if (data.part) {
+                setFormData({
+                    name: data.part.name || '',
+                    description: sanitizedDescription || '',
+                    materials: sanitizedMaterials || '',
+                    projects: data.part.projects ?? [],
+                    parentQualificationUnit: data.part.parentQualificationUnit
+                    ? Array.isArray(data.part.parentQualificationUnit)
+                        ? data.part.parentQualificationUnit
+                        : [data.part.parentQualificationUnit]
+                    : [],
+                    notifyStudents: data.part.notifyStudents ?? false,
+                    notifyStudentsText: data.part.notifyStudentsText || '',
+                });
+    
+                setSelectedItems({
+                    projects: data.part.projects ?? [],
+                    parentQualificationUnit: data.part.parentQualificationUnit ?? [],
+                });
+            } else {
+                console.error("No part found in response:", data);
+            }
         }
-    }, [data, loading]);
+    }, [data, loading]); 
 
-    // Update form data and selected items when the fetched part data changes
-    useEffect(() => {
-        if (!loading && data?.part) {
-            setFormData({
-                name: data.part.name || '',
-                description: data.part.description || '',
-                materials: data.part.materials || '',
-                osaamiset: data.part.osaamiset || [],
-                projects: data.part.projects || [],
-                qualificationUnit: data.part.qualificationUnit || [],
-                notifyStudents: data.part.notifyStudents ?? false,
-                notifyStudentsText: data.part.notifyStudentsText || '',
-            });
+    // Mutation for updating the Part
+    const [updatePart] = useMutation(UPDATE_PART, {
+        onCompleted() {
+            navigate('/qualificationunitparts');
+        },
+        refetchQueries: [
+            { query: GET_QUALIFICATION_UNIT_PARTS },
+            { query: GET_PROJECTS }
+        ],
+    });
 
-            setSelectedItems({
-                osaamiset: data.part.osaamiset || [],
-                projects: data.part.projects || [],
-                qualificationUnit: data.part.qualificationUnit || [],
-            });
-        }
-    }, [data, loading]);
-
-    // Handle input changes in the form fields
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -102,8 +133,9 @@ const EditPart: React.FC = () => {
         }));
     };
 
-    // Handle adding selected items to the form data
     const handleAdd = (items: Item[]) => {
+        if (!currentField) return;
+
         setFormData((prevFormData) => ({
             ...prevFormData,
             [currentField]: items,
@@ -115,14 +147,16 @@ const EditPart: React.FC = () => {
         setSelectorOpen(false);
     };
 
-    // Handle opening the Selector component for a specific field
-    const handleAddItem = (field: keyof Pick<EditPartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>) => {
+    const handleAddItem = (field: 'projects' | 'parentQualificationUnit') => {
+        if (!field) {
+            console.error("Invalid field in handleAddItem:", field);
+            return;
+        }
         setCurrentField(field);
         setSelectorOpen(true);
     };
 
-    // Handle removing an item from the form data
-    const handleRemoveItem = (field: keyof Pick<EditPartFormData, 'osaamiset' | 'projects' | 'qualificationUnit'>, index: number) => {
+    const handleRemoveItem = (field: 'projects' | 'parentQualificationUnit', index: number) => {
         setFormData((prevFormData) => ({
             ...prevFormData,
             [field]: prevFormData[field].filter((_, i) => i !== index),
@@ -133,7 +167,6 @@ const EditPart: React.FC = () => {
         }));
     };
 
-    // Handle toggling the notifyStudents switch
     const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { checked } = event.target;
         setFormData((prev) => ({
@@ -143,26 +176,57 @@ const EditPart: React.FC = () => {
         }));
     };
 
-    // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!partId) {
+            console.error('Part ID is missing, cannot submit the form.');
+            return;
+        }
 
+        turndownService.addRule('iframes', {
+            filter: ['iframe', 'video'],
+            replacement: (content, node) => {
+                const element = node as HTMLElement;
+                const attrs = Array.from(element.attributes)
+                    .map(attr => `${attr.name}="${attr.value}"`)
+                    .join(' ');
+                return `<${element.nodeName.toLowerCase()} ${attrs}>${content}</${element.nodeName.toLowerCase()}>`;
+            }
+        });
+
+        // Modifies HTML to Markdown language using turndown before submitting the changes
+        const markdownDescription = turndownService.turndown(sanitizeHtml(formData.description));
+        const markdownMaterials = turndownService.turndown(sanitizeHtml(formData.materials));
+
+        const updatedPartData = {
+            name: formData.name,
+            description: markdownDescription,
+            materials: markdownMaterials,
+            projects: formData.projects.map(project => project.id),
+            parentQualificationUnit: formData.parentQualificationUnit[0]?.id
+        };
+    
+        console.log("Updated Part Data before submission:", updatedPartData);
+    
         try {
-            console.log('Nothing to see here yet');
-            navigate('/qualificationunitparts');
+            const response = await updatePart({
+                variables: {
+                    updatePartId: partId,
+                    part: updatedPartData,
+                },
+            });
+            console.log('Updated part:', response.data);
         } catch (err) {
-            console.error('Submission Error:', err);
+            console.error('Error updating part:', err);
         }
     };
 
     // Get the title and button text for the Selector component based on the current field
     const getTitleAndButtonText = () => {
         switch (currentField) {
-            case 'osaamiset':
-                return { title: 'Valitse Osaamiset', buttonText: 'Lisää Osaamiset' };
             case 'projects':
                 return { title: 'Valitse Projektit', buttonText: 'Lisää Projektit' };
-            case 'qualificationUnit':
+            case 'parentQualificationUnit':
                 return { title: 'Valitse Tutkinnon osa', buttonText: 'Lisää Tutkinnon osa' };
             default:
                 return { title: '', buttonText: '' };
@@ -171,48 +235,22 @@ const EditPart: React.FC = () => {
 
     // Get the items to be displayed in the Selector component based on the current field
     const getItems = () => {
-        if (projectsLoading) {
-            return ['Ladataan...'];
-        }
-        if (projectsError) {
-            return ['Virhe ladattaessa tietoja'];
-        }
-        if (currentField === 'projects') {
-            return projectsData ? projectsData.projects : [];
-        }
-        if (currentField === 'osaamiset') {
-            return [
-                { id: '1', name: 'Osaaminen 1' },
-                { id: '2', name: 'Osaaminen 2' },
-                { id: '3', name: 'Osaaminen 3' },
-                { id: '4', name: 'Osaaminen 4' },
-                { id: '5', name: 'Osaaminen 5' },
-                { id: '6', name: 'sopii tehtävistä tiimin muiden jäsenten kanssa' },
-                { id: '7', name: 'etsii ratkaisuvaihtoehtoja ja ratkoo ongelmia yhdessä tiimin kanssa' },
-                { id: '8', name: 'arvioi ratkaisujen toimivuuden yhdessä tiimin kanssa' },
-                { id: '9', name: 'arvioi omaa toimintaa tiimin jäsenenä' },
-            ];
-        }
-        if (currentField === 'qualificationUnit') {
-            return [
-                { id: '1', name: 'Tutkinnon osa 1' },
-                { id: '2', name: 'Tutkinnon osa 2' },
-                { id: '3', name: 'Tutkinnon osa 3' },
-                { id: '4', name: 'Tutkinnon osa 4' },
-                { id: '5', name: 'Tutkinnon osa 5' },
-                { id: '6', name: 'Tutkinnon osa 6' },
-                { id: '7', name: 'Tutkinnon osa 7' },
-                { id: '8', name: 'Tutkinnon osa 8' },
-                { id: '9', name: 'Tutkinnon osa 9' },
-                { id: '10', name: 'Tutkinnon osa 10' },
-            ];
-        }
-        return [];
+        if (projectsLoading || qualificationLoading) return [];
+        if (projectsError || qualificationError) return [];
+    
+        if (!projectsData || !qualificationData) return [];
+    
+        return currentField === 'projects'
+            ? projectsData?.projects ?? []
+            : currentField === 'parentQualificationUnit'
+            ? qualificationData?.units ?? []
+            : [];
     };
 
     const { title, buttonText } = getTitleAndButtonText();
     const items = getItems();
 
+    if (!partId) return <Typography>Loading...</Typography>;
     if (loading) return <Typography>Loading part details...</Typography>;
     if (error) return <Typography color="error">Error loading part: {error.message}</Typography>;
 
@@ -269,15 +307,15 @@ const EditPart: React.FC = () => {
                         <FormControl fullWidth>
                             <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tutkinnon osa</InputLabel>
                             <Box sx={formStyles.formModalInputBox}>
-                                {formData.qualificationUnit.map((unit, index) => (
+                                {formData.parentQualificationUnit.map((unit, index) => (
                                     <Chip
                                         key={unit.id}
                                         label={unit.name}
-                                        onDelete={() => handleRemoveItem('qualificationUnit', index)}
+                                        onDelete={() => handleRemoveItem('parentQualificationUnit', index)}
                                         sx={{ backgroundColor: '#E0E0E0' }}
                                     />
                                 ))}
-                                <IconButton onClick={() => handleAddItem('qualificationUnit')} color="primary" sx={buttonStyles.openModalButton}>
+                                <IconButton onClick={() => handleAddItem('parentQualificationUnit')} color="primary" sx={buttonStyles.openModalButton}>
                                     <AddIcon />
                                 </IconButton>
                             </Box>
@@ -295,23 +333,6 @@ const EditPart: React.FC = () => {
                                     />
                                 ))}
                                 <IconButton onClick={() => handleAddItem('projects')} color="primary" sx={buttonStyles.openModalButton}>
-                                    <AddIcon />
-                                </IconButton>
-                            </Box>
-                        </FormControl>
-
-                        <FormControl fullWidth>
-                            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Osaamiset</InputLabel>
-                            <Box sx={formStyles.formModalInputBox}>
-                                {formData.osaamiset.map((osaaminen, index) => (
-                                    <Chip
-                                        key={osaaminen.id}
-                                        label={osaaminen.name}
-                                        onDelete={() => handleRemoveItem('osaamiset', index)}
-                                        sx={{ backgroundColor: '#E0E0E0' }}
-                                    />
-                                ))}
-                                <IconButton onClick={() => handleAddItem('osaamiset')} color="primary" sx={buttonStyles.openModalButton}>
                                     <AddIcon />
                                 </IconButton>
                             </Box>
@@ -337,10 +358,10 @@ const EditPart: React.FC = () => {
                 title={title}
                 buttonText={buttonText}
                 open={selectorOpen}
-                selectedItems={selectedItems[currentField]}
+                selectedItems={selectedItems[currentField] ?? []}
                 onAdd={handleAdd}
-                onClose={() => setSelectorOpen(false)}
-                currentField={currentField}
+                onClose={handleCloseSelector}
+                currentField={currentField ?? ''}
                 updateProjectTags={() => {}}
             />
         </Box>

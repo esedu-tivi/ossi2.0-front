@@ -16,6 +16,10 @@ export const CREATE_PROJECT = gql`
         id
         name
       }
+      competenceRequirements {
+        id
+        description
+      }
       isActive
     }
   }

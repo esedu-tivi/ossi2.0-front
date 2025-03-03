@@ -6,9 +6,10 @@ import formStyles from '../../styles/formStyles';
 
 interface ChipSelectorProps {
   label: string;
-  items: { id: string; name: string }[];
+  items: { id: string; name: string; description?: string }[];
   onAdd: () => void;
   onDelete: (index: number) => void;
+  currentField: string;
 }
 
 const ChipSelector: React.FC<ChipSelectorProps> = ({
@@ -16,6 +17,7 @@ const ChipSelector: React.FC<ChipSelectorProps> = ({
   items,
   onAdd,
   onDelete,
+  currentField,
 }) => {
   const deleteButtonRef = useRef<HTMLDivElement | null>(null);
 
@@ -39,7 +41,7 @@ const ChipSelector: React.FC<ChipSelectorProps> = ({
         {items.map((item, index) => (
           <Chip
             key={item.id}
-            label={item.name}
+            label={currentField === 'competenceRequirements' ? item.description : item.name}
             onDelete={() => handleDelete(index)}
             ref={(el) => {
               if (index === items.length - 1) deleteButtonRef.current = el;

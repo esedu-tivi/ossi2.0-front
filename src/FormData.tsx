@@ -8,8 +8,7 @@ export interface BasePartFormData {
   description: string;
   materials: string;
   projects: Item[];
-  osaamiset: Item[];
-  qualificationUnit: Item[];
+  parentQualificationUnit: Item[];
 }
 
 export interface CreatePartFormData extends BasePartFormData {}
@@ -23,10 +22,10 @@ export interface BaseProjectFormData {
   name: string;
   description: string;
   materials: string;
-  osaamiset: Item[];
+  competenceRequirements: Item[];
   duration: number;
   tags: Item[];
-  includedInParts: Item[];
+  includedInQualificationUnitParts: Item[];
   isActive: boolean;
 }
 

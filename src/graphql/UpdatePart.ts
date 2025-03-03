@@ -1,12 +1,12 @@
 import { gql } from '@apollo/client';
 
-export const GET_QUALIFICATION_UNIT_PARTS = gql`
-  query GetQualificationUnitParts {
-    parts {
+export const UPDATE_PART = gql`
+  mutation Mutation($updatePartId: ID!, $part: CreatePartInput!) {
+    updatePart(id: $updatePartId, part: $part) {
       id
       name
-      materials
       description
+      materials
       parentQualificationUnit {
         id
         name
@@ -17,4 +17,4 @@ export const GET_QUALIFICATION_UNIT_PARTS = gql`
       }
     }
   }
-`
+`;

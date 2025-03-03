@@ -1,15 +1,7 @@
 import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { TextField, Box, Switch, IconButton, Typography, FormControl} from '@mui/material';
 import DriveFolderUploadSharpIcon from '@mui/icons-material/DriveFolderUploadSharp';
 import UndoSharpIcon from '@mui/icons-material/UndoSharp';
 import SaveAsSharpIcon from '@mui/icons-material/SaveAsSharp';
-import { useQuery, useMutation } from '@apollo/client';
-import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
-import { GET_PROJECTS } from '../../graphql/GetProjects';
-import { UPDATE_PROJECT } from '../../graphql/UpdateProject';
-import { GET_PARTS } from '../../graphql/GetParts';
-import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 import Selector from '../Selector';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
@@ -18,6 +10,15 @@ import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 import RichTextEditor from '../common/RichTextEditor';
 import ChipSelector from '../common/ChipSelector';
+
+import { useParams, useNavigate } from 'react-router-dom';
+import { TextField, Box, Switch, IconButton, Typography, FormControl} from '@mui/material';
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
+import { GET_PROJECTS } from '../../graphql/GetProjects';
+import { UPDATE_PROJECT } from '../../graphql/UpdateProject';
+import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnitParts';
+import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 import { formHandleManager } from '../common/formHandleManager';
 
 const EditProject: React.FC = () => {
@@ -29,7 +30,7 @@ const EditProject: React.FC = () => {
         name: '',
         description: '',
         materials: '',
-        osaamiset: [],
+        competenceRequirements: [],
         duration: 0,
         tags: [],
         includedInParts: [],
@@ -52,6 +53,7 @@ const EditProject: React.FC = () => {
         handleAddItem,
         handleRemoveItem,
         handleNotifyStudents,
+        competenceOptions,
     } = formHandleManager(initialState);
 
     const { loading, error, data } = useQuery(GET_PROJECT_BY_ID, {
@@ -79,32 +81,28 @@ const EditProject: React.FC = () => {
     // Fills the input fields with data based on which project is currently being edited
     useEffect(() => {
         if (!loading && data?.project) {
-
-            // Uses markdown-it to modify markdown to HTML, then checks the validity of HTML with sanitizeHTML
             const sanitizedDescription = sanitizeHtml(md.render(data.project.description || ''));
             const sanitizedMaterials = sanitizeHtml(md.render(data.project.materials || ''));
             
             setFormData((prevFormData) => {
-                const newFormData = {
+                return {
                     ...prevFormData,
                     name: data.project.name || '',
                     description: sanitizedDescription,
                     materials: sanitizedMaterials,
-                    osaamiset: data.project.osaamiset || [],
+                    competenceRequirements: data.project.competenceRequirements || [],
                     duration: Number(data.project.duration) || 0,
                     includedInParts: data.project.includedInQualificationUnitParts || [],
                     tags: data.project.tags || [],
-                    isActive: data.project.isActive === 'true',
+                    isActive: data.project.isActive,
                     notifyStudents: data.project.notifyStudents ?? false,
                     notifyStudentsText: data.project.notifyStudentsText || '',
                 };
-                console.log('New formData:', newFormData);
-                return newFormData;
             });
-
+    
             setSelectedItems({
                 tags: data.project.tags || [],
-                osaamiset: data.project.osaamiset || [],
+                competenceRequirements: data.project.competenceRequirements || [],
                 includedInParts: data.project.includedInQualificationUnitParts || [],
             });
         }
@@ -120,7 +118,7 @@ const EditProject: React.FC = () => {
         refetchQueries: [{ query: GET_PROJECTS }],
     });
 
-    const { loading: partsLoading, error: partsError, data: partsData } = useQuery(GET_PARTS);
+    const { loading: partsLoading, error: partsError, data: partsData } = useQuery(GET_QUALIFICATION_UNIT_PARTS);
     const { loading: projectTagsLoading, error: projectTagsError, data: projectTagsData, refetch } = useQuery(GET_PROJECT_TAGS);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -145,20 +143,25 @@ const EditProject: React.FC = () => {
         const markdownDescription = turndownService.turndown(sanitizeHtml(formData.description));
         const markdownMaterials = turndownService.turndown(sanitizeHtml(formData.materials));
 
+        const updatedProjectData = {
+            name: formData.name,
+            description: markdownDescription,
+            materials: markdownMaterials,
+            duration: formData.duration,
+            includedInParts: formData.includedInParts.map(part => part.id),
+            competenceRequirements: formData.competenceRequirements.map(competence => competence.id),
+            tags: formData.tags.map(tag => tag.id),
+            isActive: formData.isActive,
+            notifyStudents: Boolean(formData.notifyStudents),
+        };
+    
+        console.log("Updated Project Data before submission:", updatedProjectData);
+    
         try {
             const response = await updateProject({
                 variables: {
                     updateProjectId: projectId,
-                    project: {
-                        name: formData.name,
-                        description: markdownDescription,
-                        materials: markdownMaterials,
-                        duration: formData.duration,
-                        includedInParts: formData.includedInParts.map((item) => item.id),
-                        tags: formData.tags.map((item) => item.id),
-                        isActive: Boolean(formData.isActive),
-                        notifyStudents: Boolean(formData.notifyStudents),
-                    },
+                    project: updatedProjectData,
                 },
             });
             console.log('Updated project:', response.data);
@@ -171,7 +174,7 @@ const EditProject: React.FC = () => {
         switch (currentField) {
             case 'tags':
                 return { title: 'Valitse Tunnisteet', buttonText: 'Lisää Tunnisteet' };
-            case 'osaamiset':
+            case 'competenceRequirements':
                 return { title: 'Valitse Osaamiset', buttonText: 'Lisää Osaamiset' };
             case 'includedInParts':
                 return { title: 'Valitse Teemat', buttonText: 'Lisää Teemat' };
@@ -197,18 +200,8 @@ const EditProject: React.FC = () => {
         switch (currentField) {
             case 'tags':
                 return projectTagsData ? projectTagsData.projectTags : [];
-            case 'osaamiset':
-                return [
-                    { id: '1', name: 'Osaaminen 1' },
-                    { id: '2', name: 'Osaaminen 2' },
-                    { id: '3', name: 'Osaaminen 3' },
-                    { id: '4', name: 'Osaaminen 4' },
-                    { id: '5', name: 'Osaaminen 5' },
-                    { id: '6', name: 'sopii tehtävistä tiimin muiden jäsenten kanssa' },
-                    { id: '7', name: 'etsii ratkaisuvaihtoehtoja ja ratkoo ongelmia yhdessä tiimin kanssa' },
-                    { id: '8', name: 'arvioi ratkaisujen toimivuuden yhdessä tiimin kanssa' },
-                    { id: '9', name: 'arvioi omaa toimintaa tiimin jäsenenä' },
-                ];
+            case 'competenceRequirements':
+                return competenceOptions;
             case 'includedInParts':
                 return partsData ? partsData.parts : [];
             default:
@@ -326,13 +319,15 @@ const EditProject: React.FC = () => {
                             items={formData.includedInParts}
                             onAdd={() => handleAddItem('includedInParts')}
                             onDelete={(index) => handleRemoveItem('includedInParts', index)}
+                            currentField="includedInParts"
                         />
 
                         <ChipSelector
                             label="Osaamiset"
-                            items={formData.osaamiset}
-                            onAdd={() => handleAddItem('osaamiset')}
-                            onDelete={(index) => handleRemoveItem('osaamiset', index)}
+                            items={formData.competenceRequirements}
+                            onAdd={() => handleAddItem('competenceRequirements')}
+                            onDelete={(index) => handleRemoveItem('competenceRequirements', index)}
+                            currentField="competenceRequirements"
                         />
 
                         <ChipSelector
@@ -340,6 +335,7 @@ const EditProject: React.FC = () => {
                             items={formData.tags}
                             onAdd={() => handleAddItem('tags')}
                             onDelete={(index) => handleRemoveItem('tags', index)}
+                            currentField="tags"
                         />
 
                         <FormControl

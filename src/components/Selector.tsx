@@ -20,13 +20,27 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import { useMutation } from '@apollo/client';
+import { useMutation, useLazyQuery } from '@apollo/client';
 import { CREATE_PROJECT_TAG } from '../graphql/CreateProjectTag';
+import { GET_COMPETENCE_REQUIREMENTS } from '../graphql/GetCompetenceRequirements';
 
 // Define the Item interface
 interface Item {
     id: string;
     name: string;
+    description?: string;
+}
+
+// Define the structure of CompetenceRequirementGroup
+interface CompetenceRequirementGroup {
+    id: string;
+    requirements: CompetenceRequirement[];
+}
+
+// Define the structure of CompetenceRequirement
+interface CompetenceRequirement {
+    id: string;
+    description: string;
 }
 
 // Define the props for the Selector component
@@ -58,6 +72,9 @@ const Selector: React.FC<SelectorProps> = ({
     const [selectedItems, setSelectedItems] = useState<Item[]>(initialSelectedItems);
     const [searchTerm, setSearchTerm] = useState('');
     const [createProjectTag] = useMutation(CREATE_PROJECT_TAG);
+    const [fetchCompetenceRequirements] = useLazyQuery(GET_COMPETENCE_REQUIREMENTS);
+    const [competenceOptions, setCompetenceOptions] = useState<Item[]>([]);
+    const [fetchedTeemaIds, setFetchedTeemaIds] = useState<Set<string>>(new Set());
 
     // Get the theme and check if the screen size is mobile
     const theme = useTheme();
@@ -66,29 +83,87 @@ const Selector: React.FC<SelectorProps> = ({
     // Effect to reset selected items and search term when the dialog opens
     useEffect(() => {
         if (open) {
-            setSelectedItems(initialSelectedItems);
-            setSearchTerm('');
+            console.log(`Opening modal for ${currentField}, resetting selected items...`);
+            
+            // Ensure only relevant selections are preserved
+            if (currentField === 'competenceRequirements') {
+                setSelectedItems(initialSelectedItems.filter(item => 'description' in item)); 
+            } else {
+                setSelectedItems(initialSelectedItems.filter(item => 'name' in item));
+            }
+            
+            setCompetenceOptions([...competenceOptions]);
         }
-    }, [open, initialSelectedItems]);
+    }, [initialSelectedItems, currentField]);
+
+    useEffect(() => {
+        if (open && currentField === 'competenceRequirements') {
+            const selectedTeemaIds = selectedItems.map(item => item.id);
+            const newTeemaIds = selectedTeemaIds.filter(id => !fetchedTeemaIds.has(id));
+            
+            if (newTeemaIds.length > 0) {
+                const fetchCompetenceData = async () => {
+                    try {
+                        console.log("Fetching competence data for selected Teemas...");
+                        const fetchedCompetences = await Promise.all(
+                            newTeemaIds.map(async (teemaId) => {
+                                const { data } = await fetchCompetenceRequirements({
+                                    variables: { partId: teemaId },
+                                });
+    
+                                if (data?.part?.parentQualificationUnit?.competenceRequirementGroups) {
+                                    return data.part.parentQualificationUnit.competenceRequirementGroups.flatMap(
+                                        (group: CompetenceRequirementGroup) =>
+                                            group.requirements.map((requirement: CompetenceRequirement) => ({
+                                                id: requirement.id,
+                                                description: requirement.description,
+                                            }))
+                                    );
+                                }
+                                return [];
+                            })
+                        );
+    
+                        const combinedCompetences = fetchedCompetences.flat();
+                        console.log("Combined Competence Options:", combinedCompetences);
+    
+                        setCompetenceOptions((prevCompetences) => {
+                            const updatedCompetences = [...prevCompetences, ...combinedCompetences];
+                            const uniqueCompetences = Array.from(new Set(updatedCompetences.map(item => item.id)))
+                                .map(id => updatedCompetences.find(item => item.id === id));
+                            return uniqueCompetences;
+                        });
+    
+                        setFetchedTeemaIds(prev => new Set([...prev, ...newTeemaIds]));
+    
+                    } catch (error) {
+                        console.error('Error fetching competence requirements:', error);
+                    }
+                };
+    
+                fetchCompetenceData();
+            }
+        }
+    }, [selectedItems, currentField, fetchCompetenceRequirements, fetchedTeemaIds]);
 
     // Handle toggling the selection of an item
-    const handleToggle = (value: Item) => () => {
+    const handleToggle = (value: Item) => async () => {
         const currentIndex = selectedItems.findIndex((item) => item.id === value.id);
-        const newChecked = [...selectedItems];
-
+        let newChecked = [...selectedItems];
+    
         if (currentIndex === -1) {
             newChecked.push(value);
         } else {
             newChecked.splice(currentIndex, 1);
         }
-
+    
         setSelectedItems(newChecked);
     };
-
+    
     // Handle adding the selected items
     const handleAdd = () => {
-        console.log('selectedItems', selectedItems);
-        onAdd(selectedItems);
+        console.log("Added items:", selectedItems);
+        onAdd([...selectedItems]);
         onClose();
     };
 
@@ -106,15 +181,16 @@ const Selector: React.FC<SelectorProps> = ({
                 });
                 const newTag = { id: data.createProjectTag.id, name: data.createProjectTag.name };
                 setSearchTerm('');
-                updateProjectTags(newTag); // Update the tags list
+                updateProjectTags(newTag);
             } catch (error) {
                 console.error('Error creating new tag:', error);
             }
         }
     };
 
-    // Filter items based on the search term
-    const filteredItems = items.filter((item) => item && item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredItems = currentField === 'competenceRequirements'
+    ? (competenceOptions.length > 0 ? competenceOptions : [])
+    : items.filter((item) => item?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <Dialog open={open} onClose={onClose} fullScreen={isMobile}>
@@ -162,7 +238,7 @@ const Selector: React.FC<SelectorProps> = ({
                             <Typography variant="caption">Valitut:</Typography>
                             {selectedItems.map((item) => (
                                 <Typography key={item.id} variant="caption" sx={{ marginRight: 1 }}>
-                                    {item.name}
+                                    {currentField === 'competenceRequirements' ? item.description : item.name}
                                 </Typography>
                             ))}
                         </Box>
@@ -175,7 +251,9 @@ const Selector: React.FC<SelectorProps> = ({
                             key={item.id}
                             onClick={handleToggle(item)}
                         >
-                            <ListItemText primary={item.name} />
+                            <ListItemText                 
+                                primary={currentField === 'competenceRequirements' ? item.description : item.name} 
+                            />
                             <Checkbox
                                 sx={{
                                     marginLeft: 'auto',

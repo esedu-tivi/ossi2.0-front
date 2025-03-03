@@ -57,7 +57,7 @@ const formStyles = {
   },
 
   formEditOuterBox: {
-    maxWidth: 1600,
+    maxWidth: '100%',
     margin: 'auto',
     padding: 3,
     position: 'relative',
