@@ -51,7 +51,6 @@ const EditProject: React.FC = () => {
         handleToggleActivity,
         handleEditorChange,
         handleAddItem,
-        handleRemoveItem,
         handleNotifyStudents,
         competenceOptions,
     } = formHandleManager(initialState);
@@ -318,7 +317,6 @@ const EditProject: React.FC = () => {
                             label="Teemat"
                             items={formData.includedInParts}
                             onAdd={() => handleAddItem('includedInParts')}
-                            onDelete={(index) => handleRemoveItem('includedInParts', index)}
                             currentField="includedInParts"
                         />
 
@@ -326,7 +324,6 @@ const EditProject: React.FC = () => {
                             label="Osaamiset"
                             items={formData.competenceRequirements}
                             onAdd={() => handleAddItem('competenceRequirements')}
-                            onDelete={(index) => handleRemoveItem('competenceRequirements', index)}
                             currentField="competenceRequirements"
                         />
 
@@ -334,7 +331,6 @@ const EditProject: React.FC = () => {
                             label="Tunnisteet"
                             items={formData.tags}
                             onAdd={() => handleAddItem('tags')}
-                            onDelete={(index) => handleRemoveItem('tags', index)}
                             currentField="tags"
                         />
 

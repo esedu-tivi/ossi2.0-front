@@ -20,6 +20,7 @@ import { formHandleManager } from '../common/formHandleManager';
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const copiedProject = location.state || {};
     const turndownService = new TurndownService();
     const initialState = {
         name: '',
@@ -41,25 +42,35 @@ const NewProjectForm: React.FC = () => {
         handleAddItem,
         currentField,
         selectedItems,
+        setSelectedItems,
         setSelectorOpen,
         handleChange,
         handleToggleActivity,
         handleEditorChange,
-        handleRemoveItem,
         competenceOptions,
     } = formHandleManager(initialState);
 
-    // Stores data between routes/modal
     useEffect(() => {
-        if (location.state) {
+        if (copiedProject && Object.keys(copiedProject).length > 0) {
             setFormData((prevFormData) => ({
                 ...prevFormData,
-                description: location.state.description || '',
-                materials: location.state.materials || '',
-                includedInParts: location.state.includedInParts || [],
+                name: copiedProject.name || '',
+                description: copiedProject.description || '',
+                materials: copiedProject.materials || '',
+                competenceRequirements: copiedProject.competenceRequirements || [],
+                duration: Number(copiedProject.duration) || 0,
+                includedInParts: copiedProject.includedInParts || [],
+                tags: copiedProject.tags || [],
+                isActive: copiedProject.isActive || false,
             }));
+    
+            setSelectedItems({
+                tags: copiedProject.tags || [],
+                competenceRequirements: copiedProject.competenceRequirements || [],
+                includedInParts: copiedProject.includedInParts || [],
+            });
         }
-    }, [location.state]);
+    }, [copiedProject]);
 
     // Mutation for creating new project
     const [createProject, { loading, error, data }] = useMutation(CREATE_PROJECT, {
@@ -225,7 +236,6 @@ const NewProjectForm: React.FC = () => {
                         label="Teema"
                         items={formData.includedInParts}
                         onAdd={() => handleAddItem('includedInParts')}
-                        onDelete={(index) => handleRemoveItem('includedInParts', index)}
                         currentField="includedInParts"
                     />
 
@@ -233,7 +243,6 @@ const NewProjectForm: React.FC = () => {
                         label="Osaamiset"
                         items={formData.competenceRequirements}
                         onAdd={() => handleAddItem('competenceRequirements')}
-                        onDelete={(index) => handleRemoveItem('competenceRequirements', index)}
                         currentField="competenceRequirements"
                     />
 
@@ -241,7 +250,6 @@ const NewProjectForm: React.FC = () => {
                         label="Tunnisteet"
                         items={formData.tags}
                         onAdd={() => handleAddItem('tags')}
-                        onDelete={(index) => handleRemoveItem('tags', index)}
                         currentField="tags"
                     />
                 </Box>

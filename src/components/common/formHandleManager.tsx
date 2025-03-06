@@ -216,18 +216,6 @@ export const formHandleManager = (initialState: FormState) => {
     setCurrentField(field);
     setSelectorOpen(true);
   };
-  
-  const handleRemoveItem = (field: keyof Pick<FormState, 'tags' | 'competenceRequirements' | 'includedInParts'>, index: number) => {
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [field]: field === 'includedInParts' ? [] : prevFormData[field].filter((_, i) => i !== index),
-    }));
-  
-    setSelectedItems((prevSelectedItems) => ({
-      ...prevSelectedItems,
-      [field]: field === 'includedInParts' ? [] : prevSelectedItems[field].filter((_, i) => i !== index),
-    }));
-  };
 
   const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { checked } = event.target;
@@ -251,7 +239,6 @@ export const formHandleManager = (initialState: FormState) => {
     handleToggleActivity,
     handleAdd,
     handleAddItem,
-    handleRemoveItem,
     handleEditorChange,
     handleNotifyStudents,
     competenceOptions,

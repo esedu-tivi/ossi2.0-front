@@ -92,59 +92,63 @@ const Selector: React.FC<SelectorProps> = ({
                 setSelectedItems(initialSelectedItems.filter(item => 'name' in item));
             }
             
-            setCompetenceOptions([...competenceOptions]);
+            setCompetenceOptions([]);
         }
     }, [initialSelectedItems, currentField]);
+
+    const fetchCompetenceData = async (teemaIds: string[]) => {
+        try {
+            const fetchedCompetences = await Promise.all(
+                teemaIds.map(async (teemaId) => {
+                    const { data } = await fetchCompetenceRequirements({
+                        variables: { partId: teemaId },
+                    });
+
+                    if (data?.part?.parentQualificationUnit?.competenceRequirementGroups) {
+                        return data.part.parentQualificationUnit.competenceRequirementGroups.flatMap(
+                            (group: CompetenceRequirementGroup) =>
+                                group.requirements.map((requirement: CompetenceRequirement) => ({
+                                    id: requirement.id,
+                                    description: requirement.description,
+                                }))
+                        );
+                    }
+                    return [];
+                })
+            );
+
+            const combinedCompetences = fetchedCompetences.flat();
+            setCompetenceOptions((prevCompetences) => {
+                const updatedCompetences = [...prevCompetences, ...combinedCompetences];
+                const uniqueCompetences = Array.from(new Set(updatedCompetences.map(item => item.id)))
+                    .map(id => updatedCompetences.find(item => item.id === id));
+                return uniqueCompetences;
+            });
+
+            setFetchedTeemaIds(prev => new Set([...prev, ...teemaIds]));
+
+        } catch (error) {
+            console.error('Error fetching competence requirements:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedItems.length > 0) {
+            const selectedTeemaIds = selectedItems.map(item => item.id);
+            fetchCompetenceData(selectedTeemaIds);
+        }
+    }, [selectedItems, open]);
 
     useEffect(() => {
         if (open && currentField === 'competenceRequirements') {
             const selectedTeemaIds = selectedItems.map(item => item.id);
             const newTeemaIds = selectedTeemaIds.filter(id => !fetchedTeemaIds.has(id));
-            
+
             if (newTeemaIds.length > 0) {
-                const fetchCompetenceData = async () => {
-                    try {
-                        console.log("Fetching competence data for selected Teemas...");
-                        const fetchedCompetences = await Promise.all(
-                            newTeemaIds.map(async (teemaId) => {
-                                const { data } = await fetchCompetenceRequirements({
-                                    variables: { partId: teemaId },
-                                });
-    
-                                if (data?.part?.parentQualificationUnit?.competenceRequirementGroups) {
-                                    return data.part.parentQualificationUnit.competenceRequirementGroups.flatMap(
-                                        (group: CompetenceRequirementGroup) =>
-                                            group.requirements.map((requirement: CompetenceRequirement) => ({
-                                                id: requirement.id,
-                                                description: requirement.description,
-                                            }))
-                                    );
-                                }
-                                return [];
-                            })
-                        );
-    
-                        const combinedCompetences = fetchedCompetences.flat();
-                        console.log("Combined Competence Options:", combinedCompetences);
-    
-                        setCompetenceOptions((prevCompetences) => {
-                            const updatedCompetences = [...prevCompetences, ...combinedCompetences];
-                            const uniqueCompetences = Array.from(new Set(updatedCompetences.map(item => item.id)))
-                                .map(id => updatedCompetences.find(item => item.id === id));
-                            return uniqueCompetences;
-                        });
-    
-                        setFetchedTeemaIds(prev => new Set([...prev, ...newTeemaIds]));
-    
-                    } catch (error) {
-                        console.error('Error fetching competence requirements:', error);
-                    }
-                };
-    
-                fetchCompetenceData();
+                fetchCompetenceData(newTeemaIds);
             }
         }
-    }, [selectedItems, currentField, fetchCompetenceRequirements, fetchedTeemaIds]);
+    }, [selectedItems, currentField, fetchCompetenceRequirements, fetchedTeemaIds]); // ✅ Now fetchCompetenceData is available
 
     // Handle toggling the selection of an item
     const handleToggle = (value: Item) => async () => {

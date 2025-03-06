@@ -160,17 +160,6 @@ const EditPart: React.FC = () => {
         setSelectorOpen(true);
     };
 
-    const handleRemoveItem = (field: 'projects' | 'parentQualificationUnit', index: number) => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [field]: prevFormData[field].filter((_, i) => i !== index),
-        }));
-        setSelectedItems((prevSelectedItems) => ({
-            ...prevSelectedItems,
-            [field]: prevSelectedItems[field].filter((_, i) => i !== index),
-        }));
-    };
-
     const handleNotifyStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { checked } = event.target;
         setFormData((prev) => ({
@@ -311,11 +300,10 @@ const EditPart: React.FC = () => {
                         <FormControl fullWidth>
                             <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tutkinnon osa</InputLabel>
                             <Box sx={formStyles.formModalInputBox}>
-                                {formData.parentQualificationUnit.map((unit, index) => (
+                                {formData.parentQualificationUnit.map((unit) => (
                                     <Chip
                                         key={unit.id}
                                         label={unit.name}
-                                        onDelete={() => handleRemoveItem('parentQualificationUnit', index)}
                                         sx={{ backgroundColor: '#E0E0E0' }}
                                     />
                                 ))}
@@ -328,11 +316,10 @@ const EditPart: React.FC = () => {
                         <FormControl fullWidth>
                             <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Projektit</InputLabel>
                             <Box sx={formStyles.formModalInputBox}>
-                                {formData.projects.map((project, index) => (
+                                {formData.projects.map((project) => (
                                     <Chip
                                         key={project.id}
                                         label={project.name}
-                                        onDelete={() => handleRemoveItem('projects', index)}
                                         sx={{ backgroundColor: '#E0E0E0' }}
                                     />
                                 ))}

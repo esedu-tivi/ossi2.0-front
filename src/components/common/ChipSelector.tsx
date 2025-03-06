@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Box, Chip, FormControl, IconButton, InputLabel } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import buttonStyles from '../../styles/buttonStyles';
@@ -6,9 +6,8 @@ import formStyles from '../../styles/formStyles';
 
 interface ChipSelectorProps {
   label: string;
-  items: { id: string; name: string; description?: string }[];
-  onAdd: () => void;
-  onDelete: (index: number) => void;
+  items: { id: string; name: string; description?: string }[]; // These are the selected items
+  onAdd: () => void; // Opens the modal for adding items
   currentField: string;
 }
 
@@ -16,15 +15,8 @@ const ChipSelector: React.FC<ChipSelectorProps> = ({
   label,
   items,
   onAdd,
-  onDelete,
   currentField,
 }) => {
-  const deleteButtonRef = useRef<HTMLDivElement | null>(null);
-
-  const handleDelete = (index: number) => {
-    deleteButtonRef.current?.blur();
-    onDelete(index);
-  };
 
   return (
     <FormControl fullWidth>
@@ -38,14 +30,10 @@ const ChipSelector: React.FC<ChipSelectorProps> = ({
         {label}
       </InputLabel>
       <Box sx={formStyles.formModalInputBox}>
-        {items.map((item, index) => (
+        {items.map((item) => (
           <Chip
             key={item.id}
             label={currentField === 'competenceRequirements' ? item.description : item.name}
-            onDelete={() => handleDelete(index)}
-            ref={(el) => {
-              if (index === items.length - 1) deleteButtonRef.current = el;
-            }}
             sx={{ backgroundColor: '#E0E0E0' }}
           />
         ))}

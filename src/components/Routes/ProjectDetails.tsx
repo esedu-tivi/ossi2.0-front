@@ -2,7 +2,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { Typography, IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import EditIcon from "@mui/icons-material/Edit";
 import AssessmentIcon from "@mui/icons-material/Assessment";
@@ -40,6 +39,8 @@ const ProjectDetails = () => {
 
   const project = data?.project;
 
+  console.log('Project details', project)
+
   if (!project) return <Typography>Project not found</Typography>;
 
   const md = new MarkdownIt({
@@ -61,9 +62,14 @@ const ProjectDetails = () => {
   const handleCopy = () => {
     navigate('/teacherprojects/new', {
       state: {
+        name: project.name + " (Kopio)",
         description: project.description,
         materials: project.materials,
-        includedInParts: project.includedInParts,
+        duration: project.duration,
+        includedInParts: project.includedInQualificationUnitParts,
+        competenceRequirements: project.competenceRequirements,
+        tags: project.tags,
+        isActive: project.isActive,
       },
     });
   };
@@ -87,9 +93,6 @@ const ProjectDetails = () => {
       </HeaderBox>
 
       <ActionButtonsContainer>
-        <StyledButton variant="contained" startIcon={<PersonAddIcon />}>
-          Lisää opiskelijoille
-        </StyledButton>
         <StyledButton
           variant="contained"
           startIcon={<ContentCopyIcon />}
