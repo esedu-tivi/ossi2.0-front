@@ -69,7 +69,7 @@ const Selector: React.FC<SelectorProps> = ({
     updateProjectTags,
 }) => {
     // State for selected items and search term
-    const [selectedItems, setSelectedItems] = useState<Item[]>(initialSelectedItems);
+    const [selectedItems, setSelectedItems] = useState<Item[]>(Array.isArray(initialSelectedItems) ? initialSelectedItems : []);
     const [searchTerm, setSearchTerm] = useState('');
     const [createProjectTag] = useMutation(CREATE_PROJECT_TAG);
     const [fetchCompetenceRequirements] = useLazyQuery(GET_COMPETENCE_REQUIREMENTS);
@@ -84,12 +84,15 @@ const Selector: React.FC<SelectorProps> = ({
     useEffect(() => {
         if (open) {
             console.log(`Opening modal for ${currentField}, resetting selected items...`);
+            console.log("Raw initialSelectedItems:", initialSelectedItems, typeof initialSelectedItems);
+
+            const validSelectedItems = Array.isArray(initialSelectedItems) ? initialSelectedItems : [];
             
             // Ensure only relevant selections are preserved
             if (currentField === 'competenceRequirements') {
-                setSelectedItems(initialSelectedItems.filter(item => 'description' in item)); 
+                setSelectedItems(validSelectedItems.filter(item => 'description' in item)); 
             } else {
-                setSelectedItems(initialSelectedItems.filter(item => 'name' in item));
+                setSelectedItems(validSelectedItems.filter(item => 'name' in item));
             }
             
             setCompetenceOptions([]);
