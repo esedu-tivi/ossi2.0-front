@@ -20,6 +20,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import AddIcon from "@mui/icons-material/Add";
 import "../css/QualificationUnitPartsList.css";
 import { GET_QUALIFICATION_UNIT_PARTS } from "../graphql/GetQualificationUnitParts";
+import buttonStyles from '../styles/buttonStyles';
 
 type QualificationUnitPartData = {
   id: number;
@@ -98,12 +99,22 @@ const QualificationUnitPartList: React.FC = () => {
         <Button
           variant="contained"
           color="primary"
-          className="add-project-button"
           startIcon={<AddIcon />}
+          sx={{ ...buttonStyles.cancelButton, mr: 2 }}
           onClick={() => navigate("/qualificationunitparts/new")}
         >
           Lisää Teema
         </Button>
+
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          sx={buttonStyles.cancelButton}
+          onClick={() => navigate("/teacherdashboard/reorderparts")}
+        >
+          Järjestele Teemoja
+      </Button>
       </div>
       <TableContainer component={Paper}>
         <Table>

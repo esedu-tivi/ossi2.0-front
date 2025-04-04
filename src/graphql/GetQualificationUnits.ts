@@ -5,6 +5,10 @@ export const GET_QUALIFICATION_UNITS = gql`
     units {
       id
       name
+      parts {
+        id
+        name
+      }
     }
   }
 `

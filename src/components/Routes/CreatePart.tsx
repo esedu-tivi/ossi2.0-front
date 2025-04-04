@@ -8,10 +8,11 @@ import RichTextEditor from '../common/RichTextEditor';
 import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
 import TurndownService from 'turndown';
 
-import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip } from '@mui/material';
+import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, List, ListItem, ListItemText, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { CreatePartFormData, Item } from '../../FormData';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnitParts';
 import { CREATE_PART } from '../../graphql/CreatePart';
@@ -26,7 +27,7 @@ const CreatePart: React.FC = () => {
         name: '',
         description: '',
         materials: '',
-        projects: [],
+        projectsInOrder: [],
         parentQualificationUnit: [],
     });
 
@@ -42,7 +43,7 @@ const CreatePart: React.FC = () => {
     const [selectorOpen, setSelectorOpen] = useState(false);
 
     // State to manage the current field being edited
-    const [currentField, setCurrentField] = useState<keyof Pick<CreatePartFormData, 'projects' | 'parentQualificationUnit'>>();
+    const [currentField, setCurrentField] = useState<keyof Pick<CreatePartFormData, 'projectsInOrder' | 'parentQualificationUnit'>>();
 
     // State to manage selected items for each field
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
@@ -82,14 +83,27 @@ const CreatePart: React.FC = () => {
         setSelectorOpen(false);
     };
 
+    const handleDragEnd = (result: any) => {
+        if (!result.destination) return;
+    
+        const reorderedProjects = Array.from(formData.projectsInOrder);
+        const [movedProject] = reorderedProjects.splice(result.source.index, 1);
+        reorderedProjects.splice(result.destination.index, 0, movedProject);
+    
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            projectsInOrder: reorderedProjects,
+        }));
+    };   
+
     // Handle opening the Selector component for a specific field
-    const handleAddItem = (field: keyof Pick<CreatePartFormData, 'projects' | 'parentQualificationUnit'>) => {
+    const handleAddItem = (field: keyof Pick<CreatePartFormData, 'projectsInOrder' | 'parentQualificationUnit'>) => {
         setCurrentField(field);
         setSelectorOpen(true);
     };
 
     // Handle removing an item from the form data
-    const handleRemoveItem = (field: keyof Pick<CreatePartFormData, 'projects' | 'parentQualificationUnit'>, index: number) => {
+    const handleRemoveItem = (field: keyof Pick<CreatePartFormData, 'projectsInOrder' | 'parentQualificationUnit'>, index: number) => {
         setFormData((prevFormData) => ({
             ...prevFormData,
             [field]: prevFormData[field].filter((_, i) => i !== index),
@@ -103,7 +117,8 @@ const CreatePart: React.FC = () => {
     const [createPart] = useMutation(CREATE_PART, {
         refetchQueries: [
             { query: GET_QUALIFICATION_UNIT_PARTS },
-            { query: GET_PROJECTS }   
+            { query: GET_PROJECTS },
+            { query: GET_QUALIFICATION_UNITS }
         ],
     });
 
@@ -131,7 +146,7 @@ const CreatePart: React.FC = () => {
             name: formData.name,
             description: markdownDescription,
             materials: markdownMaterials,
-            projects: formData.projects.map((project) => project.id),
+            projectsInOrder: formData.projectsInOrder.map((project) => project.id),
             parentQualificationUnit: formData.parentQualificationUnit[0]?.id || "",
         }, null, 2));
 
@@ -142,7 +157,7 @@ const CreatePart: React.FC = () => {
                         name: formData.name,
                         description: markdownDescription,
                         materials: markdownMaterials,
-                        projects: formData.projects.map(project => project.id),
+                        projectsInOrder: formData.projectsInOrder.map(project => project.id),
                         parentQualificationUnit: formData.parentQualificationUnit[0]?.id || "",
                     },
                 },
@@ -159,7 +174,7 @@ const CreatePart: React.FC = () => {
     // Get the title and button text for the Selector component based on the current field
     const getTitleAndButtonText = () => {
         switch (currentField) {
-            case 'projects':
+            case 'projectsInOrder':
                 return { title: 'Valitse Projektit', buttonText: 'Lisää Projektit' };
             case 'parentQualificationUnit':
                 return { title: 'Valitse Tutkinnon osa', buttonText: 'Lisää Tutkinnon osa' };
@@ -177,7 +192,7 @@ const CreatePart: React.FC = () => {
             console.error('Error loading data:', projectsError || qualificationError);
             return [];
         }
-        return currentField === 'projects'
+        return currentField === 'projectsInOrder'
             ? projectsData?.projects ?? []
             : currentField === 'parentQualificationUnit'
             ? qualificationData?.units ?? []
@@ -242,20 +257,37 @@ const CreatePart: React.FC = () => {
                     </FormControl>
 
                     <FormControl fullWidth>
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Projektit</InputLabel>
-                        <Box sx={formStyles.formModalInputBox}>
-                            {formData.projects.map((project, index) => (
-                                <Chip
-                                    key={project.id}
-                                    label={project.name}
-                                    onDelete={() => handleRemoveItem('projects', index)}
-                                    sx={{ backgroundColor: '#E0E0E0' }}
-                                />
-                            ))}
-                            <IconButton onClick={() => handleAddItem('projects')} color="primary" sx={buttonStyles.openModalButton}>
-                                <AddIcon />
-                            </IconButton>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                            <InputLabel sx={{ position: "relative", pb: 4 }}>Projektit</InputLabel>
+                            <Box sx={{ border: "1px solid #ccc", borderRadius: "5px", padding: "2px", ml: 2 }}>
+                                <IconButton onClick={() => handleAddItem("projectsInOrder")} color="primary" size="small">
+                                    <AddIcon fontSize="small" />
+                                </IconButton>
+                            </Box>
                         </Box>
+                        <DragDropContext onDragEnd={handleDragEnd}>
+                            <Droppable droppableId="parts-list">
+                            {(provided) => (
+                                <List ref={provided.innerRef} {...provided.droppableProps} component={Paper} sx={{ p: 2 }}>
+                                {formData.projectsInOrder.map((project, index) => (
+                                    <Draggable key={String(project.id)} draggableId={String(project.id)} index={index}>
+                                    {(provided) => (
+                                        <ListItem
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        sx={{ border: "1px solid #ccc", mb: 1, cursor: "grab" }}
+                                        >
+                                        <ListItemText primary={project.name} />
+                                        </ListItem>
+                                    )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                                </List>
+                            )}
+                            </Droppable>
+                        </DragDropContext>
                     </FormControl>
                 </Box>
             </Box>

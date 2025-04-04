@@ -1,6 +1,6 @@
 const formStyles = {
   formOuterBox: {
-    maxWidth: '100%',
+    maxWidth: '1800px',
     margin: 'auto',
     padding: 3,
     borderRadius: 2,
@@ -57,7 +57,7 @@ const formStyles = {
   },
 
   formEditOuterBox: {
-    maxWidth: '100%',
+    maxWidth: '1800px',
     margin: 'auto',
     padding: 3,
     position: 'relative',

@@ -7,7 +7,7 @@ export interface BasePartFormData {
   name: string;
   description: string;
   materials: string;
-  projects: Item[];
+  projectsInOrder: Item[];
   parentQualificationUnit: Item[];
 }
 

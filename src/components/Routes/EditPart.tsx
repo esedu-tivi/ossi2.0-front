@@ -11,7 +11,8 @@ import TurndownService from 'turndown';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 
-import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, Switch } from '@mui/material';
+import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, Switch, List, ListItem, ListItemText, Paper } from '@mui/material';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { EditPartFormData, Item } from '../../FormData';
@@ -31,7 +32,7 @@ const EditPart: React.FC = () => {
         name: '',
         description: '',
         materials: '',
-        projects: [],
+        projectsInOrder: [],
         parentQualificationUnit: [],
         notifyStudents: false,
         notifyStudentsText: '',
@@ -50,9 +51,9 @@ const EditPart: React.FC = () => {
     };
 
     const [selectorOpen, setSelectorOpen] = useState(false);
-    const [currentField, setCurrentField] = useState<'projects' | 'parentQualificationUnit'>('parentQualificationUnit');
+    const [currentField, setCurrentField] = useState<'projectsInOrder' | 'parentQualificationUnit'>('parentQualificationUnit');
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
-        projects: [],
+        projectsInOrder: [],
         parentQualificationUnit: [],
     });
 
@@ -98,7 +99,7 @@ const EditPart: React.FC = () => {
                     name: data.part.name || '',
                     description: sanitizedDescription || '',
                     materials: sanitizedMaterials || '',
-                    projects: data.part.projects ?? [],
+                    projectsInOrder: data.part.projects ?? [],
                     parentQualificationUnit: data.part.parentQualificationUnit
                     ? Array.isArray(data.part.parentQualificationUnit)
                         ? data.part.parentQualificationUnit
@@ -109,7 +110,7 @@ const EditPart: React.FC = () => {
                 });
     
                 setSelectedItems({
-                    projects: data.part.projects ?? [],
+                    projectsInOrder: data.part.projectsInOrder ?? [],
                     parentQualificationUnit: data.part.parentQualificationUnit ?? [],
                 });
             } else {
@@ -151,7 +152,20 @@ const EditPart: React.FC = () => {
         setSelectorOpen(false);
     };
 
-    const handleAddItem = (field: 'projects' | 'parentQualificationUnit') => {
+    const handleDragEnd = (result: any) => {
+        if (!result.destination) return;
+    
+        const reorderedProjects = Array.from(formData.projectsInOrder);
+        const [movedProject] = reorderedProjects.splice(result.source.index, 1);
+        reorderedProjects.splice(result.destination.index, 0, movedProject);
+    
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            projectsInOrder: reorderedProjects,
+        }));
+    }; 
+
+    const handleAddItem = (field: 'projectsInOrder' | 'parentQualificationUnit') => {
         if (!field) {
             console.error("Invalid field in handleAddItem:", field);
             return;
@@ -195,7 +209,7 @@ const EditPart: React.FC = () => {
             name: formData.name,
             description: markdownDescription,
             materials: markdownMaterials,
-            projects: formData.projects.map(project => project.id),
+            projectsInOrder: formData.projectsInOrder.map(project => project.id),
             parentQualificationUnit: formData.parentQualificationUnit[0]?.id
         };
     
@@ -217,7 +231,7 @@ const EditPart: React.FC = () => {
     // Get the title and button text for the Selector component based on the current field
     const getTitleAndButtonText = () => {
         switch (currentField) {
-            case 'projects':
+            case 'projectsInOrder':
                 return { title: 'Valitse Projektit', buttonText: 'Lisää Projektit' };
             case 'parentQualificationUnit':
                 return { title: 'Valitse Tutkinnon osa', buttonText: 'Lisää Tutkinnon osa' };
@@ -233,7 +247,7 @@ const EditPart: React.FC = () => {
     
         if (!projectsData || !qualificationData) return [];
     
-        return currentField === 'projects'
+        return currentField === 'projectsInOrder'
             ? projectsData?.projects ?? []
             : currentField === 'parentQualificationUnit'
             ? qualificationData?.units ?? []
@@ -314,19 +328,37 @@ const EditPart: React.FC = () => {
                         </FormControl>
 
                         <FormControl fullWidth>
-                            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Projektit</InputLabel>
-                            <Box sx={formStyles.formModalInputBox}>
-                                {formData.projects.map((project) => (
-                                    <Chip
-                                        key={project.id}
-                                        label={project.name}
-                                        sx={{ backgroundColor: '#E0E0E0' }}
-                                    />
-                                ))}
-                                <IconButton onClick={() => handleAddItem('projects')} color="primary" sx={buttonStyles.openModalButton}>
-                                    <AddIcon />
-                                </IconButton>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                                <InputLabel sx={{ position: "relative", pb: 4 }}>Projektit</InputLabel>
+                                <Box sx={{ border: "1px solid #ccc", borderRadius: "5px", padding: "2px", ml: 2 }}>
+                                    <IconButton onClick={() => handleAddItem("projectsInOrder")} color="primary" size="small">
+                                        <AddIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
                             </Box>
+                            <DragDropContext onDragEnd={handleDragEnd}>
+                                <Droppable droppableId="parts-list">
+                                {(provided) => (
+                                    <List ref={provided.innerRef} {...provided.droppableProps} component={Paper} sx={{ p: 2 }}>
+                                    {formData.projectsInOrder.map((project, index) => (
+                                        <Draggable key={String(project.id)} draggableId={String(project.id)} index={index}>
+                                        {(provided) => (
+                                            <ListItem
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            sx={{ border: "1px solid #ccc", mb: 1, cursor: "grab" }}
+                                            >
+                                            <ListItemText primary={project.name} />
+                                            </ListItem>
+                                        )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                    </List>
+                                )}
+                                </Droppable>
+                            </DragDropContext>
                         </FormControl>
                         <FormControl sx={formStyles.formNotificationBox}>
                             <Typography sx={{ mb: 1, textAlign: 'left' }}>Muutosilmoitus</Typography>

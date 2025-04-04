@@ -1,24 +1,39 @@
 export const mandatoryModules = [
   {
     id: 1,
+    // units
+    // [QualificationUnit!]
+    // name
     title: "Tieto- ja viestintätekniikan perusosaaminen",
     points: 25,
     completed: true,
     parts: [
       { id: 101, 
-        title: "Tieto- ja viestintätekniikan työtehtävissä toimiminen", 
+        // competenceRequirementGroups
+        // [VocationalCompetenceRequirementGroup!]!
+        // title
+        title: "Opiskelija toimii tieto- ja viestintätekniikan työtehtävissä", 
         points: 10, 
         completed: true,
+        // requirements
+        // [VocationalCompetenceRequirementDescription!]!
+        // description
         osaamiset: [
-          "Opiskelija toimii tieto- ja viestintätekniikan työtehtävissä"
+          "toimii hyvällä palveluasenteella",
+          "palvelee sisäisiä tai ulkoisia asiakkaita",
+          "varmistaa asiakkaan tarpeen ja perustelee asiakkaalle ratkaisun",
+          "pyytää palautetta omasta toiminnasta",
+          "käyttää työpaikan viestintäkanavia ja ohjelmistoja"
         ]
       },
       { id: 102, 
-        title: "Tiedonhaku ja ongelmien ratkaiseminen", 
+        title: "Opiskelija tekee tiedonhakua ja ratkaisee tieto- ja viestintätekniikan ongelmia", 
         points: 10, 
         completed: true ,
         osaamiset: [
-          "Opiskelija tekee tiedonhakua ja ratkaisee tieto- ja viestintätekniikan ongelmia"
+          "käyttää alan perussanastoa ja tuntee uusia trendejä",
+          "hyödyntää englanninkielistä materiaalia ongelmanratkaisussa",
+          "ratkaisee ongelmia hakemalla tietoa"
         ]
       },
       { id: 103, 

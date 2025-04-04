@@ -155,16 +155,22 @@ const Selector: React.FC<SelectorProps> = ({
 
     // Handle toggling the selection of an item
     const handleToggle = (value: Item) => async () => {
-        const currentIndex = selectedItems.findIndex((item) => item.id === value.id);
-        let newChecked = [...selectedItems];
-    
-        if (currentIndex === -1) {
-            newChecked.push(value);
+        // If the currentField is parentQualificationUnit, allow only one selection
+        if (currentField === 'parentQualificationUnit') {
+            setSelectedItems([value]);  // Replace with the only selected qualification unit
         } else {
-            newChecked.splice(currentIndex, 1);
+            // For other fields (projects, parts), handle multiple selections
+            const currentIndex = selectedItems.findIndex((item) => item.id === value.id);
+            let newChecked = [...selectedItems];
+
+            if (currentIndex === -1) {
+                newChecked.push(value); // Add if it's not already selected
+            } else {
+                newChecked.splice(currentIndex, 1); // Remove if it's already selected
+            }
+
+            setSelectedItems(newChecked); // Update the selection state
         }
-    
-        setSelectedItems(newChecked);
     };
     
     // Handle adding the selected items
