@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "node ./postinstall.js"
+    "postinstall": "node ./postinstall.js",
+    "deploy:prod": "npm run build && node ./scripts/deploy.js"
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
