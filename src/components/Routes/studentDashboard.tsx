@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Selector from '../Selector';
+import { Item } from '../Selector'; // Oletetaan, että Item-tyyppi on määritelty tässä tiedostossa
 
-const items = [
+const items: Item[] = [
     'Item 1',
     'Item 2',
     'Item 3',
@@ -21,18 +22,45 @@ const items = [
     'Item 17',
     'Item 18',
     'Item 19',
-    'Item 20',
-];
+].map((name, index) => ({
+    id: `item-${index + 1}`,
+    name: `Item ${name + 1}`,
+    description: `Item Value ${name + 1}`
+}));
 
 const StudentDashboard: React.FC = () => {
-    const handleAdd = (selectedItems: string[]) => {
-        console.log('Selected items:', selectedItems);
+    // Lisätään tilanhallinta dialogin avaamista/sulkemista varten
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedItems, setSelectedItems] = useState<Item[]>([]);
+
+    // Korjattu handleAdd-funktion tyyppi vastaamaan Selector-komponentin tyyppiä
+    const handleAdd = (selected: Item[]) => {
+        console.log('Selected items:', selected);
+        setSelectedItems(selected);
+    };
+
+    const handleClose = () => {
+        setIsOpen(false);
+    };
+
+    // Lisää puuttuvat updateProjectTags-funktion
+    const updateProjectTags = (newTag: Item) => {
+        console.log('New tag added:', newTag);
+        // Implementoi tag-päivityslogiikka tarvittaessa
     };
 
     return (
         <div>
             <h2>OppilasNäkymä</h2>
-            <Selector items={items} title="Valitse Teemat" buttonText="Lisää Teemat" openWindow={true} onAdd={handleAdd} />
+            <Selector 
+                items={items}
+                title="Valitse Teemat"
+                buttonText="Lisää Teemat"
+                open={isOpen}
+                onAdd={handleAdd}
+                onClose={handleClose}
+                selectedItems={selectedItems}
+                updateProjectTags={updateProjectTags} currentField={''}            />
         </div>
     );
 };

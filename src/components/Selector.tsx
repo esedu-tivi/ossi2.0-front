@@ -25,7 +25,7 @@ import { CREATE_PROJECT_TAG } from '../graphql/CreateProjectTag';
 import { GET_COMPETENCE_REQUIREMENTS } from '../graphql/GetCompetenceRequirements';
 
 // Define the Item interface
-interface Item {
+export interface Item {
     id: string;
     name: string;
     description?: string;
