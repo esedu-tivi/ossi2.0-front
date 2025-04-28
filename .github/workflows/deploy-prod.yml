@@ -1,4 +1,4 @@
-name: Deploy OSSI2 to Production
+name: Build and Push to Frontend Deployment Repository
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -16,12 +16,11 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '20'
-        # cache: 'npm'
     
     - name: Clean install directories
       run: |
         rm -rf node_modules
-        rm -rf package-lock.json
+        rm -f package-lock.json
         rm -rf dist
 
     - name: Install dependencies
@@ -36,21 +35,13 @@ jobs:
         VITE_REDIRECT_URI: https://ossi2.esedu.fi/
         VITE_POST_LOGOUT_REDIRECT_URI: https://ossi2.esedu.fi/
       
-    - name: Deploy to production server
-      uses: appleboy/scp-action@master
+    - name: Push build to deployment repo
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.DEPLOY_REPO_TOKEN }}
       with:
-        host: ossi2.esedu.fi
-        username: ${{ secrets.PROD_SSH_USERNAME }}
-        key: ${{ secrets.PROD_SSH_KEY }}
-        source: "dist/*"
-        target: "/var/www/ossi2.esedu.fi/html"
-        strip_components: 1
-        
-    - name: Configure Nginx and restart
-      uses: appleboy/ssh-action@master
-      with:
-        host: ossi2.esedu.fi
-        username: ${{ secrets.PROD_SSH_USERNAME }}
-        key: ${{ secrets.PROD_SSH_KEY }}
-        script: |
-          sudo systemctl reload nginx
+        source-directory: 'dist'
+        destination-github-username: 'esedu-tivi'
+        destination-repository-name: 'ossi2-front-deploy'
+        user-email: ${{ secrets.GIT_USER_EMAIL }}
+        target-branch: main
