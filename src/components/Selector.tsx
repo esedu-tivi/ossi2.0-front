@@ -161,7 +161,7 @@ const Selector: React.FC<SelectorProps> = ({
         } else {
             // For other fields (projects, parts), handle multiple selections
             const currentIndex = selectedItems.findIndex((item) => item.id === value.id);
-            let newChecked = [...selectedItems];
+            const newChecked = [...selectedItems];
 
             if (currentIndex === -1) {
                 newChecked.push(value); // Add if it's not already selected

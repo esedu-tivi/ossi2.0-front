@@ -15,7 +15,7 @@ import { CREATE_PROJECT } from '../../graphql/CreateProject';
 import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnitParts';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
-import { formHandleManager } from '../common/formHandleManager';
+import { useFormHandleManager } from '../common/formHandleManager';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
@@ -48,7 +48,7 @@ const NewProjectForm: React.FC = () => {
         handleToggleActivity,
         handleEditorChange,
         competenceOptions,
-    } = formHandleManager(initialState);
+    } = useFormHandleManager(initialState);
 
     useEffect(() => {
         if (copiedProject && Object.keys(copiedProject).length > 0) {

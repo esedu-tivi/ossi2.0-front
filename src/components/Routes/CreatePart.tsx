@@ -12,7 +12,7 @@ import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, 
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { CreatePartFormData, Item } from '../../FormData';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnitParts';
 import { CREATE_PART } from '../../graphql/CreatePart';
@@ -83,7 +83,7 @@ const CreatePart: React.FC = () => {
         setSelectorOpen(false);
     };
 
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: DropResult) => {
         if (!result.destination) return;
     
         const reorderedProjects = Array.from(formData.projectsInOrder);

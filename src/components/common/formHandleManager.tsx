@@ -9,7 +9,7 @@ interface Item {
 }
 
 interface FormState {
-  [key: string]: any;
+  [key: string]: unknown;
   duration: number | string;
   isActive: boolean;
   tags: Item[];
@@ -40,7 +40,7 @@ interface CompetenceRequirementsData {
   part: Part;
 }
 
-export const formHandleManager = (initialState: FormState) => {
+export const useFormHandleManager = (initialState: FormState) => {
   const [formData, setFormData] = useState<FormState>(initialState);
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [currentField, setCurrentField] = useState<

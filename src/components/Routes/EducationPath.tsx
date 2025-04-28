@@ -45,7 +45,8 @@ const EducationPath: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const student = location.state?.student;
-  const [modules, setModules] = useState<Module[]>(mandatoryModules);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [modules, _setModules] = useState<Module[]>(mandatoryModules);
   const [optionalModules, setOptionalModules] = useState<Module[]>(choiceModules);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedOptionalModules, setSelectedOptionalModules] = useState<number[]>([]);
@@ -60,7 +61,8 @@ const EducationPath: React.FC = () => {
     setSelectedOptionalModules((prev) => (prev.includes(id) ? prev.filter((moduleId) => moduleId !== id) : [...prev, id]));
   };
 
-  const [previousEducation, setPreviousEducation] = useState<number>(5);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [previousEducation, _setPreviousEducation] = useState<number>(5);
 
   const totalPoints = [...modules, ...optionalModules].reduce((sum, module) => sum + module.points, previousEducation);
   const completedPoints = [...modules, ...optionalModules].reduce((sum, module) => sum + (module.completed ? module.points : 0), previousEducation);

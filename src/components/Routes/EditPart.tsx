@@ -12,7 +12,7 @@ import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 
 import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, Switch, List, ListItem, ListItemText, Paper } from '@mui/material';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { EditPartFormData, Item } from '../../FormData';
@@ -47,11 +47,11 @@ const EditPart: React.FC = () => {
 
     const handleCloseSelector = () => {
         setSelectorOpen(false);
-        setCurrentField(null as any);
+        setCurrentField(null);
     };
 
     const [selectorOpen, setSelectorOpen] = useState(false);
-    const [currentField, setCurrentField] = useState<'projectsInOrder' | 'parentQualificationUnit'>('parentQualificationUnit');
+    const [currentField, setCurrentField] = useState<'projectsInOrder' | 'parentQualificationUnit' | null>('parentQualificationUnit');
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
         projectsInOrder: [],
         parentQualificationUnit: [],
@@ -152,7 +152,7 @@ const EditPart: React.FC = () => {
         setSelectorOpen(false);
     };
 
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: DropResult) => {
         if (!result.destination) return;
     
         const reorderedProjects = Array.from(formData.projectsInOrder);
@@ -381,7 +381,8 @@ const EditPart: React.FC = () => {
                 title={title}
                 buttonText={buttonText}
                 open={selectorOpen}
-                selectedItems={selectedItems[currentField] ?? []}
+                selectedItems={currentField ? selectedItems[currentField] ?? [] : []}
+                //selectedItems={selectedItems[currentField] ?? []}
                 onAdd={handleAdd}
                 onClose={handleCloseSelector}
                 currentField={currentField ?? ''}
