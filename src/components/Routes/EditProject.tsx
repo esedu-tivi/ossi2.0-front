@@ -19,7 +19,7 @@ import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { UPDATE_PROJECT } from '../../graphql/UpdateProject';
 import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnitParts';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
-import { formHandleManager } from '../common/formHandleManager';
+import { useFormHandleManager } from '../common/formHandleManager';
 
 const EditProject: React.FC = () => {
     const navigate = useNavigate();
@@ -53,7 +53,7 @@ const EditProject: React.FC = () => {
         handleAddItem,
         handleNotifyStudents,
         competenceOptions,
-    } = formHandleManager(initialState);
+    } = useFormHandleManager(initialState);
 
     const { loading, error, data } = useQuery(GET_PROJECT_BY_ID, {
         variables: { id: projectId },
