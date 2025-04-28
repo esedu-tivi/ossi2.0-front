@@ -16,15 +16,16 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '20'
-        cache: 'npm'
+        # cache: 'npm'
     
     - name: Clean install directories
       run: |
         rm -rf node_modules
+        rm -rf package-lock.json
         rm -rf dist
 
     - name: Install dependencies
-      run: npm install
+      run: npm install --no-package-lock
       
     - name: Build application
       run: npm run build
