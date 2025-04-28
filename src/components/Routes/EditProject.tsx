@@ -286,7 +286,7 @@ const EditProject: React.FC = () => {
                             onChange={(content) => handleEditorChange(content, 'materials')}
                         />
 
-                        {formData.notifyStudents && (
+                        {Boolean(formData.notifyStudents) && (
                             <TextField
                                 label="Muutosilmoitus"
                                 variant="outlined"
