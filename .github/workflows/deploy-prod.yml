@@ -45,3 +45,4 @@ jobs:
         destination-repository-name: 'ossi2-front-deploy'
         user-email: ${{ secrets.GIT_USER_EMAIL }}
         target-branch: main
+        create-target-branch-if-needed: 'true'
