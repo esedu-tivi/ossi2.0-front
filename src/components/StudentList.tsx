@@ -1,3 +1,5 @@
+// TODO student.studyingQualificationTitle.name returns null from backend so it is commented out currently from displaying.
+
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Button } from '@mui/material';
@@ -115,7 +117,9 @@ const StudentList: React.FC = () => {
                                 <TableCell>{student.id}</TableCell>
                                 <TableCell>{`${student.firstName} ${student.lastName}`}</TableCell>
                                 <TableCell>{student.groupId}</TableCell>
-                                <TableCell>{student.studyingQualificationTitle.name}</TableCell>
+                                {/* Temp comment out since backend returns null
+                                <TableCell>{student.studyingQualificationTitle.name}</TableCell>                               
+                                */}
                                 <TableCell>
                                     <div className="hover-buttons">
                                         <Button variant="outlined" size="small" startIcon={<InfoIcon />} onClick={() => goToStudies(student)}>

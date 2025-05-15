@@ -1,29 +1,36 @@
-//ProtectedRoute varmistaa, että käyttäjä on oikealla dashboardilla. (Muutetaan vastaamaan jobtitleä)
-//Logiikka käsitellään app.tsx:ssä
+// Makes sure user is on the correct dashboard
+// Logic is stored in auth-provider.tsx and App.tsx
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./utils/auth-context";
-import { useEffect } from "react";
 
 interface ProtectedRouteProps {
   element: React.ReactNode;
+  allowedRoles?: ("student" | "teacher" | "unknown")[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element }) => {
-  const { isAuthenticated } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element, allowedRoles }) => {
+  const { isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
 
-    //Jos käyttäjä ei ole kirjautunut, niin ohjataan käyttäjä takaisin login sivulle
+    // If user is not logged in they will be forwarded back to login page
     if (!isAuthenticated) {
       navigate("/");
+      return;
     }
-  }, [isAuthenticated, navigate]);
 
-  // Elementti renderöidään vain, jos käyttäjä on kirjautunut
-  return <>{isAuthenticated && element}</>;
+    if (allowedRoles && !allowedRoles.includes(role)) {
+      console.warn(`Unauthorized access attempt to ${location.pathname} by ${role}`);
+      navigate(role === "teacher" ? "/teacherdashboard" : "/studentdashboard");
+    }
+  }, [isAuthenticated, navigate, role, allowedRoles, location.pathname]);
+
+  // Element will only be rendered if user is logged in
+  return <>{isAuthenticated && (!allowedRoles || allowedRoles.includes(role)) && element}</>;
 };
 
 export default ProtectedRoute;

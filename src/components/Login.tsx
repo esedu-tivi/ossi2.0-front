@@ -5,9 +5,9 @@ import "../css/Login.css";
 const Login = () => {
   const { instance} = useMsal();
 
-  //Aloittaa kirjautumisen käyttäen redirect flowta
-  //Käyttäjä ohjataan Microsoftin kirjautumissivulle
-  //Kun kirjautuminen onnistuu, käyttäjä ohjataan takaisin sovellukseen autentikointi tietojen kanssa
+  // Starts login using redirect flow
+  // User is navigated to Microsoft login screen
+  // When login is successful user is redirected back to program with the authentication data
   const handleLogin = () => {
     instance.loginRedirect(loginRequest);
   };

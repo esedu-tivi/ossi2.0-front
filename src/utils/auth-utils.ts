@@ -3,7 +3,6 @@ import { msalConfig } from "../../authConfig";
 
 export const msalInstance = new PublicClientApplication(msalConfig);
 
-
 export const handleMsalEventCallback = (
     setUserEmail: (email: string) => void, 
     setIsAuthenticated: (isAuthenticated: boolean) => void
@@ -20,7 +19,6 @@ export const handleMsalEventCallback = (
             }
         }
     });
-
     
     return callbackId;
 };

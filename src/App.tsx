@@ -1,8 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { useQuery } from '@apollo/client';
+import { useAuth } from './utils/auth-context';
+import { USER_SETUP } from './graphql/UserSetup';
+
 import TeacherDashboard from './components/Routes/teacherDashboard';
 import StudentDashboard from './components/Routes/studentDashboard';
-import { useAuth } from './utils/auth-context';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './components/Login';
 import TeacherProjectsView from './components/Routes/TeacherProjectsView';
@@ -17,42 +20,101 @@ import EditPart from './components/Routes/EditPart';
 import EditStudies from './components/Routes/EditStudies';
 import EducationPath from './components/Routes/EducationPath';
 import ReorderParts from './components/Routes/ReorderParts';
+import NewUserLogin from './components/Routes/NewUserLogin';
 
 const App = () => {
-    const { isAuthenticated, userEmail } = useAuth();
+    const { isAuthenticated, userEmail, role } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const hasRedirectedRef = useRef(false);
+    const [postLoginLoading, setPostLoginLoading] = useState(true);
+
+    const { data: studentData, loading: studentLoading, refetch } = useQuery(USER_SETUP, {
+        skip: !isAuthenticated,
+        fetchPolicy: 'network-only',
+    });
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            refetch();
+        }
+    }, [isAuthenticated, refetch]);
+
+    useEffect(() => {
+        if (!isAuthenticated) return;
+    
+        if (!studentLoading && studentData) {
+            const timer = setTimeout(() => {
+                setPostLoginLoading(false);
+            }, 800); // Wait 800ms to settle down after studentData ready
+    
+            return () => clearTimeout(timer);
+        }
+    }, [isAuthenticated, studentLoading, studentData]);
 
     // Prevent redirects if the user is already on a valid route.
     useEffect(() => {
-        if (isAuthenticated) {
-            console.log('Current location:', location.pathname);
+        if (hasRedirectedRef.current) return;
+        if (!isAuthenticated) return;
+        if (studentLoading) return;
+        if (!studentData || typeof studentData.amISetUp !== 'boolean') return;
 
-            const isTeacherRoute = userEmail.endsWith('@esedulainen.fi');
-            const isStudentRoute = userEmail.endsWith('@esedu.fi');
+        const isTeacher = role === 'teacher';
+        const isStudent = role === 'student';
 
-            if (
-                isTeacherRoute &&
-                !location.pathname.startsWith('/teacherdashboard') &&
-                !location.pathname.startsWith('/teacherprojects') &&
-                !location.pathname.startsWith('/qualificationunitparts')
-            ) {
-                console.log('Redirecting to /teacherdashboard');
-                navigate('/teacherdashboard');
-            } else if (isStudentRoute && !location.pathname.startsWith('/studentdashboard')) {
-                console.log('Redirecting to /studentdashboard');
-                navigate('/studentdashboard');
-            }
+        const isSetUp = studentData?.amISetUp;
+
+        if (
+            isTeacher &&
+            !location.pathname.startsWith('/teacherdashboard') &&
+            !location.pathname.startsWith('/teacherprojects') &&
+            !location.pathname.startsWith('/qualificationunitparts')
+        ) {
+            console.log('Redirecting to /teacherdashboard');
+            navigate('/teacherdashboard');
+            hasRedirectedRef.current = true;
+        } else if (isStudent && !isSetUp && location.pathname !== '/studentdashboard/newuserlogin') {
+            navigate('/studentdashboard/newuserlogin');
+            hasRedirectedRef.current = true;
+        } else if (isStudent && isSetUp && location.pathname !== '/studentdashboard') {
+            navigate('/studentdashboard');
+            hasRedirectedRef.current = true;
         }
-    }, [isAuthenticated, userEmail, navigate, location]);
+    }, [studentLoading, isAuthenticated, userEmail, studentData, location.pathname, navigate]);
+
+    // Loading screen while data is fetched
+    if (isAuthenticated && (studentLoading || !studentData || postLoginLoading)) {
+        refetch()
+        return (
+            <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+                <div className="bounce-spinner">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+                <p style={{ marginTop: '1rem' }}>Ladataan käyttäjän tietoja...</p>
+            </div>
+        );
+    }    
 
     return (
         <Routes>
             <Route path="/" element={<Login />} />
+            
+            <Route
+                path="/studentdashboard/newuserlogin"
+                element={
+                    <ProtectedRoute
+                        element={<NewUserLogin />}
+                    />
+                }
+            />
+
             <Route
                 path="/teacherdashboard"
                 element={
                     <ProtectedRoute
+                        allowedRoles={["teacher"]}
                         element={
                             <AppLayout>
                                 <TeacherDashboard />
@@ -89,6 +151,7 @@ const App = () => {
                 path="/teacherprojects/new"
                 element={
                     <ProtectedRoute
+                        allowedRoles={["teacher"]}
                         element={
                             <AppLayout>
                                 <CreateProject />
@@ -101,6 +164,7 @@ const App = () => {
                 path="/teacherprojects/edit/:projectId"
                 element={
                     <ProtectedRoute
+                        allowedRoles={["teacher"]}
                         element={
                             <AppLayout>
                                 <EditProject />
@@ -113,6 +177,7 @@ const App = () => {
                 path="/teacherprojects/:projectId"
                 element={
                     <ProtectedRoute
+                        allowedRoles={["teacher"]}
                         element={
                             <AppLayout>
                                 <ProjectDetails />
@@ -173,6 +238,7 @@ const App = () => {
                 path="/teacherdashboard/teacherstudies"
                 element={
                     <ProtectedRoute
+                        allowedRoles={["teacher"]}
                         element={
                             <AppLayout>
                                 <EditStudies />
@@ -185,6 +251,7 @@ const App = () => {
                 path="/teacherdashboard/educationpath"
                 element={
                     <ProtectedRoute
+                        allowedRoles={["teacher"]}
                         element={
                             <AppLayout>
                                 <EducationPath />

@@ -100,20 +100,22 @@ const NewProjectForm: React.FC = () => {
         const markdownDescription = turndownService.turndown(formData.description);
         const markdownMaterials = turndownService.turndown(formData.materials);
         
+        const projectInput = {
+            name: formData.name,
+            description: markdownDescription,
+            materials: markdownMaterials,
+            duration: formData.duration,
+            includedInParts: formData.includedInParts.map((part) => part.id),
+            competenceRequirements: formData.competenceRequirements.map((competence) => competence.id),
+            tags: formData.tags.map((tag) => tag.id),
+            isActive: formData.isActive,
+        }
+
+        console.log("Submitting CreateProject input:", JSON.stringify(projectInput, null, 2));
+
         try {
             const response = await createProject({
-                variables: {
-                    project: {
-                        name: formData.name,
-                        description: markdownDescription,
-                        materials: markdownMaterials,
-                        duration: formData.duration,
-                        includedInParts: formData.includedInParts.map((part) => part.id),
-                        competenceRequirements: formData.competenceRequirements.map((competence) => competence.id),
-                        tags: formData.tags.map((tag) => tag.id),
-                        isActive: formData.isActive,
-                    },
-                },
+                variables: { project: projectInput },
             })
             console.log('GraphQL Response:', response.data);
             navigate('/teacherprojects');

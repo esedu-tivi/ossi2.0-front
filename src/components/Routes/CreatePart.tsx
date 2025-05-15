@@ -142,25 +142,19 @@ const CreatePart: React.FC = () => {
         const markdownDescription = turndownService.turndown(formData.description);
         const markdownMaterials = turndownService.turndown(formData.materials);
 
-        console.log("Submitting CreatePart with:", JSON.stringify({
+        const partInput = {
             name: formData.name,
             description: markdownDescription,
             materials: markdownMaterials,
-            projectsInOrder: formData.projectsInOrder.map((project) => project.id),
-            parentQualificationUnit: formData.parentQualificationUnit[0]?.id || "",
-        }, null, 2));
+            parentQualificationUnit: Number(formData.parentQualificationUnit[0]?.id), // ensure number
+            projectsInOrder: formData.projectsInOrder.map((project) => Number(project.id)), // ensure numbers
+        };
+
+        console.log("Submitting CreatePart input:", JSON.stringify(partInput, null, 2));
 
         try {
             const response = await createPart({
-                variables: {
-                    part: {
-                        name: formData.name,
-                        description: markdownDescription,
-                        materials: markdownMaterials,
-                        projectsInOrder: formData.projectsInOrder.map(project => project.id),
-                        parentQualificationUnit: formData.parentQualificationUnit[0]?.id || "",
-                    },
-                },
+                variables: { part: partInput },
             });
             console.log('GraphQL Response:', response.data);
             if (response.data?.createPart) {

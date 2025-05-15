@@ -1,5 +1,5 @@
-//auth-provider.tsx 
-//Hallinnoi käyttäjän autentikoinnin tilaa ja tarjoaa sen sovelluksen muille osille
+// Controls user authentication and provides it to other components in the program
+
 import { ReactNode, useEffect, useState, useCallback } from "react";
 import { MsalProvider } from "@azure/msal-react";
 import { msalInstance, handleMsalEventCallback } from "../utils/auth-utils";
@@ -11,19 +11,29 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-//Hallinnoi autentikoinnin tilaa ja tarjoaa sen sovelluksen muille osille
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 
-  //Pitää kirjaa käyttäjän kirjautumistilasta
+  // Manages user login state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  //Säilyttää käyttäjän sähköpostiosoitteen, sekä päivittää sen kirjautumisen yhteydessä
+  // Manages user Email data
   const [userEmail, setUserEmail] = useState("");
 
-  //Käyttää LOGIN_MUTATIONia, joka on määritelty /components/graphql/LoginMutation.tsx tiedostossa
   const [loginMutation] = useMutation(LOGIN_MUTATION);
 
-  //Lähettää idTokenin backendiin ja tarkastaa, että palautunut token on validi
+  const [role, setRole] = useState<'teacher' | 'student' | 'unknown'>('unknown');
+
+  useEffect(() => {
+    if (userEmail.endsWith('@esedu.fi')) {
+      setRole('student');
+    } else if (userEmail.endsWith('@esedulainen.fi')) {
+      setRole('teacher');
+    } else {
+      setRole('unknown');
+    }
+  }, [userEmail]);
+
+  // Sends idToken to backend and checks if the returned token is valid
   const sendIdTokenToBackend = useCallback(async (idToken: string) => {
     try {
       const { data } = await loginMutation({ variables: { idToken } });
@@ -33,15 +43,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error("Failed to send idToken to backend:", error);
     }
-  }, [loginMutation]); // Memoizes the function, only re-creating it if loginMutation changes
+  }, [loginMutation]); // Memorizes the function, only re-creating it if loginMutation changes
 
   useEffect(() => {
-
-    //Setuppaa callbacking, joka kuuntelee MSAL eventit. Päivittää aktiivisen MSAL accountin ja userEmail + isAuthenticated tilan
-    //Palauttaa callback ID:n, jotta se voidaan poistaa myöhemmin memory leaksien varalta
+    // Setups callback which listens to MSAL events. Updates active MSAL account, userEmail and isAuthenticated state
+    // Returns callback ID so it can be removed later in case of memory leaks
     const callbackId = handleMsalEventCallback(setUserEmail, setIsAuthenticated);
 
-    //Käsittelee kirjautumisen yhteydessä olevan redirectin, joka on tullut MSALin kautta
+    // Handles redirect during login
     const initializeMsal = async () => {
       try {
         
@@ -51,32 +60,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         await msalInstance.initialize();
 
-        //handleRedirectPromise palauttaa AuthenticationResultin, joka sisältää käyttäjän tiedot, jos kirjautuminen onnistui
-        //account, idToken, accessToken
+        // handleRedirectPromise returns AuthenticationResult which contains user data if login was successful
         const redirectResponse = await msalInstance.handleRedirectPromise();
 
-        //Tarkastaa oliko kirjautuminen validi, sekä käyttäjätietojen olemassaolon
-        //Jos true, niin kirjautuminen oli onnistunut ja käyttäjä redirectataan takaisin sovellukseen
+        // Checks if login was valid and if user data exists
+        // If true the login is successful and user is redirected back to the program
         if (redirectResponse?.account) {
-          //Asettaa käyttäjän aktiiviseksi MSAL accountiksi
+          // Sets user as active MSAL account
           msalInstance.setActiveAccount(redirectResponse.account);
-          //Säilyttää käyttäjän sähköpostiosoitteen komponentin tilassa
           setUserEmail(redirectResponse.account.username);
-          //Asettaa käyttäjän autentikoinnin tilan trueksi (käyttäjä on logged in)
-          setIsAuthenticated(true);
 
-          //Erottaa idTokenin responsesta ja tekee siitä muuttujan backend lähetystä varten
+          // Separates idToken from response and saves it in variable
           const idToken = redirectResponse.idToken;
 
-          //Lähettää idTokenin backendiin mutatointiin
-          sendIdTokenToBackend(idToken);
+          // Sends idToken to backend mutation
+          // Temp log idToken for testing, REMOVE when not needed anymore
+          console.log(idToken)
+          await sendIdTokenToBackend(idToken);
+
+          setIsAuthenticated(true);
         }
       } catch (error) {
         console.error("MSAL initialization error:", error);
       }
     };
 
-    //Poistaa event callbackin
+    // Removes event callback
    if (msalInstance) {
     initializeMsal();
   }
@@ -90,8 +99,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
 
-    //Tarjoaa isAuthenticated, userEmail, setIsAuthenticated ja setUserEmail funktiot muille sovelluksen osille AuthContextin kautta
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, setIsAuthenticated, setUserEmail }}>
+    // Provides isAuthenticated, userEmail, setIsAuthenticated, role, setRole and setUserEmail functions to other components through auth-context
+    <AuthContext.Provider value={{ isAuthenticated, userEmail, role, setIsAuthenticated, setUserEmail, setRole }}>
       <MsalProvider instance={msalInstance}>
         {children}
       </MsalProvider>

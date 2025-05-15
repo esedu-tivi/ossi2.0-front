@@ -1,3 +1,5 @@
+// TODO uses hardcoded data. Needs to be changed to use backend data when possible
+
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -45,7 +47,7 @@ const EducationPath: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const student = location.state?.student;
-  const [modules, setModules] = useState<Module[]>(mandatoryModules);
+  const [modules] = useState<Module[]>(mandatoryModules);
   const [optionalModules, setOptionalModules] = useState<Module[]>(choiceModules);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedOptionalModules, setSelectedOptionalModules] = useState<number[]>([]);
@@ -60,7 +62,7 @@ const EducationPath: React.FC = () => {
     setSelectedOptionalModules((prev) => (prev.includes(id) ? prev.filter((moduleId) => moduleId !== id) : [...prev, id]));
   };
 
-  const [previousEducation, setPreviousEducation] = useState<number>(5);
+  const [previousEducation] = useState<number>(5);
 
   const totalPoints = [...modules, ...optionalModules].reduce((sum, module) => sum + module.points, previousEducation);
   const completedPoints = [...modules, ...optionalModules].reduce((sum, module) => sum + (module.completed ? module.points : 0), previousEducation);

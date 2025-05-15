@@ -22,12 +22,13 @@ export function filterStudents(
   return students.filter((student) => {
     const name = `${student.firstName} ${student.lastName}`.toLowerCase();
     const group = student.groupId.toLowerCase();
-    const qualification = student.studyingQualificationTitle.name.toLowerCase();
+    // Temp comment out since backend returns null
+    // const qualification = student.studyingQualificationTitle.name.toLowerCase() || "";
 
     return (
       name.includes(lowerQuery) ||
-      group.includes(lowerQuery) ||
-      qualification.includes(lowerQuery)
+      group.includes(lowerQuery)
+      // qualification.includes(lowerQuery)
     );
   });
 }
