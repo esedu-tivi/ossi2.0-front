@@ -24,9 +24,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [role, setRole] = useState<'teacher' | 'student' | 'unknown'>('unknown');
 
   useEffect(() => {
-    if (userEmail.endsWith('@esedu.fi')) {
+    if (userEmail.endsWith('@esedulainen.fi')) {
       setRole('student');
-    } else if (userEmail.endsWith('@esedulainen.fi')) {
+    } else if (userEmail.endsWith('@esedu.fi')) {
       setRole('teacher');
     } else {
       setRole('unknown');
