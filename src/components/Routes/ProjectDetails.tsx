@@ -37,7 +37,7 @@ const ProjectDetails = () => {
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography>Error: {error.message}</Typography>;
 
-  const project = data?.project;
+  const project = data?.project?.project;
 
   console.log('Project details', project)
 

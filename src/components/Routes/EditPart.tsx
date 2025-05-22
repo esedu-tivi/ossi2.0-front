@@ -90,28 +90,28 @@ const EditPart: React.FC = () => {
     // Fills the fields with saved Part data when page opens
     useEffect(() => {
         if (!loading && data) {
+            if (data?.part?.part) {
+                const part = data.part.part;
 
-            const sanitizedDescription = sanitizeHtml(md.render(data.part.description || ''));
-            const sanitizedMaterials = sanitizeHtml(md.render(data.part.materials || ''));
-
-            if (data.part) {
+                const sanitizedDescription = sanitizeHtml(md.render(part.description || ''));
+                const sanitizedMaterials = sanitizeHtml(md.render(part.materials || ''));
                 setFormData({
-                    name: data.part.name || '',
+                    name: part.name || '',
                     description: sanitizedDescription || '',
                     materials: sanitizedMaterials || '',
-                    projectsInOrder: data.part.projects ?? [],
-                    parentQualificationUnit: data.part.parentQualificationUnit
-                    ? Array.isArray(data.part.parentQualificationUnit)
-                        ? data.part.parentQualificationUnit
-                        : [data.part.parentQualificationUnit]
-                    : [],
-                    notifyStudents: data.part.notifyStudents ?? false,
-                    notifyStudentsText: data.part.notifyStudentsText || '',
+                    projectsInOrder: part.projects ?? [],
+                    parentQualificationUnit: part.parentQualificationUnit
+                        ? [part.parentQualificationUnit]
+                        : [],
+                    notifyStudents: false,
+                    notifyStudentsText: '',
                 });
     
                 setSelectedItems({
-                    projectsInOrder: data.part.projectsInOrder ?? [],
-                    parentQualificationUnit: data.part.parentQualificationUnit ?? [],
+                    projectsInOrder: part.projects ?? [],
+                    parentQualificationUnit: part.parentQualificationUnit
+                        ? [part.parentQualificationUnit]
+                        : [],
                 });
             } else {
                 console.error("No part found in response:", data);
@@ -248,9 +248,9 @@ const EditPart: React.FC = () => {
         if (!projectsData || !qualificationData) return [];
     
         return currentField === 'projectsInOrder'
-            ? projectsData?.projects ?? []
+            ? projectsData?.projects?.projects ?? []
             : currentField === 'parentQualificationUnit'
-            ? qualificationData?.units ?? []
+            ? qualificationData?.units?.units ?? []
             : [];
     };
 

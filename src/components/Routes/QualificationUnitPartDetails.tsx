@@ -27,7 +27,7 @@ const QualificationUnitPartDetails = () => {
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography>Error: {error.message}</Typography>;
 
-  const part = data?.part;
+  const part = data?.part?.part;
   if (!part) {
     console.log("Data received from GraphQL query is empty or incorrect.");
     return <Typography>Part not found</Typography>;

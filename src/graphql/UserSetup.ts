@@ -2,9 +2,19 @@ import { gql } from '@apollo/client';
 
 export const USER_SETUP = gql`
   query UserSetup {
-    amISetUp
+    amISetUp {
+      success
+      status
+      message
+      amISetUp
+    }
     me {
-      id
+      message
+      status
+      success
+      user {
+        id
+      }
     }
   }
 `;

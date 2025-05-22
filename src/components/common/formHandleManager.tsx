@@ -25,19 +25,32 @@ interface Requirement {
 }
 
 interface CompetenceRequirementGroup {
+  id: string;
+  title: string;
   requirements: Requirement[];
 }
 
 interface ParentQualificationUnit {
+  id: string;
+  name: string;
   competenceRequirementGroups: CompetenceRequirementGroup[];
 }
 
 interface Part {
+  id: string;
+  name: string;
+  description: string;
+  materials: string;
   parentQualificationUnit: ParentQualificationUnit;
 }
 
 interface CompetenceRequirementsData {
-  part: Part;
+  part: {
+    part: Part;
+    message: string;
+    status: string;
+    success: boolean;
+  };
 }
 
 export const formHandleManager = (initialState: FormState) => {
@@ -60,8 +73,9 @@ export const formHandleManager = (initialState: FormState) => {
     fetchPolicy: "network-only",
     onCompleted: (data) => {
       console.log('Competence Requirements Data:', data);
-      if (data?.part?.parentQualificationUnit?.competenceRequirementGroups) {
-        const newCompetences = data.part.parentQualificationUnit.competenceRequirementGroups.flatMap(group =>
+      const realPart = data?.part?.part;
+      if (realPart?.parentQualificationUnit?.competenceRequirementGroups) {
+        const newCompetences = realPart.parentQualificationUnit.competenceRequirementGroups.flatMap(group =>
           group.requirements.map(req => ({ id: req.id, name: req.description }))
         );
         console.log("New Competence Options:", newCompetences);
@@ -75,7 +89,7 @@ export const formHandleManager = (initialState: FormState) => {
   
     if (selectedTeemaIds.length > 0) {
       console.log("Fetching competence requirements for multiple Teema IDs:", selectedTeemaIds);
-      fetchCompetenceRequirementsForMultipleTeema(selectedTeemaIds);
+      fetchCompetenceRequirementsForMultipleParts(selectedTeemaIds);
     }
   }, [formData.includedInParts]);
 
@@ -95,7 +109,7 @@ export const formHandleManager = (initialState: FormState) => {
             }));
 
             setCompetenceOptions([]);
-            fetchCompetenceRequirementsForMultipleTeema(selectedTeemaIds);
+            fetchCompetenceRequirementsForMultipleParts(selectedTeemaIds);
         }
     
         return {
@@ -111,7 +125,7 @@ export const formHandleManager = (initialState: FormState) => {
     }));
   };
 
-  const fetchCompetenceRequirementsForMultipleTeema = (teemaIds: string[]) => {
+  const fetchCompetenceRequirementsForMultipleParts = (teemaIds: string[]) => {
     console.log("Fetching competence requirements for Teema IDs:", teemaIds);
   
     setCompetenceOptions([]); 
@@ -126,8 +140,9 @@ export const formHandleManager = (initialState: FormState) => {
         const allCompetenceRequirements: Item[] = [];
 
         responses.forEach(({ data }) => {
-            if (data?.part?.parentQualificationUnit?.competenceRequirementGroups) {
-                const newCompetences = data.part.parentQualificationUnit.competenceRequirementGroups.flatMap(
+            const realPart = data?.part?.part;
+            if (realPart?.parentQualificationUnit?.competenceRequirementGroups) {
+                const newCompetences = realPart.parentQualificationUnit.competenceRequirementGroups.flatMap(
                     (group: CompetenceRequirementGroup) =>
                         group.requirements.map((req: Requirement) => ({
                             id: req.id,

@@ -77,37 +77,37 @@ const EditProject: React.FC = () => {
         ],
     });
 
+    const project = data?.project?.project;
+
     // Fills the input fields with data based on which project is currently being edited
     useEffect(() => {
-        if (!loading && data?.project) {
-            const sanitizedDescription = sanitizeHtml(md.render(data.project.description || ''));
-            const sanitizedMaterials = sanitizeHtml(md.render(data.project.materials || ''));
+        if (!loading && data?.project?.project) {          
+            const sanitizedDescription = sanitizeHtml(md.render(project.description || ''));
+            const sanitizedMaterials = sanitizeHtml(md.render(project.materials || ''));
             
             setFormData((prevFormData) => {
                 return {
                     ...prevFormData,
-                    name: data.project.name || '',
+                    name: project.name || '',
                     description: sanitizedDescription,
                     materials: sanitizedMaterials,
-                    competenceRequirements: data.project.competenceRequirements || [],
-                    duration: Number(data.project.duration) || 0,
-                    includedInParts: data.project.includedInQualificationUnitParts || [],
-                    tags: data.project.tags || [],
-                    isActive: data.project.isActive,
-                    notifyStudents: data.project.notifyStudents ?? false,
-                    notifyStudentsText: data.project.notifyStudentsText || '',
+                    competenceRequirements: project.competenceRequirements || [],
+                    duration: Number(project.duration) || 0,
+                    includedInParts: project.includedInQualificationUnitParts || [],
+                    tags: project.tags || [],
+                    isActive: project.isActive,
+                    notifyStudents: project.notifyStudents ?? false,
+                    notifyStudentsText: project.notifyStudentsText || '',
                 };
             });
     
             setSelectedItems({
-                tags: data.project.tags || [],
-                competenceRequirements: data.project.competenceRequirements || [],
-                includedInParts: data.project.includedInQualificationUnitParts || [],
+                tags: project.tags || [],
+                competenceRequirements: project.competenceRequirements || [],
+                includedInParts: project.includedInQualificationUnitParts || [],
             });
         }
     }, [data, loading]);
-
-    const project = data?.project;
 
     // Mutation for updating the project
     const [updateProject] = useMutation(UPDATE_PROJECT, {
@@ -183,17 +183,11 @@ const EditProject: React.FC = () => {
     };
 
     const getItems = () => {
-        if (partsLoading) {
-            return ['Ladataan...'];
+        if (partsLoading || projectTagsLoading) {
+            return [];
         }
-        if (partsError) {
-            return ['Virhe ladattaessa teemoja'];
-        }
-        if (projectTagsLoading) {
-            return ['Ladataan...'];
-        }
-        if (projectTagsError) {
-            return ['Virhe ladattaessa tunnisteita'];
+        if (partsError || projectTagsError) {
+            return [];
         }
 
         switch (currentField) {
@@ -202,7 +196,7 @@ const EditProject: React.FC = () => {
             case 'competenceRequirements':
                 return competenceOptions;
             case 'includedInParts':
-                return partsData ? partsData.parts : [];
+                return partsData ? partsData.parts?.parts : [];
             default:
                 return [];
         }

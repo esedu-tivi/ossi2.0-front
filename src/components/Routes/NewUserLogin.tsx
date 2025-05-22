@@ -39,7 +39,7 @@ const NewUserLogin: React.FC = () => {
 
     // Navigate if user is already set up
     useEffect(() => {
-        if (meData?.amISetUp) {
+        if (meData?.amISetUp?.amISetUp) {
             navigate('/studentdashboard');
         }
     }, [meData, navigate]);
@@ -63,7 +63,7 @@ const NewUserLogin: React.FC = () => {
         setStudentType(type);
 
         try {
-            const studentId = meData?.me?.id;
+            const studentId = meData?.me?.user?.id;
             if (!studentId) {
                 throw new Error('Student ID not found');
             }
@@ -87,7 +87,7 @@ const NewUserLogin: React.FC = () => {
     };
 
     // Wait until amISetUp is defined before rendering
-    if (!isAuthenticated || meLoading || !meData || typeof meData.amISetUp === 'undefined') {
+    if (!isAuthenticated || meLoading || !meData || typeof meData.amISetUp?.amISetUp === 'undefined') {
         return (
             <motion.div
                 initial={{ opacity: 0 }}

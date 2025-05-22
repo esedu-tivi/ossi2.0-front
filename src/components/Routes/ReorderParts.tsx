@@ -31,8 +31,8 @@ const ReorderParts: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (data?.units) {
-      setQualificationUnits(data.units);
+    if (data?.units?.units) {
+      setQualificationUnits(data.units?.units);
     }
   }, [data]);
 

@@ -55,7 +55,7 @@ const StudentList: React.FC = () => {
     if (error) return <p>Error: {error.message}</p>;
 
     // Extract student data from the GraphQL data fetch
-    const students: StudentData[] = data.students || [];
+    const students: StudentData[] = data.students.students || [];
 
     // Filter students based on the current search query and sort config
     const filteredStudents = filterStudents(students, searchQuery);

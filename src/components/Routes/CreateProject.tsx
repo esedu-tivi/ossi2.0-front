@@ -138,18 +138,12 @@ const NewProjectForm: React.FC = () => {
     };
 
     const getItems = () => {
-        if (partsLoading) {
-            return ['Ladataan...'];
-        }
-        if (partsError) {
-            return ['Virhe ladattaessa teemoja'];
-        }
-        if (projectTagsLoading) {
-            return ['Ladataan...'];
-        }
-        if (projectTagsError) {
-            return ['Virhe ladattaessa tunnisteita'];
-        }
+            if (partsLoading || projectTagsLoading) {
+                return [];
+            }
+            if (partsError || projectTagsError) {
+                return [];
+            }
 
         // Returns selectable modal data based on selected field
         switch (currentField) {
@@ -158,7 +152,7 @@ const NewProjectForm: React.FC = () => {
             case 'competenceRequirements':
                 return competenceOptions;
             case 'includedInParts':
-                return partsData ? partsData.parts : [];
+                return partsData ? partsData.parts?.parts ?? [] : [];
             default:
                 return [];
         }

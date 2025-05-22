@@ -40,7 +40,7 @@ const QualificationUnitPartList: React.FC = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const parts: QualificationUnitPartData[] = data?.parts || [];
+  const parts: QualificationUnitPartData[] = data?.parts.parts || [];
 
   // Handle search input changes
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) =>

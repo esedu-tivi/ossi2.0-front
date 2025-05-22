@@ -3,6 +3,9 @@ import { gql } from '@apollo/client';
 export const UPDATE_PROJECT = gql`
   mutation UpdateProject($updateProjectId: ID!, $project: UpdateProjectInput!) {
     updateProject(id: $updateProjectId, project: $project) {
+      message
+      success
+      status
       part { 
         id
         name
@@ -23,9 +26,6 @@ export const UPDATE_PROJECT = gql`
           name
         }
       }
-      message
-      success
-      status
     } 
   }
 `;

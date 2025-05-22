@@ -72,7 +72,7 @@ export default function ProjectTable() {
   if (error) return <p>Error: {error.message}</p>;
 
   // Extract the projects from the data object. If there are no projects, default to an empty array.
-  const projects: Project[] = data?.projects || [];
+  const projects: Project[] = data?.projects.projects || [];
 
   // Filter and sort the projects based on the search query and sorting configuration in the helper file.
   const filteredProjects = filterProjects(projects, searchQuery);

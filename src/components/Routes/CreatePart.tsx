@@ -187,9 +187,9 @@ const CreatePart: React.FC = () => {
             return [];
         }
         return currentField === 'projectsInOrder'
-            ? projectsData?.projects ?? []
+            ? projectsData?.projects?.projects ?? []
             : currentField === 'parentQualificationUnit'
-            ? qualificationData?.units ?? []
+            ? qualificationData?.units?.units ?? []
             : [];
     };
 

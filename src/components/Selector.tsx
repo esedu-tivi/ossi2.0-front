@@ -107,16 +107,19 @@ const Selector: React.FC<SelectorProps> = ({
                         variables: { partId: teemaId },
                     });
 
-                    if (data?.part?.parentQualificationUnit?.competenceRequirementGroups) {
-                        return data.part.parentQualificationUnit.competenceRequirementGroups.flatMap(
+                    const realPart = data?.part?.part;
+
+                    if (realPart && realPart.parentQualificationUnit?.competenceRequirementGroups) {
+                        return realPart.parentQualificationUnit.competenceRequirementGroups.flatMap(
                             (group: CompetenceRequirementGroup) =>
                                 group.requirements.map((requirement: CompetenceRequirement) => ({
                                     id: requirement.id,
                                     description: requirement.description,
                                 }))
                         );
+                    } else {
+                        return [];
                     }
-                    return [];
                 })
             );
 
@@ -201,9 +204,10 @@ const Selector: React.FC<SelectorProps> = ({
         }
     };
 
-    const filteredItems = currentField === 'competenceRequirements'
-    ? (competenceOptions.length > 0 ? competenceOptions : [])
-    : items.filter((item) => item?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredItems = 
+        currentField === 'competenceRequirements'
+            ? (competenceOptions.length > 0 ? competenceOptions : [])
+            : (Array.isArray(items) ? items : []).filter((item) => item?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <Dialog open={open} onClose={onClose} fullScreen={isMobile}>

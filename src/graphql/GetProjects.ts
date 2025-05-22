@@ -3,18 +3,23 @@ import { gql } from "@apollo/client";
 export const GET_PROJECTS = gql`
   query Projects {
     projects {
-      id
-      name
-      description
-      duration
-      includedInQualificationUnitParts {
+      message
+      status
+      success
+      projects {
         id
         name
-      }
-      materials
-      isActive
-      tags {
-        name
+        description
+        duration
+        includedInQualificationUnitParts {
+          id
+          name
+        }
+        materials
+        isActive
+        tags {
+          name
+        }
       }
     }
   }

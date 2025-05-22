@@ -57,12 +57,12 @@ const App = () => {
         if (hasRedirectedRef.current) return;
         if (!isAuthenticated) return;
         if (studentLoading) return;
-        if (!studentData || typeof studentData.amISetUp !== 'boolean') return;
+        if (!studentData || typeof studentData.amISetUp?.amISetUp !== 'boolean') return;
 
         const isTeacher = role === 'teacher';
         const isStudent = role === 'student';
 
-        const isSetUp = studentData?.amISetUp;
+        const isSetUp = studentData?.amISetUp?.amISetUp;
 
         if (
             isTeacher &&

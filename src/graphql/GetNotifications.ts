@@ -3,6 +3,9 @@ import { gql } from '@apollo/client';
 export const GET_NOTIFICATIONS = gql`
   query {
     notifications {
+      message
+      status
+      success
       notifications {
         ... on ProjectReturnNotification {
           id

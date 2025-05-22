@@ -3,6 +3,9 @@ import { gql } from '@apollo/client';
 export const UPDATE_PART = gql`
   mutation Mutation($updatePartId: ID!, $part: CreatePartInput!) {
     updatePart(id: $updatePartId, part: $part) {
+      message
+      success
+      status  
       part {
         id
         name
@@ -17,9 +20,6 @@ export const UPDATE_PART = gql`
           name
         }
       }
-      message
-      success
-      status
     }  
   }
 `;
