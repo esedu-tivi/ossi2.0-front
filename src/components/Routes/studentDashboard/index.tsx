@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import StudentProjectList from './StudentProjectList';
-import { useAuth } from '../../../utils/auth-context';
+import StudentInactiveProjectList from './StudentInactiveProjectList';
 import StudentEditProject from './StudentEditProject';
+import { useQuery } from '@apollo/client';
+import { GET_STUDENT_PROJECTS } from '../../../graphql/GetStudentProjects';
 
 export enum ProjectStatus {
   Inactive,
@@ -14,6 +16,8 @@ export enum ProjectStatus {
 export interface StudentProject {
   id: number;
   name: string;
+  description: string;
+  duration: number;
   plan: string;
   report: string;
   status: ProjectStatus;
@@ -27,7 +31,7 @@ export interface StudentProject {
   }[];
 };
 
-const projects: StudentProject[] = [
+/* const projects: StudentProject[] = [
   { id: 1, name: 'projekti 1', plan: '', report: '', status: ProjectStatus.Done },
   { id: 2, name: 'projekti 2', plan: '', report: '', status: ProjectStatus.Done },
   { id: 3, name: 'projekti 3', plan: '', report: '', status: ProjectStatus.Returned, timeTracking: [
@@ -45,12 +49,23 @@ const projects: StudentProject[] = [
   { id: 10, name: 'projekti 10', plan: '', report: '', status: ProjectStatus.Inactive },
   { id: 11, name: 'projekti 11', plan: '', report: '', status: ProjectStatus.Inactive },
   { id: 12, name: 'projekti 12', plan: '', report: '', status: ProjectStatus.Inactive }
-];
+]; */
 
 const StudentDashboard: React.FC = () => {
-  const {userEmail} = useAuth();
+  const [projects, setProjects] = useState<StudentProject[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<StudentProject|null>(null);
+
+  const { loading, data, startPolling, stopPolling } = useQuery(GET_STUDENT_PROJECTS);
+
+  if (loading || !data) {
+    startPolling(500);
+    return (
+      <Typography>loading</Typography>
+    );
+  };
+
+  stopPolling();
 
   const handleOpenEditProject = (project: StudentProject) => {
     setEditOpen(true);
@@ -62,20 +77,30 @@ const StudentDashboard: React.FC = () => {
   };
 
   const handleSaveProject = (project: StudentProject) => {
+    if (!project.status) {
+      return
+    };
+
     const index = projects.findIndex((p) => p.id === project.id);
-    projects[index] = project;
-    setSelectedProject(projects[index]);
+
+    if (index >= 0) {
+      const newProjects = projects;
+      newProjects[index] = project;
+      setProjects(newProjects);
+    } else {
+      setProjects([...projects, project]);
+    };
   };
 
   return (
     <div>
-      <Typography variant='h4' align='center' p={2}>Mukavaa opiskelupäivää {userEmail.split('.')[0]}</Typography>
+      <Typography variant='h4' align='center' p={2}>Mukavaa opiskelupäivää {data.me.user.firstName}</Typography>
       <Box sx={{ border: '1px lightgray solid', p: 1, m: 1, borderRadius: 1 }}>
         <Typography>Viestit</Typography>
         <Typography>tulee tähän joskus</Typography>
       </Box>
       <Box sx={{ display: 'flex' }}>
-        <StudentProjectList title='Projektit' projects={projects.filter((p) => p.status === ProjectStatus.Inactive)} openEditProject={handleOpenEditProject} />
+        <StudentInactiveProjectList title='Projektit' unitParts={data.me.user.assignedQualificationUnits[0].parts} openEditProject={handleOpenEditProject} />
         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
           <StudentProjectList title='Työn alla' projects={projects.filter((p) => p.status === ProjectStatus.Active)} openEditProject={handleOpenEditProject} />
           <StudentProjectList title='Palautetut' projects={projects.filter((p) => p.status === ProjectStatus.Returned)} openEditProject={handleOpenEditProject} />
