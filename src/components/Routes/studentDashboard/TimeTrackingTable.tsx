@@ -5,7 +5,6 @@ import { ProjectStatus, StudentProject } from ".";
 
 interface TimeTrackingTableProps {
   project: StudentProject|null;
-  saveProject: (project: StudentProject) => void;
 };
 
 interface TimeTrackingListItemProps {
@@ -41,7 +40,7 @@ const TimeTrackingListItem: React.FC<TimeTrackingListItemProps> = ({date, startT
   );
 };
 
-const TimeTrackingTable: React.FC<TimeTrackingTableProps> = ({ project, saveProject }) => {
+const TimeTrackingTable: React.FC<TimeTrackingTableProps> = ({ project }) => {
   const [formData, setFormData] = useState({ date: '', startTime: '', endTime: '', description: '' });
 
   const handleChange = (content: string, field: 'date' | 'startTime' | 'endTime' | 'description') => {
@@ -64,12 +63,12 @@ const TimeTrackingTable: React.FC<TimeTrackingTableProps> = ({ project, saveProj
       return
     };
 
-    const newTimeTracking = { date: formData.date, startTime: formData.startTime, endTime: formData.endTime, description: formData.description };
+    /* const newTimeTracking = { date: formData.date, startTime: formData.startTime, endTime: formData.endTime, description: formData.description };
     if (project.timeTracking) {
       saveProject({ ...project, timeTracking: project.timeTracking.concat(newTimeTracking) });
     } else {
       saveProject({ ...project, timeTracking: [newTimeTracking] });
-    }
+    } */
     setFormData({ date: '', startTime: '', endTime: '', description: '' });
   };
 
@@ -87,7 +86,7 @@ const TimeTrackingTable: React.FC<TimeTrackingTableProps> = ({ project, saveProj
         </TableHead>
         <TableBody>
           { project?.timeTracking && project?.timeTracking?.map((t) => <TimeTrackingListItem key={t.date + t.startTime} date={t.date} startTime={t.startTime} endTime={t.endTime} description={t.description} />)}
-          { project?.status === ProjectStatus.Active &&
+          { project?.projectStatus === ProjectStatus.Working &&
             <TableRow>
               <TableCell>
                 <input

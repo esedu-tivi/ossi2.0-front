@@ -1,29 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Accordion, AccordionDetails, AccordionSummary, Box, List, Typography } from '@mui/material';
 import formStyles from '../../../styles/formStyles';
-import { StudentProject } from '.';
+import { StudentProject, ProjectStatus, BaseProject } from '.';
 import StudentProjectListItem from './StudentProjectListItem';
 
 interface UnitPart {
   id: number;
   name: string;
-  projects: StudentProject[];
+  projects: BaseProject[];
 };
 
 interface StudentInactiveProjectListProps {
   title: string;
   unitParts: UnitPart[];
+  projects: {
+    projectId: number;
+  }[];
   openEditProject: (project: StudentProject) => void;
 };
 
 interface UnitPartAccordionProps {
   unitPart: UnitPart;
+  activeProjectIds: number[];
   expanded: number | false;
   handleChange: (id: number) => void;
-  openEditProject: (project: StudentProject) => void;
+  openEditProject: (project: BaseProject) => void;
 };
 
-const UnitPartAccordion: React.FC<UnitPartAccordionProps> = ({ unitPart, expanded, handleChange, openEditProject}) => {
+const UnitPartAccordion: React.FC<UnitPartAccordionProps> = ({ unitPart, activeProjectIds, expanded, handleChange, openEditProject}) => {
+  const [inactiveProjects, setInactiveProjects] = useState<BaseProject[]>([]);
+  
+  useEffect(() => {
+    setInactiveProjects(unitPart.projects.filter((project) => !activeProjectIds.includes(project.id)));
+  }, [activeProjectIds]);
+  
   return (
     <Accordion expanded={expanded === unitPart.id} onChange={() => handleChange(unitPart.id)}>
         <AccordionSummary>
@@ -31,26 +41,37 @@ const UnitPartAccordion: React.FC<UnitPartAccordionProps> = ({ unitPart, expande
         </AccordionSummary>
         <AccordionDetails>
           <List sx={{ overflow:'auto', position: 'relative' }}>
-            {unitPart.projects.map((project) => <StudentProjectListItem key={project.id} project={project} openEditProject={() => openEditProject(project)} />)}
+            {inactiveProjects.map((project) => <StudentProjectListItem key={project.id} project={project} openEditProject={() => openEditProject(project)} />)}
           </List>
         </AccordionDetails>
       </Accordion>
   );
 };
 
-const StudentInactiveProjectList: React.FC<StudentInactiveProjectListProps> = ({ title, unitParts, openEditProject }) => {
+const StudentInactiveProjectList: React.FC<StudentInactiveProjectListProps> = ({ title, unitParts, projects, openEditProject }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
+  const [activeProjectIds, setActiveProjectIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    setActiveProjectIds(projects.map((p) => p.projectId));
+  }, [projects]);
 
   const handleChange = (id: number) => {
     setExpanded(expanded === id ? false : id);
-  }
+  };
+
+  const handleOpenEditProject = (project: BaseProject) => {
+    const studentProject = {parentProject: project, projectStatus: ProjectStatus.Inactive, projectPlan: '', projectReport: ''}
+
+    openEditProject(studentProject);
+  };
 
   return (
-    <Box sx={{ ...formStyles.formOuterBox, m: 1, minHeight: 240, flexGrow: 1 }}>
+    <Box sx={{ ...formStyles.formOuterBox, m: 1, minHeight: 240 }}>
       <Box sx={{...formStyles.formBannerBox}}>
         <Typography variant='h6' align='center' color='white'>{title}</Typography>
       </Box>
-      {unitParts.map((part) => <UnitPartAccordion key={part.id} unitPart={part} expanded={expanded} handleChange={handleChange} openEditProject={openEditProject} />)}
+      {unitParts.map((part) => <UnitPartAccordion key={part.id} unitPart={part} activeProjectIds={activeProjectIds} expanded={expanded} handleChange={handleChange} openEditProject={handleOpenEditProject} />)}
     </Box>
   );
 };

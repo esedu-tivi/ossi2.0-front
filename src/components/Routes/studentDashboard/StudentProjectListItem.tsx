@@ -1,9 +1,9 @@
 import React from 'react';
 import { ListItem, ListItemButton, ListItemText } from '@mui/material';
-import { StudentProject } from '.';
+import { BaseProject } from '.';
 
 interface StudentProjectListItemProps {
-  project: StudentProject;
+  project: BaseProject;
   openEditProject: () => void;
 };
 

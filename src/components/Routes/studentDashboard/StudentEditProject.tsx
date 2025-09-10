@@ -3,18 +3,24 @@ import React, { useEffect, useState } from "react";
 import RichTextEditor from "../../common/RichTextEditor";
 import { ProjectStatus, StudentProject } from ".";
 import TimeTrackingTable from "./TimeTrackingTable";
+import { useMutation } from "@apollo/client";
+import { ASSIGN_STUDENT_PROJECT } from "../../../graphql/AssignStudentProject";
+import { UPDATE_STUDENT_PROJECT } from "../../../graphql/UpdateStudentProject";
+import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
 
 interface StudentEditProjectProps {
   open: boolean;
   onClose: () => void;
+  studentId: number;
   project: StudentProject|null;
-  saveProject: (project: StudentProject) => void;
 };
 
-const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, project, saveProject }) => {
+const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, studentId, project }) => {
   const [formData, setFormData] = useState({ plan: '', report: '' });
   const [daysUsed, setDaysUsed] = useState(0);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [assignProject] = useMutation(ASSIGN_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
+  const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
 
   useEffect(() => {
     if (!project) {
@@ -22,7 +28,7 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
       return;
     };
 
-    setFormData({...formData, plan: project?.plan, report: project?.report });
+    setFormData({...formData, plan: project?.projectPlan, report: project?.projectReport });
 
     let timeDifference = 0;
     if (project.deadline && project.startDate) {
@@ -35,50 +41,51 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     setFormData({...formData, [field]: content});
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     if (!project) {
       console.log('project is undefined');
       return;
     };
 
-    saveProject({...project, plan: formData.plan, report: formData.report });
+    const projectUpdate = { projectPlan: formData.plan, projectReport: formData.report };
+    await updateProject({ variables: { studentId, projectId: project.parentProject.id, update: projectUpdate }});
+    
     onClose();
     setFormData({ plan: '', report: '' });
   };
 
-  const startProject = () => {
-    if (!project?.duration) {
+  const startProject = async () => {
+    if (!project?.parentProject.duration) {
       console.log('duration is undefined');
       return
     };
 
-    const startDate = new Date();
-    const deadline = new Date(Date.now() + project?.duration * 24 * 60 * 60 * 1000);
-
-    saveProject({...project, plan: formData.plan, report: formData.report, status: ProjectStatus.Active, startDate: startDate, deadline: deadline, timeTracking: [] });
+    await assignProject({ variables: { studentId, projectId: project.parentProject.id }});
 
     onClose();
     setFormData({ plan: '', report: '' });
   };
 
-  const returnProject = () => {
+  const returnProject = async () => {
     if (!project) {
       console.log('project is undefined');
       return;
     };
 
-    saveProject({...project, plan: formData.plan, report: formData.report, status: ProjectStatus.Returned });
+    await updateProject({ variables: { studentId, projectId: project.parentProject.id, update: { projectStatus: ProjectStatus.Returned }}});
+
     onClose();
     setFormData({ plan: '', report: '' });
   };
 
-  const reactivateProject = () => {
+  const reactivateProject = async () => {
     if (!project) {
       console.log('project is undefined');
       return;
     };
 
-    saveProject({...project, plan: formData.plan, report: formData.report, status: ProjectStatus.Active });
+    await updateProject({ variables: { studentId, projectId: project.parentProject.id, update: { projectStatus: ProjectStatus.Working }}});
+    
     onClose();
     setFormData({ plan: '', report: '' });
   }
@@ -86,16 +93,16 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
   return (
     <Dialog open={open} onClose={() => handleClose()}>
       <Box sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {project && <DialogTitle>{project.name}</DialogTitle>}
+        {project && <DialogTitle sx={{ width: '60%' }}>{project.parentProject.name}</DialogTitle>}
         <Button variant="contained" onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Button>
       </Box>
-      {project?.status === ProjectStatus.Active &&
+      {project?.projectStatus === ProjectStatus.Working &&
         <Box sx={{ p: 1 }}>
           <Box sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography>Projektiin käytetty aika: {daysUsed}/14 päivää</Typography>
+            <Typography>Projektiin käytetty aika: {daysUsed}/{project.parentProject.duration} päivää</Typography>
             <Button variant="contained">Pyydä lisää aikaa</Button>
           </Box>
-          <LinearProgress variant="determinate" value={100 / 14 * daysUsed} />
+          <LinearProgress variant="determinate" value={100 / project.parentProject.duration * daysUsed} />
         </Box>
       }
       <Box sx={{ p: 1 }}>
@@ -111,17 +118,17 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
           value={formData.report}
           onChange={(content) => handleChange(content, 'report')}
         />
-        <TimeTrackingTable project={project} saveProject={saveProject} />
+        <TimeTrackingTable project={project} />
         <Box sx={{ mt: 2 }}>
-          {!project?.status && <Button variant="contained" onClick={() => startProject()}>Aloita projekti</Button>}
-          {project?.status === ProjectStatus.Active && <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>}
-          {project?.status === ProjectStatus.Returned && <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>}
+          {!project?.projectStatus && <Button variant="contained" onClick={() => startProject()}>Aloita projekti</Button>}
+          {project?.projectStatus === ProjectStatus.Working && <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>}
+          {project?.projectStatus === ProjectStatus.Returned && <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>}
         </Box>
       </Box>
       <Dialog open={descriptionOpen} onClose={() => setDescriptionOpen(false)}>
-        <DialogTitle>{project?.name}</DialogTitle>
+        <DialogTitle>{project?.parentProject.name}</DialogTitle>
         <DialogContent>
-          <Typography>{project?.description}</Typography>
+          <Typography>{project?.parentProject.description}</Typography>
         </DialogContent>
       </Dialog>
     </Dialog>
