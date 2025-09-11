@@ -7,6 +7,7 @@ import { useMutation } from "@apollo/client";
 import { ASSIGN_STUDENT_PROJECT } from "../../../graphql/AssignStudentProject";
 import { UPDATE_STUDENT_PROJECT } from "../../../graphql/UpdateStudentProject";
 import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
+import { UNASSIGN_STUDENT_PROJECT } from "../../../graphql/UnassignStudentProject";
 
 interface StudentEditProjectProps {
   open: boolean;
@@ -20,6 +21,7 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
   const [daysUsed, setDaysUsed] = useState(0);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [assignProject] = useMutation(ASSIGN_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
+  const [unassignProject] = useMutation(UNASSIGN_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
   const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
 
   useEffect(() => {
@@ -47,8 +49,7 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
       return;
     };
 
-    const projectUpdate = { projectPlan: formData.plan, projectReport: formData.report };
-    await updateProject({ variables: { studentId, projectId: project.parentProject.id, update: projectUpdate }});
+    saveProject();
     
     onClose();
     setFormData({ plan: '', report: '' });
@@ -66,29 +67,41 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     setFormData({ plan: '', report: '' });
   };
 
-  const returnProject = async () => {
+  const cancelProject = async () => {
     if (!project) {
       console.log('project is undefined');
       return;
     };
 
-    await updateProject({ variables: { studentId, projectId: project.parentProject.id, update: { projectStatus: ProjectStatus.Returned }}});
+    await unassignProject({ variables: { studentId, projectId: project.parentProject.id }});
+
+    onClose();
+    setFormData({ plan: '', report: '' });
+  };
+
+  const returnProject = async () => {
+    await saveProject(ProjectStatus.Returned);
 
     onClose();
     setFormData({ plan: '', report: '' });
   };
 
   const reactivateProject = async () => {
-    if (!project) {
-      console.log('project is undefined');
-      return;
-    };
-
-    await updateProject({ variables: { studentId, projectId: project.parentProject.id, update: { projectStatus: ProjectStatus.Working }}});
+    await saveProject(ProjectStatus.Working);
     
     onClose();
     setFormData({ plan: '', report: '' });
-  }
+  };
+
+  const saveProject = async (setStatus = project?.projectStatus) => {
+    if (!project) {
+      console.log('project is undefinded');
+      return;
+    };
+
+    const projectUpdate = { projectPlan: formData.plan, projectReport: formData.report, projectStatus: setStatus };
+    await updateProject({ variables: { studentId, projectId: project.parentProject.id, update: projectUpdate }});
+  };
 
   return (
     <Dialog open={open} onClose={() => handleClose()}>
@@ -107,13 +120,13 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
       }
       <Box sx={{ p: 1 }}>
         <RichTextEditor
-          height={210}
+          height={200}
           label="Suunnitelma"
           value={formData.plan}
           onChange={(content) => handleChange(content, 'plan')}
         />
         <RichTextEditor
-          height={210}
+          height={200}
           label="Raportti"
           value={formData.report}
           onChange={(content) => handleChange(content, 'report')}
@@ -121,7 +134,13 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
         <TimeTrackingTable project={project} />
         <Box sx={{ mt: 2 }}>
           {!project?.projectStatus && <Button variant="contained" onClick={() => startProject()}>Aloita projekti</Button>}
-          {project?.projectStatus === ProjectStatus.Working && <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>}
+          {project?.projectStatus === ProjectStatus.Working && 
+            <>
+              <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
+              <Button variant="contained" onClick={() => cancelProject()}>Peruuta projekti</Button>
+              <Button variant="contained" onClick={() => saveProject()}>Tallenna muutokset</Button>
+            </>
+          }
           {project?.projectStatus === ProjectStatus.Returned && <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>}
         </Box>
       </Box>
