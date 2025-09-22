@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogContent, DialogTitle, LinearProgress, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import RichTextEditor from "../../common/RichTextEditor";
 import { ProjectStatus, StudentProject } from ".";
@@ -19,10 +19,15 @@ interface StudentEditProjectProps {
 const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, studentId, project }) => {
   const [formData, setFormData] = useState({ plan: '', report: '' });
   const [daysUsed, setDaysUsed] = useState(0);
+  const [recentlySaved, setRecentlySaved] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [assignProject] = useMutation(ASSIGN_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
   const [unassignProject] = useMutation(UNASSIGN_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
-  const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
+  const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS], onCompleted: () => {
+    setRecentlySaved(true);
+    setTimeout(() => setRecentlySaved(false), 5000);
+  }});
 
   useEffect(() => {
     if (!project) {
@@ -49,7 +54,9 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
       return;
     };
 
-    saveProject();
+    if (project.projectStatus === ProjectStatus.Working) {
+      saveProject();
+    };
     
     onClose();
     setFormData({ plan: '', report: '' });
@@ -104,7 +111,7 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
   };
 
   return (
-    <Dialog open={open} onClose={() => handleClose()}>
+    <Dialog maxWidth="md" open={open} onClose={() => handleClose()}>
       <Box sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {project && <DialogTitle sx={{ width: '60%' }}>{project.parentProject.name}</DialogTitle>}
         <Button variant="contained" onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Button>
@@ -120,26 +127,29 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
       }
       <Box sx={{ p: 1 }}>
         <RichTextEditor
-          height={200}
+          height={180}
           label="Suunnitelma"
           value={formData.plan}
           onChange={(content) => handleChange(content, 'plan')}
         />
         <RichTextEditor
-          height={200}
+          height={180}
           label="Raportti"
           value={formData.report}
           onChange={(content) => handleChange(content, 'report')}
         />
-        <TimeTrackingTable project={project} />
+        <TimeTrackingTable project={project} studentId={studentId} />
         <Box sx={{ mt: 2 }}>
-          {!project?.projectStatus && <Button variant="contained" onClick={() => startProject()}>Aloita projekti</Button>}
+          {project?.projectStatus === ProjectStatus.Unassigned && <Button variant="contained" onClick={() => startProject()}>Aloita projekti</Button>}
           {project?.projectStatus === ProjectStatus.Working && 
-            <>
-              <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
-              <Button variant="contained" onClick={() => cancelProject()}>Peruuta projekti</Button>
-              <Button variant="contained" onClick={() => saveProject()}>Tallenna muutokset</Button>
-            </>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "end" }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                { recentlySaved && <Typography>Tallennettu</Typography>}
+                <Button variant="contained" onClick={() => saveProject()}>Tallenna muutokset</Button>
+                <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
+              </Box>
+              <Button variant="contained" color="error" onClick={() => setConfirmCancelOpen(true)}>Peruuta projekti</Button>
+            </Box>
           }
           {project?.projectStatus === ProjectStatus.Returned && <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>}
         </Box>
@@ -149,6 +159,16 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
         <DialogContent>
           <Typography>{project?.parentProject.description}</Typography>
         </DialogContent>
+      </Dialog>
+      <Dialog open={confirmCancelOpen} onClose={() => setConfirmCancelOpen(false)}>
+        <DialogTitle>Peruuta projekti</DialogTitle>
+        <DialogContent>
+          <Typography>Haluatko varmasti peruuttaa projektin?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={() => {cancelProject(); setConfirmCancelOpen(false);}}>Kyllä</Button>
+          <Button variant="contained" onClick={() => setConfirmCancelOpen(false)}>Ei</Button>
+        </DialogActions>
       </Dialog>
     </Dialog>
   );

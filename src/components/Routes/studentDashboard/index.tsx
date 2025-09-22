@@ -7,7 +7,7 @@ import { useQuery } from '@apollo/client';
 import { GET_STUDENT_PROJECTS } from '../../../graphql/GetStudentProjects';
 
 export enum ProjectStatus {
-  Inactive,
+  Unassigned = "UNASSIGNED",
   Working = "WORKING",
   Returned = "RETURNED",
   Accepted = "ACCEPTED"
@@ -27,10 +27,10 @@ export interface StudentProject {
   projectReport: string;
   startDate?: Date;
   deadline?: Date;
-  timeTracking?: {
-    date: string;
-    startTime: string;
-    endTime: string;
+  worktimeEntries?: {
+    id: number;
+    startDate: string;
+    endDate: string;
     description: string;
   }[];
 }
@@ -67,7 +67,7 @@ const StudentDashboard: React.FC = () => {
         <Typography>tulee tähän joskus</Typography>
       </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
-        <StudentInactiveProjectList title='Projektit' unitParts={data.me.user.assignedQualificationUnits[0].parts} projects={data.me.user.assignedProjects} openEditProject={handleOpenEditProject} />
+        <StudentInactiveProjectList title='Projektit' unitParts={data.me.user.assignedQualificationUnits.flatMap((u: any) => u.parts)} projects={data.me.user.assignedProjects} openEditProject={handleOpenEditProject} />
         <Box>
           <StudentProjectList title='Työn alla' projects={data.me.user.assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Working)} openEditProject={handleOpenEditProject} />
           <StudentProjectList title='Palautetut' projects={data.me.user.assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Returned)} openEditProject={handleOpenEditProject} />

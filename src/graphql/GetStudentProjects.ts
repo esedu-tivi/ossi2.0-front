@@ -23,6 +23,12 @@ export const GET_STUDENT_PROJECTS = gql`
               duration
               description
             }
+            worktimeEntries {
+              id
+              description
+              startDate
+              endDate
+            }
           }
           assignedQualificationUnits {
             name

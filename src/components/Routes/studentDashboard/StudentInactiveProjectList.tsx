@@ -61,7 +61,7 @@ const StudentInactiveProjectList: React.FC<StudentInactiveProjectListProps> = ({
   };
 
   const handleOpenEditProject = (project: BaseProject) => {
-    const studentProject = {parentProject: project, projectStatus: ProjectStatus.Inactive, projectPlan: '', projectReport: ''}
+    const studentProject = {parentProject: project, projectStatus: ProjectStatus.Unassigned, projectPlan: '', projectReport: ''}
 
     openEditProject(studentProject);
   };
