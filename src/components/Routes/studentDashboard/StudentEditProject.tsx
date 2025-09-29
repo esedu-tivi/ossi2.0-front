@@ -1,128 +1,120 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Typography } from "@mui/material";
+import { useMutation, useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import RichTextEditor from "../../common/RichTextEditor";
-import { ProjectStatus, StudentProject } from ".";
+import { ProjectStatus } from "./types";
 import TimeTrackingTable from "./TimeTrackingTable";
-import { useMutation } from "@apollo/client";
-import { ASSIGN_STUDENT_PROJECT } from "../../../graphql/AssignStudentProject";
 import { UPDATE_STUDENT_PROJECT } from "../../../graphql/UpdateStudentProject";
 import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
 import { UNASSIGN_STUDENT_PROJECT } from "../../../graphql/UnassignStudentProject";
+import ProjectDescription from "./ProjectDescription";
+import { GET_ASSIGNED_PROJECT } from "../../../graphql/GetAssignedProject";
 
 interface StudentEditProjectProps {
   open: boolean;
   onClose: () => void;
   studentId: number;
-  project: StudentProject|null;
+  projectId: number|null;
+  setProjectId: (id: number|null) => void;
 };
 
-const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, studentId, project }) => {
+const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, studentId, projectId, setProjectId }) => {
   const [formData, setFormData] = useState({ plan: '', report: '' });
   const [daysUsed, setDaysUsed] = useState(0);
   const [recentlySaved, setRecentlySaved] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
-  const [assignProject] = useMutation(ASSIGN_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
+
+  const { data, loading } = useQuery(GET_ASSIGNED_PROJECT, { variables: { projectId }, skip: projectId === null });
+
   const [unassignProject] = useMutation(UNASSIGN_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
-  const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS], onCompleted: () => {
+  const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_ASSIGNED_PROJECT, GET_STUDENT_PROJECTS], onCompleted: () => {
     setRecentlySaved(true);
     setTimeout(() => setRecentlySaved(false), 5000);
   }});
 
   useEffect(() => {
-    if (!project) {
-      console.log('project is undefined');
+    if (loading || !projectId || !data) {
       return;
     };
 
-    setFormData({...formData, plan: project?.projectPlan, report: project?.projectReport });
+    setFormData({...formData, plan: data.me.user.assignedProjectSingle.project.projectPlan, report: data.me.user.assignedProjectSingle.project.projectReport });
 
     let timeDifference = 0;
-    if (project.deadline && project.startDate) {
-      timeDifference = (project?.deadline?.valueOf() - project?.startDate?.valueOf()) - (project?.deadline?.valueOf() - new Date().valueOf());
+    if (data.me.user.assignedProjectSingle.project.deadline && data.me.user.assignedProjectSingle.project.startDate) {
+      timeDifference = (data.me.user.assignedProjectSingle.project.deadline?.valueOf() - data.me.user.assignedProjectSingle.project.startDate?.valueOf()) - (data.me.user.assignedProjectSingle.project.deadline?.valueOf() - new Date().valueOf());
     };
     setDaysUsed(Math.floor(timeDifference / 1000 / 60 / 60 / 24));
-  }, [open]);
+  }, [data]);
+
+  if (loading || !projectId || !data) {
+    return;
+  }
 
   const handleChange = (content: string, field: 'plan' | 'report') => {
     setFormData({...formData, [field]: content});
   };
 
   const handleClose = async () => {
-    if (!project) {
+    if (!data.me.user.assignedProjectSingle.project) {
       console.log('project is undefined');
       return;
     };
 
-    if (project.projectStatus === ProjectStatus.Working) {
-      saveProject();
+    if (data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working) {
+      await saveProject();
     };
     
     onClose();
-    setFormData({ plan: '', report: '' });
-  };
-
-  const startProject = async () => {
-    if (!project?.parentProject.duration) {
-      console.log('duration is undefined');
-      return
-    };
-
-    await assignProject({ variables: { studentId, projectId: project.parentProject.id }});
-
-    onClose();
-    setFormData({ plan: '', report: '' });
   };
 
   const cancelProject = async () => {
-    if (!project) {
+    if (!data.me.user.assignedProjectSingle.project) {
       console.log('project is undefined');
       return;
     };
 
-    await unassignProject({ variables: { studentId, projectId: project.parentProject.id }});
+    setProjectId(null);
+    await unassignProject({ variables: { studentId, projectId: data.me.user.assignedProjectSingle.project.parentProject.id }});
 
     onClose();
-    setFormData({ plan: '', report: '' });
   };
 
   const returnProject = async () => {
     await saveProject(ProjectStatus.Returned);
 
     onClose();
-    setFormData({ plan: '', report: '' });
   };
 
   const reactivateProject = async () => {
     await saveProject(ProjectStatus.Working);
     
     onClose();
-    setFormData({ plan: '', report: '' });
   };
 
-  const saveProject = async (setStatus = project?.projectStatus) => {
-    if (!project) {
+  const saveProject = async (setStatus = data.me.user.assignedProjectSingle.project?.projectStatus) => {
+    if (!data.me.user.assignedProjectSingle.project) {
       console.log('project is undefinded');
       return;
     };
 
     const projectUpdate = { projectPlan: formData.plan, projectReport: formData.report, projectStatus: setStatus };
-    await updateProject({ variables: { studentId, projectId: project.parentProject.id, update: projectUpdate }});
+    await updateProject({ variables: { studentId, projectId: data.me.user.assignedProjectSingle.project.parentProject.id, update: projectUpdate }});
   };
 
   return (
     <Dialog maxWidth="md" open={open} onClose={() => handleClose()}>
       <Box sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {project && <DialogTitle sx={{ width: '60%' }}>{project.parentProject.name}</DialogTitle>}
+        <DialogTitle sx={{ width: '60%' }}>{data.me.user.assignedProjectSingle.project.parentProject.name}</DialogTitle>
         <Button variant="contained" onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Button>
       </Box>
-      {project?.projectStatus === ProjectStatus.Working &&
+      {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
         <Box sx={{ p: 1 }}>
           <Box sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography>Projektiin käytetty aika: {daysUsed}/{project.parentProject.duration} päivää</Typography>
+            <Typography>Projektiin käytetty aika: {daysUsed}/{data.me.user.assignedProjectSingle.project.parentProject.duration} päivää</Typography>
             <Button variant="contained">Pyydä lisää aikaa</Button>
           </Box>
-          <LinearProgress variant="determinate" value={100 / project.parentProject.duration * daysUsed} />
+          <LinearProgress variant="determinate" value={100 / data.me.user.assignedProjectSingle.project.parentProject.duration * daysUsed} />
         </Box>
       }
       <Box sx={{ p: 1 }}>
@@ -138,10 +130,9 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
           value={formData.report}
           onChange={(content) => handleChange(content, 'report')}
         />
-        <TimeTrackingTable project={project} studentId={studentId} />
+        <TimeTrackingTable project={data.me.user.assignedProjectSingle.project} studentId={studentId} />
         <Box sx={{ mt: 2 }}>
-          {project?.projectStatus === ProjectStatus.Unassigned && <Button variant="contained" onClick={() => startProject()}>Aloita projekti</Button>}
-          {project?.projectStatus === ProjectStatus.Working && 
+          {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working && 
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "end" }}>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 { recentlySaved && <Typography>Tallennettu</Typography>}
@@ -151,15 +142,10 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
               <Button variant="contained" color="error" onClick={() => setConfirmCancelOpen(true)}>Peruuta projekti</Button>
             </Box>
           }
-          {project?.projectStatus === ProjectStatus.Returned && <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>}
+          {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Returned && <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>}
         </Box>
       </Box>
-      <Dialog open={descriptionOpen} onClose={() => setDescriptionOpen(false)}>
-        <DialogTitle>{project?.parentProject.name}</DialogTitle>
-        <DialogContent>
-          <Typography>{project?.parentProject.description}</Typography>
-        </DialogContent>
-      </Dialog>
+      <ProjectDescription project={data.me.user.assignedProjectSingle.project.parentProject} descriptionOpen={descriptionOpen} onClose={() => setDescriptionOpen(false)} />
       <Dialog open={confirmCancelOpen} onClose={() => setConfirmCancelOpen(false)}>
         <DialogTitle>Peruuta projekti</DialogTitle>
         <DialogContent>

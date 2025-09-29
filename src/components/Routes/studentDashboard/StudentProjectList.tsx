@@ -1,13 +1,13 @@
 import React from 'react';
 import { Box, List, Typography } from '@mui/material';
 import formStyles from '../../../styles/formStyles';
-import { StudentProject } from '.';
+import { StudentProject } from './types';
 import StudentProjectListItem from './StudentProjectListItem';
 
 interface StudentProjectListProps {
   title: string;
   projects: StudentProject[];
-  openEditProject: (project: StudentProject) => void;
+  openEditProject: (project: number) => void;
 };
 
 const StudentProjectList: React.FC<StudentProjectListProps> = ({ title, projects, openEditProject }) => {
@@ -17,7 +17,7 @@ const StudentProjectList: React.FC<StudentProjectListProps> = ({ title, projects
         <Typography variant='h6' align='center' color='white'>{title}</Typography>
       </Box>
       <List sx={{ overflow:'auto', position: 'relative' }}>
-        {projects.map((project) => <StudentProjectListItem key={project.parentProject.id} project={project.parentProject} openEditProject={() => openEditProject(project)} />)}
+        {projects.map((project) => <StudentProjectListItem key={project.parentProject.id} project={project.parentProject} openEditProject={() => openEditProject(project.parentProject.id)} />)}
       </List>
     </Box>
   );

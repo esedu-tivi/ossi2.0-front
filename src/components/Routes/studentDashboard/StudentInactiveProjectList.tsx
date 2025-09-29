@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Accordion, AccordionDetails, AccordionSummary, Box, List, Typography } from '@mui/material';
 import formStyles from '../../../styles/formStyles';
-import { StudentProject, ProjectStatus, BaseProject } from '.';
+import { BaseProject } from './types';
 import StudentProjectListItem from './StudentProjectListItem';
 
 interface UnitPart {
@@ -16,7 +16,7 @@ interface StudentInactiveProjectListProps {
   projects: {
     projectId: number;
   }[];
-  openEditProject: (project: StudentProject) => void;
+  openEditProject: (project: BaseProject) => void;
 };
 
 interface UnitPartAccordionProps {
@@ -61,9 +61,7 @@ const StudentInactiveProjectList: React.FC<StudentInactiveProjectListProps> = ({
   };
 
   const handleOpenEditProject = (project: BaseProject) => {
-    const studentProject = {parentProject: project, projectStatus: ProjectStatus.Unassigned, projectPlan: '', projectReport: ''}
-
-    openEditProject(studentProject);
+    openEditProject(project);
   };
 
   return (

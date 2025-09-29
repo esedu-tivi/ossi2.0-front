@@ -1,12 +1,13 @@
+import React, { useState } from "react";
+import { useMutation } from "@apollo/client";
 import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TextField, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import React, { useState } from "react";
-import { ProjectStatus, StudentProject } from ".";
-import { useMutation } from "@apollo/client";
+import { ProjectStatus, StudentProject } from "./types";
 import { CREATE_WORKTIME_ENTRY } from "../../../graphql/CreateWorktimeEntry";
 import { DELETE_WORKTIME_ENTRY } from "../../../graphql/DeleteWorktimeEntry";
 import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
+import { GET_ASSIGNED_PROJECT } from "../../../graphql/GetAssignedProject";
 
 interface TimeTrackingTableProps {
   project: StudentProject|null;
@@ -47,7 +48,7 @@ const TimeTrackingListItem: React.FC<TimeTrackingListItemProps> = ({id, startDat
       </TableCell>
       {status === ProjectStatus.Working && 
         <TableCell>
-          <IconButton onClick={() => deleteEntry({ variables: { id }})}>
+          <IconButton onClick={async () => await deleteEntry({ variables: { id }})}>
             <DeleteIcon />
           </IconButton>
         </TableCell>
@@ -59,7 +60,7 @@ const TimeTrackingListItem: React.FC<TimeTrackingListItemProps> = ({id, startDat
 const TimeTrackingTable: React.FC<TimeTrackingTableProps> = ({ project, studentId }) => {
   const [formData, setFormData] = useState({ date: '', startTime: '', endTime: '', description: '' });
 
-  const [createWorktimeEntry] = useMutation(CREATE_WORKTIME_ENTRY, { refetchQueries: [GET_STUDENT_PROJECTS] });
+  const [createWorktimeEntry] = useMutation(CREATE_WORKTIME_ENTRY, { refetchQueries: [GET_ASSIGNED_PROJECT], onCompleted: (data) => console.log(data) });
 
   const handleChange = (content: string, field: 'date' | 'startTime' | 'endTime' | 'description') => {
     setFormData({...formData, [field]: content});

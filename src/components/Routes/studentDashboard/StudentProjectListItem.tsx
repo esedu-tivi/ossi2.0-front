@@ -1,6 +1,6 @@
 import React from 'react';
 import { ListItem, ListItemButton, ListItemText } from '@mui/material';
-import { BaseProject } from '.';
+import { BaseProject } from './types';
 
 interface StudentProjectListItemProps {
   project: BaseProject;

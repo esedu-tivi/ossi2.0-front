@@ -1,43 +1,18 @@
 import React, { useState } from 'react';
+import { useQuery } from '@apollo/client';
 import { Box, Typography } from '@mui/material';
+import { BaseProject, StudentProject, ProjectStatus } from './types';
 import StudentProjectList from './StudentProjectList';
 import StudentInactiveProjectList from './StudentInactiveProjectList';
 import StudentEditProject from './StudentEditProject';
-import { useQuery } from '@apollo/client';
 import { GET_STUDENT_PROJECTS } from '../../../graphql/GetStudentProjects';
-
-export enum ProjectStatus {
-  Unassigned = "UNASSIGNED",
-  Working = "WORKING",
-  Returned = "RETURNED",
-  Accepted = "ACCEPTED"
-};
-
-export interface BaseProject {
-  id: number;
-  name: string;
-  description: string;
-  duration: number;
-};
-
-export interface StudentProject {
-  parentProject: BaseProject;
-  projectStatus: ProjectStatus;
-  projectPlan: string;
-  projectReport: string;
-  startDate?: Date;
-  deadline?: Date;
-  worktimeEntries?: {
-    id: number;
-    startDate: string;
-    endDate: string;
-    description: string;
-  }[];
-}
+import StudentAssignProject from './StudentAssignProject';
 
 const StudentDashboard: React.FC = () => {
   const [editOpen, setEditOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<StudentProject|null>(null);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [selectedEditProject, setSelectedEditProject] = useState<number|null>(null);
+  const [selectedAssignProject, setSelectedAssignProject] = useState<BaseProject|null>(null);
 
   const { loading, data, startPolling, stopPolling } = useQuery(GET_STUDENT_PROJECTS);
 
@@ -50,13 +25,22 @@ const StudentDashboard: React.FC = () => {
 
   stopPolling();
 
-  const handleOpenEditProject = (project: StudentProject) => {
+  const handleOpenEditProject = (project: number) => {
     setEditOpen(true);
-    setSelectedProject(project);
+    setSelectedEditProject(project);
   };
 
   const handleCloseEditProject = () => {
     setEditOpen(false);
+  };
+
+  const handleOpenAssignProject = (project: BaseProject) => {
+    setAssignOpen(true);
+    setSelectedAssignProject(project);
+  };
+
+  const handleCloseAssignProject = () => {
+    setAssignOpen(false);
   };
 
   return (
@@ -67,14 +51,15 @@ const StudentDashboard: React.FC = () => {
         <Typography>tulee tähän joskus</Typography>
       </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
-        <StudentInactiveProjectList title='Projektit' unitParts={data.me.user.assignedQualificationUnits.flatMap((u: any) => u.parts)} projects={data.me.user.assignedProjects} openEditProject={handleOpenEditProject} />
+        <StudentInactiveProjectList title='Projektit' unitParts={data.me.user.assignedQualificationUnits.flatMap((u: any) => u.parts)} projects={data.me.user.assignedProjects} openEditProject={handleOpenAssignProject} />
         <Box>
           <StudentProjectList title='Työn alla' projects={data.me.user.assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Working)} openEditProject={handleOpenEditProject} />
           <StudentProjectList title='Palautetut' projects={data.me.user.assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Returned)} openEditProject={handleOpenEditProject} />
         </Box>
         <StudentProjectList title='Valmiit' projects={data.me.user.assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Accepted)} openEditProject={handleOpenEditProject} />
       </Box>
-      <StudentEditProject open={editOpen} onClose={handleCloseEditProject} studentId={data.me.user.id} project={selectedProject} />
+      <StudentEditProject open={editOpen} onClose={handleCloseEditProject} studentId={data.me.user.id} projectId={selectedEditProject} setProjectId={setSelectedEditProject} />
+      <StudentAssignProject open={assignOpen} onClose={handleCloseAssignProject} studentId={data.me.user.id} project={selectedAssignProject} />
     </div>
   );
 };
