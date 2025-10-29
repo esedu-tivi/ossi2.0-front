@@ -4,7 +4,7 @@ export type StudentData = {
     lastName: string;
     groupId: string;
     studyingQualificationTitle: {
-      name: string;
+      name: string | null;
     };
   };
 
