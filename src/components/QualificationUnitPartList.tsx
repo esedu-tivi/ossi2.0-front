@@ -25,7 +25,7 @@ import buttonStyles from '../styles/buttonStyles';
 type QualificationUnitPartData = {
   id: number;
   name: string;
-  qualificationUnit: string;
+  parentQualificationUnit: { name: string };
 };
 
 const QualificationUnitPartList: React.FC = () => {
@@ -81,8 +81,8 @@ const QualificationUnitPartList: React.FC = () => {
         valueB = b.name.toLowerCase();
         break;
       case "qualificationUnit":
-        valueA = a.qualificationUnit.toLowerCase();
-        valueB = b.qualificationUnit.toLowerCase();
+        valueA = a.parentQualificationUnit.name.toLowerCase();
+        valueB = b.parentQualificationUnit.name.toLowerCase();
         break;
       default:
         return 0;
@@ -92,6 +92,8 @@ const QualificationUnitPartList: React.FC = () => {
     if (valueA < valueB) return sortConfig.order === "asc" ? -1 : 1;
     return 0;
   });
+
+  console.log('SortedParts: ', sortedParts)
 
   return (
     <div className="qualification-unit-parts-container">
@@ -114,7 +116,7 @@ const QualificationUnitPartList: React.FC = () => {
           onClick={() => navigate("/teacherdashboard/reorderparts")}
         >
           Järjestele Teemoja
-      </Button>
+        </Button>
       </div>
       <TableContainer component={Paper}>
         <Table>
@@ -141,7 +143,7 @@ const QualificationUnitPartList: React.FC = () => {
                 <div className="sortable-header">
                   Teeman aihe
                   {sortConfig.column === "name" &&
-                  sortConfig.order === "asc" ? (
+                    sortConfig.order === "asc" ? (
                     <ArrowUpwardIcon fontSize="small" />
                   ) : sortConfig.column === "name" &&
                     sortConfig.order === "desc" ? (
@@ -156,7 +158,7 @@ const QualificationUnitPartList: React.FC = () => {
                 <div className="sortable-header">
                   Tutkinnonosa
                   {sortConfig.column === "qualificationUnit" &&
-                  sortConfig.order === "asc" ? (
+                    sortConfig.order === "asc" ? (
                     <ArrowUpwardIcon fontSize="small" />
                   ) : sortConfig.column === "qualificationUnit" &&
                     sortConfig.order === "desc" ? (
@@ -183,7 +185,7 @@ const QualificationUnitPartList: React.FC = () => {
               <TableRow key={part.id} className="table-row">
                 <TableCell>{part.id}</TableCell>
                 <TableCell>{part.name}</TableCell>
-                <TableCell>{part.qualificationUnit}</TableCell>
+                <TableCell>{part.parentQualificationUnit.name}</TableCell>
                 <TableCell>
                   <div className="button-group">
                     <Button
