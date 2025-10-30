@@ -6,7 +6,7 @@ export const UPDATE_PROJECT = gql`
       message
       success
       status
-      part { 
+      project { 
         id
         name
         description
