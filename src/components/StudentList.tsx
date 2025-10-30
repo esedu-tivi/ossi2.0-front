@@ -117,7 +117,7 @@ const StudentList: React.FC = () => {
                                 <TableCell>{student.id}</TableCell>
                                 <TableCell>{`${student.firstName} ${student.lastName}`}</TableCell>
                                 <TableCell>{student.groupId}</TableCell>
-                                <TableCell>{student.studyingQualificationTitle.name}</TableCell>
+                                <TableCell>{student.studyingQualificationTitle ? student.studyingQualificationTitle.name : ''}</TableCell>
                                 <TableCell>
                                     <div className="hover-buttons">
                                         <Button variant="outlined" size="small" startIcon={<InfoIcon />} onClick={() => goToStudies(student)}>
