@@ -4,12 +4,12 @@ import { GET_NOTIFICATIONS } from '../graphql/GetNotifications';
 import { GET_UNREAD_NOTIFICATION_COUNT } from '../graphql/GetUnreadNotificationCount';
 import { MARK_NOTIFICATION_AS_READ } from '../graphql/MarkNotificationAsRead';
 import {
-    Drawer,
-    Box,
-    List,
-    ListItemButton,
-    Typography,
-    Divider,
+  Drawer,
+  Box,
+  List,
+  ListItemButton,
+  Typography,
+  Divider,
 } from '@mui/material';
 import LaunchIcon from '@mui/icons-material/Launch';
 import { Link } from 'react-router-dom';
@@ -23,11 +23,14 @@ type Notification = {
   sender: string;
   hasBeenRead: boolean;
   projectId?: number;
+  teacherComment?: string;
+  status?: 'ACCEPTED' | 'REJECTED';
+  message?: string
 };
 
 type Props = {
-    open: boolean;
-    onClose: () => void;
+  open: boolean;
+  onClose: () => void;
 };
 
 const NotificationDrawer = ({ open, onClose }: Props) => {
@@ -35,7 +38,7 @@ const NotificationDrawer = ({ open, onClose }: Props) => {
 
   const { data, refetch } = useQuery(GET_NOTIFICATIONS);
   const { refetch: refetchUnread } = useQuery(GET_UNREAD_NOTIFICATION_COUNT);
-  const [markNotificationAsRead] = useMutation(MARK_NOTIFICATION_AS_READ); 
+  const [markNotificationAsRead] = useMutation(MARK_NOTIFICATION_AS_READ);
 
   const notifications: Notification[] = (
     data?.notifications?.notifications?.map((n: any) => ({
@@ -43,12 +46,13 @@ const NotificationDrawer = ({ open, onClose }: Props) => {
       title: n.updateMessage
         ? 'Projektipäivitys'
         : 'Projektin palautusilmoitus',
-      summary: n.updateMessage || 'Projektin palautus on arvioitu.',
-      details: n.updateMessage || 'Voit tarkistaa palautetun projektin tiedot projektinäkymästä.',
+      summary: n.updateMessage || n.message || 'Projektin palautus on arvioitu.',
+      details: n.updateMessage || n.message || 'Voit tarkistaa palautetun projektin tiedot projektinäkymästä.',
       timestamp: n.time,
       sender: 'Järjestelmä',
       hasBeenRead: n.hasBeenRead,
       projectId: n.project?.id,
+      teacherComment: n.teacherComment || ''
     })) ?? []
   ).sort((a: Notification, b: Notification) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -59,13 +63,13 @@ const NotificationDrawer = ({ open, onClose }: Props) => {
           <Typography variant="h4" sx={{ p: 2, backgroundColor: '#65558F', color: '#FFFFFF', textAlign: 'center' }}>
             Ilmoitukset
           </Typography>
-          <Divider/>
+          <Divider />
           <List sx={{ p: 0 }}>
             {notifications.map((notif) => (
               <ListItemButton
                 key={notif.id}
                 onClick={async () => {
-                  setSelectedNotification(notif);             
+                  setSelectedNotification(notif);
                   const backendNotification = data.notifications.notifications.find((n: any) => n.id === notif.id);
                   if (!backendNotification.hasBeenRead) {
                     try {
@@ -79,7 +83,7 @@ const NotificationDrawer = ({ open, onClose }: Props) => {
                     }
                   }
                 }}
-                
+
                 selected={selectedNotification?.id === notif.id}
                 sx={{
                   height: 'auto',
@@ -154,6 +158,12 @@ const NotificationDrawer = ({ open, onClose }: Props) => {
               <Typography variant="body1" sx={{ mt: 2 }}>
                 {selectedNotification.details}
               </Typography>
+              {selectedNotification.teacherComment && (
+                <>
+                  <Typography variant="h6">Opettajan kommentti</Typography>
+                  <Typography>{selectedNotification.teacherComment}</Typography>
+                </>
+              )}
               <Box
                 sx={{
                   mt: 4,
@@ -164,7 +174,7 @@ const NotificationDrawer = ({ open, onClose }: Props) => {
                   display: 'inline-flex',
                   alignItems: 'center',
                 }}
-              >               
+              >
                 <Link
                   // Creates a link on notification to navigate to the corresponding project
                   // /studentprojects/ route does not exist yet

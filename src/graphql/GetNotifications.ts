@@ -24,6 +24,16 @@ export const GET_NOTIFICATIONS = gql`
             id
           }
         }
+        ... on ProjectStatusChangeNotification {
+          id
+          hasBeenRead
+          message
+          time
+          project {
+            id
+          }
+          teacherComment
+        }
       }
     }
   }
