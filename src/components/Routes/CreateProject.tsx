@@ -63,7 +63,7 @@ const NewProjectForm: React.FC = () => {
                 tags: copiedProject.tags || [],
                 isActive: copiedProject.isActive || false,
             }));
-    
+
             setSelectedItems({
                 tags: copiedProject.tags || [],
                 competenceRequirements: copiedProject.competenceRequirements || [],
@@ -99,7 +99,7 @@ const NewProjectForm: React.FC = () => {
         // Modifies HTML to Markdown language using turndown before creating the new project
         const markdownDescription = turndownService.turndown(formData.description);
         const markdownMaterials = turndownService.turndown(formData.materials);
-        
+
         const projectInput = {
             name: formData.name,
             description: markdownDescription,
@@ -138,17 +138,17 @@ const NewProjectForm: React.FC = () => {
     };
 
     const getItems = () => {
-            if (partsLoading || projectTagsLoading) {
-                return [];
-            }
-            if (partsError || projectTagsError) {
-                return [];
-            }
+        if (partsLoading || projectTagsLoading) {
+            return [];
+        }
+        if (partsError || projectTagsError) {
+            return [];
+        }
 
         // Returns selectable modal data based on selected field
         switch (currentField) {
             case 'tags':
-                return projectTagsData ? projectTagsData.projectTags : [];
+                return projectTagsData ? projectTagsData.projectTags?.projectTags : [];
             case 'competenceRequirements':
                 return competenceOptions;
             case 'includedInParts':
@@ -182,7 +182,7 @@ const NewProjectForm: React.FC = () => {
                         transform: 'translateY(-50%)',
                         color: 'white',
                     }}
-                    >
+                >
                     <ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
                 </IconButton>
                 <Typography variant="h4" align="center" color="white">
@@ -193,14 +193,14 @@ const NewProjectForm: React.FC = () => {
                 sx={formStyles.formColumnBox}
             >
                 <Box sx={{ flex: 1 }}>
-                    <TextField 
-                        label="Projektin nimi" 
-                        variant="outlined" 
-                        name="name" 
-                        value={formData.name} 
-                        onChange={handleChange} 
-                        fullWidth 
-                        sx={{ my: 2 }} 
+                    <TextField
+                        label="Projektin nimi"
+                        variant="outlined"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        fullWidth
+                        sx={{ my: 2 }}
                     />
 
                     <RichTextEditor
