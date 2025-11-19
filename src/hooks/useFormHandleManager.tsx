@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { EditProjectFormData } from '../../FormData';
+import { useState, useEffect, useCallback } from 'react';
+import { EditProjectFormData } from '../FormData';
 import { useLazyQuery } from '@apollo/client';
-import { GET_COMPETENCE_REQUIREMENTS } from '../../graphql/GetCompetenceRequirements';
+import { GET_COMPETENCE_REQUIREMENTS } from '../graphql/GetCompetenceRequirements';
 
 interface Item {
   id: string;
@@ -9,7 +9,7 @@ interface Item {
 }
 
 interface FormState {
-  [key: string]: any;
+  [key: string]: string | number | boolean | Item[];
   duration: number | string;
   isActive: boolean;
   tags: Item[];
@@ -53,19 +53,19 @@ interface CompetenceRequirementsData {
   };
 }
 
-export const formHandleManager = (initialState: FormState) => {
+export const useFormHandleManager = (initialState: FormState) => {
   const [formData, setFormData] = useState<FormState>(initialState);
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [currentField, setCurrentField] = useState<
-  keyof Pick<
-    EditProjectFormData & { includedInParts?: Item[] }, 
-    'tags' | 'competenceRequirements' | 'includedInParts'
+    keyof Pick<
+      EditProjectFormData & { includedInParts?: Item[] },
+      'tags' | 'competenceRequirements' | 'includedInParts'
     >
   >('tags');
   const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
-      tags: [],
-      competenceRequirements: [],
-      includedInParts: [],
+    tags: [],
+    competenceRequirements: [],
+    includedInParts: [],
   });
 
   const [competenceOptions, setCompetenceOptions] = useState<Item[]>([]);
@@ -84,90 +84,83 @@ export const formHandleManager = (initialState: FormState) => {
     },
   });
 
-  useEffect(() => {
-    const selectedTeemaIds = formData.includedInParts.map(teema => teema.id);
-  
-    if (selectedTeemaIds.length > 0) {
-      console.log("Fetching competence requirements for multiple Teema IDs:", selectedTeemaIds);
-      fetchCompetenceRequirementsForMultipleParts(selectedTeemaIds);
-    }
-  }, [formData.includedInParts]);
+
 
   const handleChangeTeema = (newTeema: Item[]) => {
     setFormData((prevFormData) => {
-        const updatedTeema = newTeema;   
-        const isTeemaChanged = JSON.stringify(prevFormData.includedInParts) !== JSON.stringify(updatedTeema);
-    
-        if (isTeemaChanged) {
-            console.log("Teema changed, clearing previous Osaamiset & fetching new competence requirements");
-            const selectedTeemaIds = updatedTeema.map(teema => teema.id);
-            console.log("Selected Teema IDs in handleChangeTeema:", selectedTeemaIds);
-    
-            setFormData((prev) => ({
-                ...prev,
-                competenceRequirements: [],
-            }));
+      const updatedTeema = newTeema;
+      const isTeemaChanged = JSON.stringify(prevFormData.includedInParts) !== JSON.stringify(updatedTeema);
 
-            setCompetenceOptions([]);
-            fetchCompetenceRequirementsForMultipleParts(selectedTeemaIds);
-        }
-    
-        return {
-            ...prevFormData,
-            includedInParts: updatedTeema,
-        };
+      if (isTeemaChanged) {
+        console.log("Teema changed, clearing previous Osaamiset & fetching new competence requirements");
+        const selectedTeemaIds = updatedTeema.map(teema => teema.id);
+        console.log("Selected Teema IDs in handleChangeTeema:", selectedTeemaIds);
+
+        setFormData((prev) => ({
+          ...prev,
+          competenceRequirements: [],
+        }));
+
+        setCompetenceOptions([]);
+        fetchCompetenceRequirementsForMultipleParts(selectedTeemaIds);
+      }
+
+      return {
+        ...prevFormData,
+        includedInParts: updatedTeema,
+      };
     });
 
     setSelectedItems((prevSelectedItems) => ({
-        ...prevSelectedItems,
-        includedInParts: newTeema,
-        competenceRequirements: [],
+      ...prevSelectedItems,
+      includedInParts: newTeema,
+      competenceRequirements: [],
     }));
   };
 
-  const fetchCompetenceRequirementsForMultipleParts = (teemaIds: string[]) => {
+  const fetchCompetenceRequirementsForMultipleParts = useCallback((teemaIds: string[]) => {
     console.log("Fetching competence requirements for Teema IDs:", teemaIds);
-  
-    setCompetenceOptions([]); 
+
+    setCompetenceOptions([]);
 
     Promise.all(
-        teemaIds.map((teemaId) => {
-            console.log(`Querying for Teema ID: ${teemaId}`);
-            return fetchCompetenceRequirements({ variables: { partId: teemaId } });
-        })
+      teemaIds.map((teemaId) => {
+        console.log(`Querying for Teema ID: ${teemaId}`);
+        return fetchCompetenceRequirements({ variables: { partId: teemaId } });
+      })
     )
-    .then((responses) => {
+      .then((responses) => {
         const allCompetenceRequirements: Item[] = [];
 
         responses.forEach(({ data }) => {
-            const realPart = data?.part?.part;
-            if (realPart?.parentQualificationUnit?.competenceRequirementGroups) {
-                const newCompetences = realPart.parentQualificationUnit.competenceRequirementGroups.flatMap(
-                    (group: CompetenceRequirementGroup) =>
-                        group.requirements.map((req: Requirement) => ({
-                            id: req.id,
-                            name: req.description,
-                        }))
-                );
+          const realPart = data?.part?.part;
+          if (realPart?.parentQualificationUnit?.competenceRequirementGroups) {
+            const newCompetences = realPart.parentQualificationUnit.competenceRequirementGroups.flatMap(
+              (group: CompetenceRequirementGroup) =>
+                group.requirements.map((req: Requirement) => ({
+                  id: req.id,
+                  name: req.description,
+                }))
+            );
 
-                allCompetenceRequirements.push(...newCompetences);
-            }
+            allCompetenceRequirements.push(...newCompetences);
+          }
         });
 
         // Remove duplicates using Map
         const uniqueCompetenceRequirements = Array.from(
-            new Map(allCompetenceRequirements.map((item) => [item.id, item])).values()
+          new Map(allCompetenceRequirements.map((item) => [item.id, item])).values()
         );
 
         //  Update competence options with the new list
         console.log("Final Combined Competence Requirements:", uniqueCompetenceRequirements);
         setCompetenceOptions(uniqueCompetenceRequirements);
-    })
-    .catch((error) => {
+      })
+      .catch((error) => {
         console.error("Error fetching competence requirements:", error);
-    });
-  };
-  
+      });
+  }, [fetchCompetenceRequirements]);
+
   // Handles data changes on non-TinyMCE input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -196,17 +189,17 @@ export const formHandleManager = (initialState: FormState) => {
     if (!currentField) return;
 
     if (currentField === 'includedInParts') {
-        handleChangeTeema(items); 
+      handleChangeTeema(items);
     } else {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [currentField]: items,
-        }));
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        [currentField]: items,
+      }));
 
-        setSelectedItems((prevSelectedItems) => ({
-            ...prevSelectedItems,
-            [currentField]: items,
-        }));
+      setSelectedItems((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        [currentField]: items,
+      }));
     }
 
     setSelectorOpen(false);
@@ -218,16 +211,16 @@ export const formHandleManager = (initialState: FormState) => {
       setSelectorOpen(true);
       return;
     }
-  
+
     if (field === 'competenceRequirements' && formData.includedInParts.length === 0) {
       alert('Valitse ensin Teema.');
       return;
     }
-  
+
     if (field === 'competenceRequirements') {
       console.log("Using competenceOptions for modal:", competenceOptions);
     }
-  
+
     setCurrentField(field);
     setSelectorOpen(true);
   };
@@ -240,6 +233,15 @@ export const formHandleManager = (initialState: FormState) => {
       notifyStudentsText: checked ? prev.notifyStudentsText : '',
     }));
   };
+
+  useEffect(() => {
+    const selectedTeemaIds = formData.includedInParts.map(teema => teema.id);
+
+    if (selectedTeemaIds.length > 0) {
+      console.log("Fetching competence requirements for multiple Teema IDs:", selectedTeemaIds);
+      fetchCompetenceRequirementsForMultipleParts(selectedTeemaIds);
+    }
+  }, [formData.includedInParts, fetchCompetenceRequirementsForMultipleParts]);
 
   return {
     formData,
