@@ -12,7 +12,7 @@ import RichTextEditor from '../common/RichTextEditor';
 import ChipSelector from '../common/ChipSelector';
 
 import { useParams, useNavigate } from 'react-router-dom';
-import { TextField, Box, Switch, IconButton, Typography, FormControl} from '@mui/material';
+import { TextField, Box, Switch, IconButton, Typography, FormControl } from '@mui/material';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
@@ -67,24 +67,24 @@ const EditProject: React.FC = () => {
     // Enforces allowed HTML tags and attributes using DOMPurify
     const sanitizeHtml = (html: string) =>
         DOMPurify.sanitize(html, {
-        ALLOWED_TAGS: [
-            'iframe', 'p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'li', 'ol', 
-            'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'span', 'div'
-        ],
-        ALLOWED_ATTR: [
-            'src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen', 
-            'href', 'alt', 'target', 'rel', 'style', 'class'
-        ],
-    });
+            ALLOWED_TAGS: [
+                'iframe', 'p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'li', 'ol',
+                'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'span', 'div'
+            ],
+            ALLOWED_ATTR: [
+                'src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen',
+                'href', 'alt', 'target', 'rel', 'style', 'class'
+            ],
+        });
 
     const project = data?.project?.project;
 
     // Fills the input fields with data based on which project is currently being edited
     useEffect(() => {
-        if (!loading && data?.project?.project) {          
+        if (!loading && project) {
             const sanitizedDescription = sanitizeHtml(md.render(project.description || ''));
             const sanitizedMaterials = sanitizeHtml(md.render(project.materials || ''));
-            
+
             setFormData((prevFormData) => {
                 return {
                     ...prevFormData,
@@ -100,7 +100,7 @@ const EditProject: React.FC = () => {
                     notifyStudentsText: project.notifyStudentsText || '',
                 };
             });
-    
+
             setSelectedItems({
                 tags: project.tags || [],
                 competenceRequirements: project.competenceRequirements || [],
@@ -153,9 +153,9 @@ const EditProject: React.FC = () => {
             isActive: formData.isActive,
             notifyStudents: Boolean(formData.notifyStudents),
         };
-    
+
         console.log("Updated Project Data before submission:", updatedProjectData);
-    
+
         try {
             const response = await updateProject({
                 variables: {
@@ -192,7 +192,7 @@ const EditProject: React.FC = () => {
 
         switch (currentField) {
             case 'tags':
-                return projectTagsData ? projectTagsData.projectTags : [];
+                return projectTagsData ? projectTagsData.projectTags?.projectTags : [];
             case 'competenceRequirements':
                 return competenceOptions;
             case 'includedInParts':
