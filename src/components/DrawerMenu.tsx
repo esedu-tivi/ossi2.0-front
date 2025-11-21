@@ -30,7 +30,7 @@ const DrawerMenu = () => {
     { text: 'Opiskelijat', icon: <SchoolIcon />, route: '/teacherdashboard' }, // Temp route
     { text: 'Projektit', icon: <FolderIcon />, route: '/teacherprojects' },
     { text: 'Teemat', icon: <EventIcon />, route: '/qualificationunitparts' },
-    { text: 'Työpaikat', icon: <WorkIcon />, route: '/teacherdashboard' }, // Temp route
+    { text: 'Työpaikat', icon: <WorkIcon />, route: '/workplaces' }, // Temp route
     { text: 'Tutkinnot', icon: <GradeIcon />, route: '/teacherdashboard' }, // Temp route
   ];
 

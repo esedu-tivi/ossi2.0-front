@@ -21,6 +21,7 @@ import EditStudies from './components/Routes/EditStudies';
 import EducationPath from './components/Routes/EducationPath';
 import ReorderParts from './components/Routes/ReorderParts';
 import NewUserLogin from './components/Routes/NewUserLogin';
+import Workplaces from './components/Routes/Workplaces';
 
 const App = () => {
     const { isAuthenticated, userEmail, role } = useAuth();
@@ -42,12 +43,12 @@ const App = () => {
 
     useEffect(() => {
         if (!isAuthenticated) return;
-    
+
         if (!studentLoading && studentData) {
             const timer = setTimeout(() => {
                 setPostLoginLoading(false);
             }, 800); // Wait 800ms to settle down after studentData ready
-    
+
             return () => clearTimeout(timer);
         }
     }, [isAuthenticated, studentLoading, studentData]);
@@ -95,12 +96,12 @@ const App = () => {
                 <p style={{ marginTop: '1rem' }}>Ladataan käyttäjän tietoja...</p>
             </div>
         );
-    }    
+    }
 
     return (
         <Routes>
             <Route path="/" element={<Login />} />
-            
+
             <Route
                 path="/studentdashboard/newuserlogin"
                 element={
@@ -267,6 +268,18 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <ReorderParts />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/workplaces"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AppLayout>
+                                <Workplaces />
                             </AppLayout>
                         }
                     />
