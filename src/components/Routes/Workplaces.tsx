@@ -12,8 +12,10 @@ import InfoIcon from "@mui/icons-material/Info"
 import { filterWorkplaces, SortConfig, sortWorkplaces, Workplace } from "../common/teacherHelpers"
 import WorkplaceForm from "./WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
+import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
 
-interface WorkplaceFormData {
+export interface WorkplaceFormData {
+  id: string | number | null
   name: string;
 }
 
@@ -21,6 +23,10 @@ const Workplaces = () => {
   const navigate = useNavigate()
   const { loading, error, data } = useQuery(GET_WORKPLACES)
   const [createWorkplace] = useMutation(CREATE_WORKPLACE, {
+    refetchQueries: [{ query: GET_WORKPLACES }]
+  })
+
+  const [editWorkplace] = useMutation(EDIT_WORKPLACE, {
     refetchQueries: [{ query: GET_WORKPLACES }]
   })
 
@@ -34,7 +40,22 @@ const Workplaces = () => {
   const [message, setMessage] = useState<{ type: 'error' | 'info'; message: string }>({ type: 'info', message: '' })
 
   const [showNewForm, setNewForm] = useState(false)
-  const [formData, setFormData] = useState<WorkplaceFormData>({ name: "" });
+  const [showEditForm, setEditForm] = useState(false)
+
+  const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
+
+  const workplaces: Workplace[] = data?.workplaces?.workplaces || []
+
+  const filteredWorkplaces = filterWorkplaces(workplaces, searchQuery)
+
+  const sortedWorkplaces = sortWorkplaces(filteredWorkplaces, sortConfig)
+
+  const initFormData = {
+    id: null,
+    name: ''
+  }
+
+  const [formData, setFormData] = useState<WorkplaceFormData>(initFormData);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value)
@@ -64,23 +85,25 @@ const Workplaces = () => {
     const response = await createWorkplace({ variables: { name: formData.name } })
 
     console.log('GraphQL Response:', response.data);
-    setFormData({ name: '' })
+    setFormData(initFormData)
 
     setMessage({ type: "info", message: "Työpaikka lisätty" })
     setNewForm(false)
   }
 
+  const handleEditFormSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    await editWorkplace({ variables: { editWorkplaceId: formData.id, name: formData.name } })
+
+    setEditForm(false)
+    setMessage({ type: "info", message: "Työpaikkaa muokattu" })
+  }
+
   if (loading) return <p>Loading...</p>
   if (error) return <p>Error: {error.message}</p>
 
-  const projects: Workplace[] = data?.workplaces?.workplaces || []
-
-  const filteredWorkplaces = filterWorkplaces(projects, searchQuery)
-
-  const sortedWorkplaces = sortWorkplaces(filteredWorkplaces, sortConfig)
-
   if (showNewForm) {
-    return <WorkplaceForm
+    return (<WorkplaceForm
       formData={formData}
       setFormData={setFormData}
       handleSubmit={handleNewFormSubmit}
@@ -88,11 +111,31 @@ const Workplaces = () => {
       formTitle='Uusi työpaikka'
       submitText='Luo työpaikka'
       loading={loading}
+    />)
+  }
+
+
+  if (selectedWorkplaceId) {
+    const workplace = sortedWorkplaces.find(workplace => workplace.id === selectedWorkplaceId)
+
+    setFormData(workplace || initFormData)
+    setSelectedWorkplaceId(null)
+  }
+
+  if (showEditForm) {
+    return <WorkplaceForm
+      formData={formData}
+      setFormData={setFormData}
+      handleSubmit={handleEditFormSubmit}
+      setShowForm={() => setEditForm(false)}
+      formTitle='Työpaikan muokkaus'
+      submitText='Muokkaa työpaikkaa'
+      loading={loading}
     />
   }
 
   return (
-    <div className="project-table-container">
+    <>
       <div className="button-container">
         <Button
           variant="contained"
@@ -162,7 +205,10 @@ const Workplaces = () => {
                       color="primary"
                       startIcon={<EditIcon />}
                       size="small"
-                      onClick={() => navigate(`/workplaces/edit/${workplace.id}`)}
+                      onClick={() => {
+                        setSelectedWorkplaceId(workplace.id)
+                        setEditForm(true)
+                      }}
                     >
                       Muokkaa
                     </Button>
@@ -182,7 +228,7 @@ const Workplaces = () => {
                       size="small"
                       onClick={() => handleDelete(workplace.id)}
                     >
-                      poista
+                      Poista
                     </Button>
                   </div>
                 </TableCell>
@@ -191,7 +237,7 @@ const Workplaces = () => {
           </TableBody>
         </Table>
       </TableContainer>
-    </div>
+    </>
   )
 }
 

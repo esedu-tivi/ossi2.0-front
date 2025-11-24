@@ -4,10 +4,11 @@ import buttonStyles from "../../styles/buttonStyles"
 //import { useNavigate } from "react-router-dom"
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
+import { WorkplaceFormData } from "./Workplaces";
 
 interface WorkplaceFormProps {
   formData: { name: string }
-  setFormData: React.Dispatch<React.SetStateAction<{ name: string }>>
+  setFormData: React.Dispatch<React.SetStateAction<WorkplaceFormData>>
   handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void
   setShowForm: () => void
   formTitle: string
