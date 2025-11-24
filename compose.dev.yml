@@ -1,0 +1,10 @@
+services:
+  ossi-frontend:
+    build:
+      context: ./
+      target: dev
+    ports:
+      - "5174:5174"
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./:/app/

@@ -1,6 +1,0 @@
-services:
-  ossi-frontend-initial:
-    build:
-      context: ./
-    ports:
-      - "5174:5174"
