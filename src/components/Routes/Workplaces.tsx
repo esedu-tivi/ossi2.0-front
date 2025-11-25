@@ -66,10 +66,13 @@ const Workplaces = () => {
   const confirm = useConfirm()
 
   useEffect(() => {
-    console.log('useEffect')
-    setTimeout(() => {
+    if (message.message === null) return
+
+    const timeoutId = setTimeout(() => {
       setMessage({ ...message, message: null })
     }, 5000)
+
+    return () => clearTimeout(timeoutId)
   }, [message])
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
