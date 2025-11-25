@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material"
+import { Alert, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import SearchIcon from "@mui/icons-material/Search"
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
@@ -13,6 +13,8 @@ import { filterWorkplaces, SortConfig, sortWorkplaces, Workplace } from "../comm
 import WorkplaceForm from "./WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
 import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
+import { DELETE_WORKPLACE } from "../../graphql/DeleteWorkplace"
+import { useConfirm } from "material-ui-confirm"
 
 export interface WorkplaceFormData {
   id: string | number | null
@@ -30,6 +32,10 @@ const Workplaces = () => {
     refetchQueries: [{ query: GET_WORKPLACES }]
   })
 
+  const [deleteWorkplace] = useMutation(DELETE_WORKPLACE, {
+    refetchQueries: [{ query: GET_WORKPLACES }]
+  })
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -37,7 +43,7 @@ const Workplaces = () => {
     order: null,
   })
 
-  const [message, setMessage] = useState<{ type: 'error' | 'info'; message: string }>({ type: 'info', message: '' })
+  const [message, setMessage] = useState<{ type: 'error' | 'info'; message: string | null }>({ type: 'info', message: null })
 
   const [showNewForm, setNewForm] = useState(false)
   const [showEditForm, setEditForm] = useState(false)
@@ -57,6 +63,15 @@ const Workplaces = () => {
 
   const [formData, setFormData] = useState<WorkplaceFormData>(initFormData);
 
+  const confirm = useConfirm()
+
+  useEffect(() => {
+    console.log('useEffect')
+    setTimeout(() => {
+      setMessage({ ...message, message: null })
+    }, 5000)
+  }, [message])
+
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value)
   }
@@ -75,20 +90,38 @@ const Workplaces = () => {
     })
   }
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number, name: string) => {
     console.log(id);
+    const { confirmed } = await confirm({
+      title: "Poisto",
+      description: `Oletko aivan varma, että haluat poistaa '${name}' työpaikan?`
+    })
+
+    if (confirmed) {
+      const response = await deleteWorkplace({ variables: { deleteWorkplaceId: id } })
+      console.log(response)
+      if (response.data.deleteWorkplace.success) {
+        return setMessage({ type: "info", message: "Työpaikka poistettu" })
+      }
+      setMessage({ type: "error", message: "Poistossa tapahtui virhe" })
+    }
   }
 
   const handleNewFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
+    const { confirmed } = await confirm({
+      title: 'Lisäys',
+      description: `Oletko aivan varma, että haluat lisätä '${formData.name}' työpaikan?`
+    })
 
-    const response = await createWorkplace({ variables: { name: formData.name } })
+    if (confirmed) {
+      const response = await createWorkplace({ variables: { name: formData.name } })
+      console.log('GraphQL Response:', response.data);
+      setFormData(initFormData)
 
-    console.log('GraphQL Response:', response.data);
-    setFormData(initFormData)
-
-    setMessage({ type: "info", message: "Työpaikka lisätty" })
-    setNewForm(false)
+      setMessage({ type: "info", message: "Työpaikka lisätty" })
+      setNewForm(false)
+    }
   }
 
   const handleEditFormSubmit = async (event: React.FormEvent) => {
@@ -147,7 +180,7 @@ const Workplaces = () => {
           Lisää työpaikka
         </Button>
       </div>
-      {message && <Typography color={message.type}>{message.message}</Typography>}
+      {message.message && <Alert security={message.type}>{message.message}</Alert>}
 
       <TableContainer component={Paper}>
         <Table>
@@ -226,7 +259,7 @@ const Workplaces = () => {
                       color="primary"
                       startIcon={<InfoIcon />}
                       size="small"
-                      onClick={() => handleDelete(workplace.id)}
+                      onClick={() => handleDelete(workplace.id, workplace.name)}
                     >
                       Poista
                     </Button>
