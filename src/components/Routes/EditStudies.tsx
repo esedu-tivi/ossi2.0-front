@@ -120,12 +120,14 @@ const EditStudies: React.FC = () => {
 
   // Tab logic
   const handleTabChange = (_event: React.SyntheticEvent, newIndex: number) => {
-    if (newIndex === 0) {
-      navigate('/teacherdashboard/teacherstudies', { state: { student } });
-    } else if (newIndex === 1) {
-      navigate('/teacherdashboard/educationpath', { state: { student } });
-    }
-  };
+        if (newIndex === 0) {
+          navigate('/teacherdashboard/educationpath', { state: { student } });
+        } else if (newIndex === 1) {
+          navigate('/teacherdashboard/teacherstudies', { state: { student } });
+        }else if(newIndex === 2){
+          navigate('/teacherdashboard/studentprojects',{state:{student}});
+        }
+      };
 
   const tabIndex = location.pathname === '/teacherdashboard/teacherstudies' ? 0 : 1;
 
@@ -149,6 +151,7 @@ const EditStudies: React.FC = () => {
       >
         <Tab label="Opinnot" />
         <Tab label="HOKS" />
+        <Tab label='Projektit'></Tab>
       </Tabs>
 
       {tabIndex === 0 && (

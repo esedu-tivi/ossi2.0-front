@@ -19,7 +19,7 @@ interface StudentEditProjectProps {
 };
 
 const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, studentId, projectId, setProjectId }) => {
-  const [formData, setFormData] = useState({ plan: '', report: '' });
+  const [formData, setFormData] = useState({ plan: '', report: '', message: '' });
   const [daysUsed, setDaysUsed] = useState(0);
   const [recentlySaved, setRecentlySaved] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
@@ -37,9 +37,17 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     if (loading || !projectId || !data) {
       return;
     };
+    if(data.me.user.assignedProjectSingle.project.teacherComment===''){
+      setFormData({...formData, plan: data.me.user.assignedProjectSingle.project.projectPlan, 
+      report: data.me.user.assignedProjectSingle.project.projectReport,
+       message: 'Feedback not provided' });
+    }else{
+      setFormData({...formData, plan: data.me.user.assignedProjectSingle.project.projectPlan, 
+      report: data.me.user.assignedProjectSingle.project.projectReport,
+       message: data.me.user.assignedProjectSingle.project.teacherComment });
+    }
 
-    setFormData({...formData, plan: data.me.user.assignedProjectSingle.project.projectPlan, report: data.me.user.assignedProjectSingle.project.projectReport });
-
+    console.log(formData)
     let timeDifference = 0;
     if (data.me.user.assignedProjectSingle.project.deadline && data.me.user.assignedProjectSingle.project.startDate) {
       timeDifference = (data.me.user.assignedProjectSingle.project.deadline?.valueOf() - data.me.user.assignedProjectSingle.project.startDate?.valueOf()) - (data.me.user.assignedProjectSingle.project.deadline?.valueOf() - new Date().valueOf());
@@ -52,7 +60,11 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
   }
 
   const handleChange = (content: string, field: 'plan' | 'report') => {
-    setFormData({...formData, [field]: content});
+    let newContent = content
+    if(String(content).includes('<p>')){
+      newContent = content.replace('<p>','').replace('</p>','')
+    }
+    setFormData({...formData, [field]: newContent});
   };
 
   const handleClose = async () => {
@@ -130,6 +142,10 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
           value={formData.report}
           onChange={(content) => handleChange(content, 'report')}
         />
+        <Box>
+          <Typography sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>Feedback</Typography>
+          <Typography>{formData.message}</Typography>
+        </Box>
         <TimeTrackingTable project={data.me.user.assignedProjectSingle.project} studentId={studentId} />
         <Box sx={{ mt: 2 }}>
           {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working && 

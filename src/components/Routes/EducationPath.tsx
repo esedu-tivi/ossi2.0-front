@@ -75,12 +75,14 @@ const EducationPath: React.FC = () => {
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newIndex: number) => {
-    if (newIndex === 0) {
-      navigate('/teacherdashboard/educationpath', { state: { student } });
-    } else if (newIndex === 1) {
-      navigate('/teacherdashboard/teacherstudies', { state: { student } });
-    }
-  };
+        if (newIndex === 0) {
+          navigate('/teacherdashboard/educationpath', { state: { student } });
+        } else if (newIndex === 1) {
+          navigate('/teacherdashboard/teacherstudies', { state: { student } });
+        }else if(newIndex === 2){
+          navigate('/teacherdashboard/studentprojects',{state:{student}});
+        }
+      };
 
   const tabIndex = location.pathname === '/teacherdashboard/educationpath' ? 0 : 1;
 
@@ -104,8 +106,9 @@ const EducationPath: React.FC = () => {
             },
           }}
         >
+          <Tab label="Opinnot" />
           <Tab label="HOKS" />
-          <Tab label="OPINNOT" />
+          <Tab label='Projektit'></Tab>
         </Tabs>
         <Box sx={formStyles.formOuterBox}>
           <Box sx={{ ...formStyles.formBannerBox, textAlign: 'center', marginBottom: 3, position: 'relative', borderTopLeftRadius: '0px' }}>

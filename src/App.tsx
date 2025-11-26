@@ -22,6 +22,7 @@ import EducationPath from './components/Routes/EducationPath';
 import ReorderParts from './components/Routes/ReorderParts';
 import NewUserLogin from './components/Routes/NewUserLogin';
 import Workplaces from './components/Routes/Workplaces';
+import StudentProjectsPath from './components/Routes/StudentProjectsPath';
 
 const App = () => {
     const { isAuthenticated, userEmail, role } = useAuth();
@@ -285,6 +286,18 @@ const App = () => {
                     />
                 }
             />
+            <Route
+                path="/teacherdashboard/studentprojects"
+                element={
+                    <ProtectedRoute
+                        element={
+                                <AppLayout>
+                                    <StudentProjectsPath/>
+                                    </AppLayout>
+                                }
+                            />
+                        }
+                    />
         </Routes>
     );
 };
