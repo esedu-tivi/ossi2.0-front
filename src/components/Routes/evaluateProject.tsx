@@ -38,6 +38,7 @@ const EvaluateProject=({ project, studentId, })=>{
         }
       }
       if(project.projectStatus==='WORKING'){
+        console.log(project)
         return(
             <Accordion disableGutters={true} sx={{ border: '1px solid #95a5a6', backgroundColor:'#c6c6c6ff', width:'100%' }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -46,6 +47,10 @@ const EvaluateProject=({ project, studentId, })=>{
                 <AccordionDetails>
                     <Typography style={styles.text}>Plan</Typography>
                     <Typography style={styles.text}>{project.projectPlan}</Typography>
+                </AccordionDetails>
+                <AccordionDetails>
+                    <Typography style={styles.text}>Raport</Typography>
+                    <Typography style={styles.text}>{project.projectReport}</Typography>
                 </AccordionDetails>
                 <AccordionDetails>
                     <Typography style={styles.text}>Feedback</Typography>
@@ -65,6 +70,10 @@ const EvaluateProject=({ project, studentId, })=>{
                     <Typography>{project.projectPlan}</Typography>
                 </AccordionDetails>
                 <AccordionDetails>
+                    <Typography style={styles.text}>Raport</Typography>
+                    <Typography style={styles.text}>{project.projectReport}</Typography>
+                </AccordionDetails>
+                <AccordionDetails>
                     <RichTextEditor height={180} label="Feedback" value={feedback} onChange={(content) => handleFeedback(content)}/>
                     <Button onClick={addFeedback}>Accept Assignment</Button>
                 </AccordionDetails>
@@ -80,6 +89,10 @@ const EvaluateProject=({ project, studentId, })=>{
                 <AccordionDetails>
                     <Typography style={styles.text}>Plan</Typography>
                     {project.projectPlan}
+                </AccordionDetails>
+                <AccordionDetails>
+                    <Typography style={styles.text}>Raport</Typography>
+                    <Typography style={styles.text}>{project.projectReport}</Typography>
                 </AccordionDetails>
                 <AccordionDetails>
                     <Typography style={styles.text}>Feedback</Typography>

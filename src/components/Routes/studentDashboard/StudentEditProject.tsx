@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Typography } from "@mui/material";
 import { useMutation, useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import RichTextEditor from "../../common/RichTextEditor";
@@ -9,6 +9,7 @@ import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
 import { UNASSIGN_STUDENT_PROJECT } from "../../../graphql/UnassignStudentProject";
 import ProjectDescription from "./ProjectDescription";
 import { GET_ASSIGNED_PROJECT } from "../../../graphql/GetAssignedProject";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface StudentEditProjectProps {
   open: boolean;
@@ -32,6 +33,17 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     setRecentlySaved(true);
     setTimeout(() => setRecentlySaved(false), 5000);
   }});
+
+  const styles = {
+    dialog:{
+      display:'flex',
+      justifyContent:'center',
+      width:'100%',
+      height:'100%',
+      margin:'0px',
+      padding:'0px',
+    }
+  }
 
   useEffect(() => {
     if (loading || !projectId || !data) {
@@ -115,22 +127,24 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
   };
 
   return (
-    <Dialog maxWidth="md" open={open} onClose={() => handleClose()}>
-      <Box sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <Dialog scroll="paper" fullWidth={true} maxWidth={false} style={styles.dialog} open={open} onClose={() => handleClose()}>
+      <Box sx={{display:'flex',flexDirection:'row' ,alignItems:'space-between'}}>
         <DialogTitle sx={{ width: '60%' }}>{data.me.user.assignedProjectSingle.project.parentProject.name}</DialogTitle>
-        <Button variant="contained" onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Button>
+        <Accordion sx={{width:'30%', margin:0}} disableGutters={true} >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography>Ekstra</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Button variant="contained" onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Button>
+          </AccordionDetails>
+          <AccordionDetails>
+            <Button variant="contained" color="error" onClick={() => setConfirmCancelOpen(true)}>Peruuta projekti</Button>
+          </AccordionDetails>
+        </Accordion>
       </Box>
-      {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
-        <Box sx={{ p: 1 }}>
-          <Box sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography>Projektiin käytetty aika: {daysUsed}/{data.me.user.assignedProjectSingle.project.parentProject.duration} päivää</Typography>
-            <Button variant="contained">Pyydä lisää aikaa</Button>
-          </Box>
-          <LinearProgress variant="determinate" value={100 / data.me.user.assignedProjectSingle.project.parentProject.duration * daysUsed} />
-        </Box>
-      }
-      <Box sx={{ p: 1 }}>
-        <RichTextEditor
+      <Box sx={{ p: 1, }}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+          <RichTextEditor
           height={180}
           label="Suunnitelma"
           value={formData.plan}
@@ -142,20 +156,30 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
           value={formData.report}
           onChange={(content) => handleChange(content, 'report')}
         />
+        </Box>
+        
         <Box>
-          <Typography sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>Feedback</Typography>
-          <Typography>{formData.message}</Typography>
+          <Typography variant="h6" sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color:"rgba(0, 0, 0, 0.6)" }}>Feedback</Typography>
+          <Typography sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>{formData.message}</Typography>
         </Box>
         <TimeTrackingTable project={data.me.user.assignedProjectSingle.project} studentId={studentId} />
+        {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
+        <Box sx={{ p: 1 }}>
+          <Box sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography>Projektiin käytetty aika: {daysUsed}/{data.me.user.assignedProjectSingle.project.parentProject.duration} päivää</Typography>
+            <Button variant="contained">Pyydä lisää aikaa</Button>
+          </Box>
+          <LinearProgress variant="determinate" value={100 / data.me.user.assignedProjectSingle.project.parentProject.duration * daysUsed} />
+        </Box>
+      }
         <Box sx={{ mt: 2 }}>
           {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working && 
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "end" }}>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 { recentlySaved && <Typography>Tallennettu</Typography>}
                 <Button variant="contained" onClick={() => saveProject()}>Tallenna muutokset</Button>
-                <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
               </Box>
-              <Button variant="contained" color="error" onClick={() => setConfirmCancelOpen(true)}>Peruuta projekti</Button>
+              <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
             </Box>
           }
           {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Returned && <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>}
