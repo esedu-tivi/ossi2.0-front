@@ -1,12 +1,15 @@
 export type StudentData = {
-    id: number;
-    firstName: string;
-    lastName: string;
-    groupId: string;
-    studyingQualificationTitle: {
-      name: string | null;
-    };
+  id: number;
+  firstName: string;
+  lastName: string;
+  groupId: string;
+  studyingQualificationTitle: {
+    name: string | null;
   };
+  studyingQualification: {
+    "name": string | null
+  }
+};
 
 export interface SortConfig {
   key: keyof StudentData | null; // The data to sort from

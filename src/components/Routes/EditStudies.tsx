@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Tabs, Tab, Box, Accordion, AccordionSummary, AccordionDetails, Typography, LinearProgress } from '@mui/material';
+import { Box, Accordion, AccordionSummary, AccordionDetails, Typography, LinearProgress } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import StudiesData, { Task, Subtopic, Study } from '../../data/StudiesData';
+import { StudentData } from '../common/studentHelpers';
 // import HoksGraphsComponent from '../HoksGraphsComponent';
-
-interface Student {
-  firstName: string;
-  lastName: string;
-}
 
 // Calculate progress
 const calculateProgress = (tasks: Task[]) => {
@@ -24,11 +19,8 @@ const handleInfoClick = (id: number) => {
   console.log('Info clicked for task or subtopic with id:', id);
 };
 
-const EditStudies: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const student = location.state?.student as Student | undefined;
+const EditStudies: React.FC<{ student: StudentData }> = ({ student }) => {
+  //const location = useLocation();
 
   // This subtopic state must match the same interface from StudiesData
   // const [selectedSubtopic, setSelectedSubtopic] = useState<Subtopic | null>(null);
@@ -118,60 +110,24 @@ const EditStudies: React.FC = () => {
     });
   };
 
-  // Tab logic
-  const handleTabChange = (_event: React.SyntheticEvent, newIndex: number) => {
-        if (newIndex === 0) {
-          navigate('/teacherdashboard/educationpath', { state: { student } });
-        } else if (newIndex === 1) {
-          navigate('/teacherdashboard/teacherstudies', { state: { student } });
-        }else if(newIndex === 2){
-          navigate('/teacherdashboard/studentprojects',{state:{student}});
-        }
-      };
-
-  const tabIndex = location.pathname === '/teacherdashboard/teacherstudies' ? 0 : 1;
-
   return (
-    <div>
-      <Tabs
-        value={tabIndex}
-        onChange={handleTabChange}
-        aria-label="edit studies tabs"
-        sx={{
-          '& .MuiTab-root': {
-            backgroundColor: '#eaddff',
-            borderRadius: '10px 10px 0 0',
-          },
-          '& .Mui-selected': {
-            backgroundColor: '#65558f',
-            color: '#ffffff !important',
-            borderRadius: '10px 10px 0 0',
-          },
-        }}
-      >
-        <Tab label="Opinnot" />
-        <Tab label="HOKS" />
-        <Tab label='Projektit'></Tab>
-      </Tabs>
-
-      {tabIndex === 0 && (
-        <Box>
-          <Typography variant="h6" sx={{ padding: 2 }}>
-            Tutkinnon osat
+    <>
+      <Box>
+        <Typography variant="h6" sx={{ padding: 2 }}>
+          Tutkinnon osat
+        </Typography>
+        {student && (
+          <Typography variant="body1" sx={{ padding: 2 }}>
+            Opiskelija: {student.firstName} {student.lastName}
           </Typography>
-          {student && (
-            <Typography variant="body1" sx={{ padding: 2 }}>
-              Opiskelija: {student.firstName} {student.lastName}
-            </Typography>
-          )}
+        )}
 
-          {/* Provide fallback if subtopics is missing */}
-          {/* <HoksGraphsComponent subtopics={StudiesData[0]?.subtopics ?? []} selectedSubtopic={selectedSubtopic} /> */}
+        {/* Provide fallback if subtopics is missing */}
+        {/* <HoksGraphsComponent subtopics={StudiesData[0]?.subtopics ?? []} selectedSubtopic={selectedSubtopic} /> */}
 
-          {renderStudies(StudiesData)}
-        </Box>
-      )}
-    </div>
+        {renderStudies(StudiesData)}
+      </Box>
+    </>
   );
 };
 

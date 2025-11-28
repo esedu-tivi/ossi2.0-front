@@ -12,10 +12,12 @@ export const GET_STUDENTS = gql`
         lastName
         groupId
         studyingQualification {
+          id
           name
         }
         studyingQualificationTitle {
-        name
+          id
+          name
         }
       }
     }
