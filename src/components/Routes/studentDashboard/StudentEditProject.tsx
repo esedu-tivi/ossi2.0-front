@@ -73,9 +73,6 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
 
   const handleChange = (content: string, field: 'plan' | 'report') => {
     let newContent = content
-    if(String(content).includes('<p>')){
-      newContent = content.replace('<p>','').replace('</p>','')
-    }
     setFormData({...formData, [field]: newContent});
   };
 
@@ -121,7 +118,12 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
       console.log('project is undefinded');
       return;
     };
-
+    if(String(formData.plan).includes('<p>') || String(formData.plan).includes('&nbsp;') ){
+      formData.plan = formData.plan.replace(/<\/?p>/g, '').replace(/&nbsp;/g, '');
+    }
+    if(String(formData.report).includes('<p>') || String(formData.report).includes('&nbsp;') ){
+      formData.report = formData.report.replace(/<\/?p>/g, '').replace(/&nbsp;/g, '');
+    }
     const projectUpdate = { projectPlan: formData.plan, projectReport: formData.report, projectStatus: setStatus };
     await updateProject({ variables: { studentId, projectId: data.me.user.assignedProjectSingle.project.parentProject.id, update: projectUpdate }});
   };
