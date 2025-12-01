@@ -1,7 +1,6 @@
 // TODO uses hardcoded data. Needs to be changed to use backend data when possible
 
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Accordion,
   AccordionSummary,
@@ -14,8 +13,6 @@ import {
   Modal,
   Checkbox,
   FormControlLabel,
-  Tabs,
-  Tab,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import buttonStyles from '../../styles/buttonStyles';
@@ -25,7 +22,8 @@ import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import CheckBoxSharpIcon from '@mui/icons-material/CheckBoxSharp';
 import AddCircleOutlineSharpIcon from '@mui/icons-material/AddCircleOutlineSharp';
 import { mandatoryModules, choiceModules, optionalModulesList } from '../../data/EducationPathData';
-import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
+import { StudentData } from '../common/studentHelpers';
+//import StudentTabs from '../common/StudentTabs';
 
 interface ModulePart {
   id: number;
@@ -43,10 +41,7 @@ interface Module {
   completed: boolean;
 }
 
-const EducationPath: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const student = location.state?.student;
+const EducationPath: React.FC<{ student: StudentData }> = ({ student }) => {
   const [modules] = useState<Module[]>(mandatoryModules);
   const [optionalModules, setOptionalModules] = useState<Module[]>(choiceModules);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -74,56 +69,11 @@ const EducationPath: React.FC = () => {
     handleAddModalClose();
   };
 
-  const handleTabChange = (_event: React.SyntheticEvent, newIndex: number) => {
-        if (newIndex === 0) {
-          navigate('/teacherdashboard/educationpath', { state: { student } });
-        } else if (newIndex === 1) {
-          navigate('/teacherdashboard/teacherstudies', { state: { student } });
-        }else if(newIndex === 2){
-          navigate('/teacherdashboard/studentprojects',{state:{student}});
-        }
-      };
-
-  const tabIndex = location.pathname === '/teacherdashboard/educationpath' ? 0 : 1;
-
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', mx: '10%' }}>
+    <>
       <Box>
-        <Tabs
-          value={tabIndex}
-          onChange={handleTabChange}
-          aria-label="edit studies tabs"
-          sx={{
-            alignSelf: 'flex-start',
-            '& .MuiTab-root': {
-              backgroundColor: '#eaddff',
-              borderRadius: '10px 10px 0 0',
-            },
-            '& .Mui-selected': {
-              backgroundColor: '#65558f',
-              color: '#ffffff !important',
-              borderRadius: '10px 10px 0 0',
-            },
-          }}
-        >
-          <Tab label="Opinnot" />
-          <Tab label="HOKS" />
-          <Tab label='Projektit'></Tab>
-        </Tabs>
         <Box sx={formStyles.formOuterBox}>
           <Box sx={{ ...formStyles.formBannerBox, textAlign: 'center', marginBottom: 3, position: 'relative', borderTopLeftRadius: '0px' }}>
-            <IconButton
-              onClick={() => navigate('/teacherdashboard')}
-              sx={{
-                position: 'absolute',
-                left: '16px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'white',
-              }}
-            >
-              <ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
-            </IconButton>
             <Typography variant="h5" color="white" fontWeight="bold">
               Opintosuunnitelma
             </Typography>
@@ -422,7 +372,7 @@ const EducationPath: React.FC = () => {
           </Box>
         </Box>
       </Box>
-    </Box>
+    </>
   );
 };
 

@@ -12,12 +12,13 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { GET_STUDENTS } from '../graphql/GetStudents';
 import '../css/StudentList.css';
 import { filterStudents, sortStudents, StudentData, SortConfig } from './common/studentHelpers';
-import { useNavigate } from 'react-router-dom';
+import StudentTabs from './common/StudentTabs';
 
 const StudentList: React.FC = () => {
-    const navigate = useNavigate();
     //GraphQL query to fetch student data
     const { loading, error, data } = useQuery(GET_STUDENTS);
+    const [showStudentInfo, setShowStudentInfo] = useState(false)
+    const [student, setStudent] = useState<StudentData | null>(null)
 
     // State for the user-entered search query, used to filter displayed students
     const [searchQuery, setSearchQuery] = useState('');
@@ -34,7 +35,9 @@ const StudentList: React.FC = () => {
     };
 
     const goToStudies = (student: StudentData) => {
-        navigate('/teacherdashboard/teacherstudies', { state: { student } });
+        //navigate('/teacherdashboard/teacherstudies', { state: { student } });
+        setStudent(student)
+        setShowStudentInfo(true)
     };
 
     // Update the sorting configuration when a column header is clicked
@@ -60,6 +63,10 @@ const StudentList: React.FC = () => {
     // Filter students based on the current search query and sort config
     const filteredStudents = filterStudents(students, searchQuery);
     const sortedStudents = sortStudents(filteredStudents, sortConfig);
+
+    if (student && showStudentInfo) {
+        return <StudentTabs student={student} setShowStudentInfo={setShowStudentInfo} />
+    }
 
     return (
         <div className="student-list-container">

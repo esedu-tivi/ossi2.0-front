@@ -17,12 +17,9 @@ import QualificationUnitPartList from './components/QualificationUnitPartList';
 import QualificationUnitPartDetails from './components/Routes/QualificationUnitPartDetails';
 import CreatePart from './components/Routes/CreatePart';
 import EditPart from './components/Routes/EditPart';
-import EditStudies from './components/Routes/EditStudies';
-import EducationPath from './components/Routes/EducationPath';
 import ReorderParts from './components/Routes/ReorderParts';
 import NewUserLogin from './components/Routes/NewUserLogin';
 import Workplaces from './components/Routes/Workplaces';
-import StudentProjectsPath from './components/Routes/StudentProjectsPath';
 
 const App = () => {
     const { isAuthenticated, userEmail, role } = useAuth();
@@ -237,32 +234,6 @@ const App = () => {
                 }
             />
             <Route
-                path="/teacherdashboard/teacherstudies"
-                element={
-                    <ProtectedRoute
-                        allowedRoles={["teacher"]}
-                        element={
-                            <AppLayout>
-                                <EditStudies />
-                            </AppLayout>
-                        }
-                    />
-                }
-            />
-            <Route
-                path="/teacherdashboard/educationpath"
-                element={
-                    <ProtectedRoute
-                        allowedRoles={["teacher"]}
-                        element={
-                            <AppLayout>
-                                <EducationPath />
-                            </AppLayout>
-                        }
-                    />
-                }
-            />
-            <Route
                 path="/teacherdashboard/reorderparts"
                 element={
                     <ProtectedRoute
@@ -286,18 +257,6 @@ const App = () => {
                     />
                 }
             />
-            <Route
-                path="/teacherdashboard/studentprojects"
-                element={
-                    <ProtectedRoute
-                        element={
-                                <AppLayout>
-                                    <StudentProjectsPath/>
-                                    </AppLayout>
-                                }
-                            />
-                        }
-                    />
         </Routes>
     );
 };

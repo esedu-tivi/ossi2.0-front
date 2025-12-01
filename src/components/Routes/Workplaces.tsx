@@ -9,6 +9,8 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
+import DeleteIcon from "@mui/icons-material/Delete"
+
 import { filterWorkplaces, SortConfig, sortWorkplaces, Workplace } from "../common/teacherHelpers"
 import WorkplaceForm from "./WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
@@ -260,7 +262,7 @@ const Workplaces = () => {
                     <Button
                       variant="outlined"
                       color="primary"
-                      startIcon={<InfoIcon />}
+                      startIcon={<DeleteIcon />}
                       size="small"
                       onClick={() => handleDelete(workplace.id, workplace.name)}
                     >
