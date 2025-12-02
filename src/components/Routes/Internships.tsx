@@ -52,7 +52,7 @@ const initFormData: InternshipWithoutId = {
 const Internships = ({ student }: { student: StudentData }) => {
   const [showAddInternship, setShowInternship] = useState(false)
   const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
-  const [createInternship] = useMutation(CREATE_INTERNSHIP)
+  const [createInternship] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
   const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
   const [internship, setInternship] = useState<ParsedInternships[]>([])
