@@ -1,14 +1,21 @@
-import { Button } from "@mui/material";
+import { Box, Button, TableBody, TableCell, TableRow } from "@mui/material";
 import { useState } from "react"
 import InternshipForm from "../InternshipForm";
 import { StudentData } from "../common/studentHelpers";
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_INTERNSHIP } from "../../graphql/CreateInternship";
+import { GET_STUDENT_INTERNSHIPS } from "../../graphql/GetStudentInternships";
+import Table, { TableHeaderPart } from "../common/Table";
 
-export interface InternshipFormData {
+import AddIcon from "@mui/icons-material/Add"
+import EditIcon from "@mui/icons-material/Edit"
+import InfoIcon from "@mui/icons-material/Info"
+import DeleteIcon from "@mui/icons-material/Delete"
+
+export interface Internship {
   id: string | number | null
-  startDate: Date | ""
-  endDate: Date | ""
+  startDate: Date | string
+  endDate: Date | string
   info: string
   qualificationUnitId: string
   workplaceId: string
@@ -17,9 +24,21 @@ export interface InternshipFormData {
   jobSupervisorId: string
 }
 
-export type InternshipFormDataWithoutId = Omit<InternshipFormData, "id">
+interface InternshipData extends Internship {
+  workplace: {
+    id: string
+    name: string
+  }
+}
 
-const initFormData: InternshipFormDataWithoutId = {
+interface ParsedInternships extends InternshipData {
+  startDate: string
+  endDate: string
+}
+
+export type InternshipWithoutId = Omit<Internship, "id">
+
+const initFormData: InternshipWithoutId = {
   startDate: "",
   endDate: "",
   info: "",
@@ -30,11 +49,15 @@ const initFormData: InternshipFormDataWithoutId = {
   jobSupervisorId: ""
 }
 
-
 const Internships = ({ student }: { student: StudentData }) => {
   const [showAddInternship, setShowInternship] = useState(false)
-  const [formData, setFormData] = useState<Omit<InternshipFormData, "id">>(initFormData);
+  const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
   const [createInternship] = useMutation(CREATE_INTERNSHIP)
+  const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
 
   const handleNewFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -45,14 +68,116 @@ const Internships = ({ student }: { student: StudentData }) => {
     setShowInternship(false)
   }
 
-  //console.log('interships')
   if (showAddInternship) {
-    return <InternshipForm formTitle="Lisää harjoittelujakso" formData={formData} setFormData={setFormData} student={student} setShowForm={setShowInternship} formSubmitHandler={handleNewFormSubmit} />
+    return <InternshipForm
+      formTitle="Lisää harjoittelujakso"
+      formData={formData}
+      setFormData={setFormData}
+      student={student}
+      setShowForm={setShowInternship}
+      formSubmitHandler={handleNewFormSubmit}
+    />
   }
 
+  const internships = data.internships?.internships
+  const parsedInternships = internships.map((internship: InternshipData) => ({
+    ...internship,
+    startDate: new Date(internship.startDate).toLocaleDateString("fi-FI"),
+    endDate: new Date(internship.endDate).toLocaleDateString("fi-FI")
+  })) as ParsedInternships[]
+
+  const headerParts: TableHeaderPart[] = [
+    {
+      name: "id",
+      title: "#ID",
+      type: "sort"
+    },
+    {
+      name: "workplaceName",
+      title: "Työpaikka",
+      type: "sort",
+    },
+    {
+      name: "info",
+      title: "Info",
+      type: "sort"
+    },
+    {
+      name: "startDate",
+      title: "Aloitusaika",
+      type: "sort",
+    },
+    {
+      name: "endDate",
+      title: "Lopetusaika",
+      type: "sort",
+    },
+    {
+      name: "search",
+      type: "search"
+    }
+  ]
+
   return (
-    <Button onClick={() => { setShowInternship(true) }}>Lisää harjoittelujakso</Button>
+    <>
+      <Box className="button-container" sx={{ mt: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          className="add-internship-button"
+          startIcon={<AddIcon />}
+          onClick={() => { setShowInternship(true) }}
+        >
+          Lisää harjoittelujakso
+        </Button>
+      </Box>
+      <Table headerParts={headerParts}>
+        <TableBody>
+          {parsedInternships.map(internship => (
+            <TableRow key={internship.id} className="table-row">
+              <TableCell>{internship.id}</TableCell>
+              <TableCell>{internship.workplace.name}</TableCell>
+              <TableCell>{internship.info}</TableCell>
+              <TableCell>{internship.startDate}</TableCell>
+              <TableCell>{internship.endDate}</TableCell>
+              <TableCell>
+                <div className="button-group">
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<EditIcon />}
+                    size="small"
+                    onClick={() => console.log("Edit")}
+                  >
+                    Muokkaa
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<InfoIcon />}
+                    size="small"
+                    onClick={() => console.log("Info")}
+                  >
+                    Tiedot
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<DeleteIcon />}
+                    size="small"
+                    onClick={() => console.log("Delete")}
+                  >
+                    Poista
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </>
   )
+
 }
 
 export default Internships
