@@ -1,5 +1,5 @@
 import { Box, Button, TableBody, TableCell, TableRow } from "@mui/material";
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import InternshipForm from "../InternshipForm";
 import { StudentData } from "../common/studentHelpers";
 import { useMutation, useQuery } from "@apollo/client";
@@ -54,6 +54,21 @@ const Internships = ({ student }: { student: StudentData }) => {
   const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
   const [createInternship] = useMutation(CREATE_INTERNSHIP)
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
+  const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
+  const [internship, setInternship] = useState<ParsedInternships[]>([])
+
+
+  useEffect(() => {
+    if (data && !loading) {
+      const parsedInternships = data.internships?.internships.map((internship: Internship) => ({
+        ...internship,
+        startDate: new Date(internship.startDate).toLocaleDateString("fi-FI"),
+        endDate: new Date(internship.endDate).toLocaleDateString("fi-FI")
+      })) as ParsedInternships[]
+      setInternship(parsedInternships)
+    }
+
+  }, [setInternship, data, loading])
 
   if (loading) {
     return <div>Loading...</div>
@@ -79,12 +94,8 @@ const Internships = ({ student }: { student: StudentData }) => {
     />
   }
 
-  const internships = data.internships?.internships
-  const parsedInternships = internships.map((internship: InternshipData) => ({
-    ...internship,
-    startDate: new Date(internship.startDate).toLocaleDateString("fi-FI"),
-    endDate: new Date(internship.endDate).toLocaleDateString("fi-FI")
-  })) as ParsedInternships[]
+
+
 
   const headerParts: TableHeaderPart[] = [
     {
@@ -131,9 +142,14 @@ const Internships = ({ student }: { student: StudentData }) => {
           Lisää harjoittelujakso
         </Button>
       </Box>
-      <Table headerParts={headerParts}>
+      <Table<ParsedInternships>
+        headerParts={headerParts}
+        data={internship}
+        setSortedData={setSortedInternships}
+        filterField={"workplace.name"}
+      >
         <TableBody>
-          {parsedInternships.map(internship => (
+          {sortedInternships.map(internship => (
             <TableRow key={internship.id} className="table-row">
               <TableCell>{internship.id}</TableCell>
               <TableCell>{internship.workplace.name}</TableCell>

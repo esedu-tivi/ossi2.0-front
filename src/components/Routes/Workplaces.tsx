@@ -2,21 +2,22 @@ import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { Alert, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material"
+import { Alert, Button, TableBody, TableCell, TableRow } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
-import SearchIcon from "@mui/icons-material/Search"
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
+// import SearchIcon from "@mui/icons-material/Search"
+// import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
+// import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 
-import { filterWorkplaces, SortConfig, sortWorkplaces, Workplace } from "../common/teacherHelpers"
+import { Workplace } from "../common/teacherHelpers"
 import WorkplaceForm from "./WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
 import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
 import { DELETE_WORKPLACE } from "../../graphql/DeleteWorkplace"
 import { useConfirm } from "material-ui-confirm"
+import Table, { TableHeaderPart } from "../common/Table"
 
 export interface WorkplaceFormData {
   id: string | number | null
@@ -38,25 +39,19 @@ const Workplaces = () => {
     refetchQueries: [{ query: GET_WORKPLACES }]
   })
 
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    column: null,
-    order: null,
-  })
-
   const [message, setMessage] = useState<{ type: 'error' | 'info'; message: string | null }>({ type: 'info', message: null })
 
   const [showNewForm, setNewForm] = useState(false)
   const [showEditForm, setEditForm] = useState(false)
 
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
+  const [sortedWorkplaces, setSortedWorkplaces] = useState<Workplace[]>([])
 
   const workplaces: Workplace[] = data?.workplaces?.workplaces || []
 
-  const filteredWorkplaces = filterWorkplaces(workplaces, searchQuery)
+  //const filteredWorkplaces = filterWorkplaces(workplaces, searchQuery)
 
-  const sortedWorkplaces = sortWorkplaces(filteredWorkplaces, sortConfig)
+  //const sortedWorkplaces = sortWorkplaces(filteredWorkplaces, sortConfig)
 
   const initFormData = {
     id: null,
@@ -76,24 +71,6 @@ const Workplaces = () => {
 
     return () => clearTimeout(timeoutId)
   }, [message])
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value)
-  }
-
-  const handleSort = (column: string) => {
-    setSortConfig((prevConfig) => {
-      switch (prevConfig.order) {
-        case ("asc"):
-          return { column, order: "desc" }
-        case ("desc"):
-          return { column: null, order: null }
-
-        default:
-          return { column, order: "asc" }
-      }
-    })
-  }
 
   const handleDelete = async (id: number, name: string) => {
     console.log(id);
@@ -172,6 +149,23 @@ const Workplaces = () => {
     />
   }
 
+  const headerParts: TableHeaderPart[] = [
+    {
+      name: "id",
+      title: "ID#",
+      type: "sort"
+    },
+    {
+      name: "name",
+      title: "Työpaikan nimi",
+      type: "sort"
+    },
+    {
+      name: "search",
+      type: "search"
+    }
+  ]
+
   return (
     <>
       <div className="button-container">
@@ -187,94 +181,50 @@ const Workplaces = () => {
       </div>
       {message.message && <Alert security={message.type}>{message.message}</Alert>}
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow className="table-header">
-              <TableCell
-                className="table-header-cell table-header-id"
-                onClick={() => handleSort("id")}
-              >
-                <div className="sortable-header">
-                  ID#
-                  {sortConfig.column === "id" && sortConfig.order === "asc" ? (
-                    <ArrowUpwardIcon fontSize="small" />
-                  ) : sortConfig.column === "id" && sortConfig.order === "desc" ? (
-                    <ArrowDownwardIcon fontSize="small" />
-                  ) : null}
-                </div>
-              </TableCell>
-              <TableCell
-                className="table-header-cell table-header-name"
-                onClick={() => handleSort("name")}
-              >
-                <div className="sortable-header">
-                  Työpaikan nimi
-                  {sortConfig.column === "name" && sortConfig.order === "asc" ? (
-                    <ArrowUpwardIcon fontSize="small" />
-                  ) : sortConfig.column === "name" && sortConfig.order === "desc" ? (
-                    <ArrowDownwardIcon fontSize="small" />
-                  ) : null}
-                </div>
-              </TableCell>
-              <TableCell className="table-header-cell">
-                <div className="search-container">
-                  <SearchIcon />
-                  <TextField
-                    placeholder="Hae…"
+      <Table<Workplace> headerParts={headerParts} data={workplaces} setSortedData={setSortedWorkplaces} filterField="name">
+        <TableBody>
+          {sortedWorkplaces.map((workplace) => (
+            <TableRow key={workplace.id} className="table-row">
+              <TableCell>{workplace.id}</TableCell>
+              <TableCell>{workplace.name}</TableCell>
+              <TableCell>
+                <div className="button-group">
+                  <Button
                     variant="outlined"
+                    color="primary"
+                    startIcon={<EditIcon />}
                     size="small"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                  />
+                    onClick={() => {
+                      setSelectedWorkplaceId(workplace.id)
+                      setEditForm(true)
+                    }}
+                  >
+                    Muokkaa
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<InfoIcon />}
+                    size="small"
+                    onClick={() => navigate(`/workplaces/${workplace.id}`)}
+                  >
+                    Tiedot
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<DeleteIcon />}
+                    size="small"
+                    onClick={() => handleDelete(workplace.id, workplace.name)}
+                  >
+                    Poista
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {sortedWorkplaces.map((workplace) => (
-              <TableRow key={workplace.id} className="table-row">
-                <TableCell>{workplace.id}</TableCell>
-                <TableCell>{workplace.name}</TableCell>
-                <TableCell>
-                  <div className="button-group">
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<EditIcon />}
-                      size="small"
-                      onClick={() => {
-                        setSelectedWorkplaceId(workplace.id)
-                        setEditForm(true)
-                      }}
-                    >
-                      Muokkaa
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<InfoIcon />}
-                      size="small"
-                      onClick={() => navigate(`/workplaces/${workplace.id}`)}
-                    >
-                      Tiedot
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<DeleteIcon />}
-                      size="small"
-                      onClick={() => handleDelete(workplace.id, workplace.name)}
-                    >
-                      Poista
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          ))}
+        </TableBody>
+      </Table>
     </>
   )
 }
