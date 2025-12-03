@@ -11,6 +11,7 @@ import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
+import { useConfirm } from "material-ui-confirm";
 
 export interface Internship {
   id: string | number | null
@@ -56,7 +57,7 @@ const Internships = ({ student }: { student: StudentData }) => {
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
   const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
   const [internship, setInternship] = useState<ParsedInternships[]>([])
-
+  const confirm = useConfirm()
 
   useEffect(() => {
     if (data && !loading) {
@@ -70,6 +71,12 @@ const Internships = ({ student }: { student: StudentData }) => {
 
   }, [setInternship, data, loading])
 
+  useEffect(() => {
+    if (!showAddInternship) {
+      setFormData(initFormData)
+    }
+  }, [showAddInternship, formData])
+
   if (loading) {
     return <div>Loading...</div>
   }
@@ -78,9 +85,14 @@ const Internships = ({ student }: { student: StudentData }) => {
     event.preventDefault()
     console.log(event.target)
     console.log(formData)
-    await createInternship({ variables: { internship: formData } })
-    setFormData(initFormData)
-    setShowInternship(false)
+    const { confirmed } = await confirm({
+      title: "Lisäys",
+      description: "Oletko aivan varma, että haluat lisätä harjoittelu jakson?"
+    })
+    if (confirmed) {
+      await createInternship({ variables: { internship: formData } })
+      setShowInternship(false)
+    }
   }
 
   if (showAddInternship) {
