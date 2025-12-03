@@ -1,22 +1,23 @@
 import { Box, IconButton, MenuItem, TextField, Typography } from "@mui/material"
-import { InternshipFormDataWithoutId } from "./Routes/Internships"
+import { InternshipWithoutId } from "./Routes/Internships"
 import formStyles from "../styles/formStyles"
-import { Dispatch, SetStateAction, useEffect } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 
 import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import buttonStyles from "../styles/buttonStyles";
-import { useQuery } from "@apollo/client";
+import { useLazyQuery, useQuery } from "@apollo/client";
 import { StudentData } from "./common/studentHelpers";
 import { GET_INTERNSHIP_DATA } from "../graphql/GetInternshipData";
+import { GET_JOB_SUPERVISORS_BY_WORKPLACE } from "../graphql/GetJobSupervisorsByWorkplace";
 
 interface InternshipFormProps {
   formTitle: string
   formSubmitHandler: (event: React.FormEvent<HTMLFormElement>) => void
   setShowForm: Dispatch<SetStateAction<boolean>>
   student: StudentData
-  formData: InternshipFormDataWithoutId
-  setFormData: Dispatch<SetStateAction<InternshipFormDataWithoutId>>
+  formData: InternshipWithoutId
+  setFormData: Dispatch<SetStateAction<InternshipWithoutId>>
 }
 
 const InternshipForm = ({
@@ -28,20 +29,31 @@ const InternshipForm = ({
   student,
 }: InternshipFormProps) => {
 
+  const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<string | null>(null)
+
   const { loading, data, error } = useQuery(GET_INTERNSHIP_DATA)
+  const [loadSupervisors, jobSupervisorsData] = useLazyQuery(GET_JOB_SUPERVISORS_BY_WORKPLACE, {
+    variables: { workplaceId: selectedWorkplaceId }
+  })
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
-    setFormData((prevFormData) => ({
+    setFormData((prevFormData: InternshipWithoutId) => ({
       ...prevFormData,
       [name]: value
     }));
   };
 
+  const workplaceHandleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSelectedWorkplaceId(event.target.value)
+    loadSupervisors()
+    handleChange(event)
+  }
+
   // Preload teacherId and studentId for formData
   useEffect(() => {
     if (!loading && !error && data) {
-      setFormData((prevFormData) => ({
+      setFormData((prevFormData: InternshipWithoutId) => ({
         ...prevFormData,
         teacherId: data.me?.user.id as unknown as string,
         studentId: student.id as unknown as string,
@@ -49,7 +61,7 @@ const InternshipForm = ({
     }
   }, [data, setFormData, student, loading, error])
 
-  if (loading) {
+  if (loading || jobSupervisorsData.loading) {
     return <div>loading</div>
   }
 
@@ -60,6 +72,8 @@ const InternshipForm = ({
   const teacher = data.me?.user || null
   const workplaces = data.workplaces?.workplaces || null
   const qualificationUnits = data.units?.units || null
+
+  const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors || []
 
   return (
     <Box
@@ -134,7 +148,7 @@ const InternshipForm = ({
           </TextField>
           <TextField
             value={formData.workplaceId}
-            onChange={handleChange}
+            onChange={workplaceHandleChange}
             name="workplaceId"
             label='Työpaikka'
             required
@@ -160,14 +174,32 @@ const InternshipForm = ({
           </TextField>
           {formData.workplaceId &&
             <TextField
-              label="Työpaikka ohjaaja"
-              variant="outlined"
-              name="jobSupervisorId"
               value={formData.jobSupervisorId}
               onChange={handleChange}
+              name="jobSupervisorId"
+              label='Työpaikka ohjaaja'
+              required
+              select
               fullWidth
               sx={{ my: 2 }}
-            />}
+              slotProps={{
+                htmlInput: {
+                  sx: {
+                    textAlign: "left",
+                  },
+                },
+              }}
+            >
+              {jobSupervisors.map((jobSupervisor: { id: string; firstName: string, lastName: string, email: string }) => (
+                <MenuItem
+                  key={jobSupervisor.id}
+                  value={jobSupervisor.id}
+                >
+                  {`${jobSupervisor.firstName} ${jobSupervisor.lastName}`}
+                </MenuItem>
+              ))}
+            </TextField>
+          }
           <TextField
             type="date"
             label="Milloin alkaa"

@@ -106,9 +106,6 @@ const Internships = ({ student }: { student: StudentData }) => {
     />
   }
 
-
-
-
   const headerParts: TableHeaderPart[] = [
     {
       name: "id",
