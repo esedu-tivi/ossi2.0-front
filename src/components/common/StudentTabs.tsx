@@ -43,7 +43,7 @@ const StudentTabs = ({ student, setShowStudentInfo }: StudentTabsProps) => {
         <Tab label='Opinnot' />
         <Tab label='HOKS' />
         <Tab label='Projektit' />
-        <Tab label='Harjoittelupaikat' />
+        <Tab label='Harjoittelujaksot' />
       </Tabs>
       {(tabIndex === 0) && <EditStudies student={student} />}
       {(tabIndex === 1) && <EducationPath student={student} />}
