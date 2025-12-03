@@ -70,8 +70,8 @@ const InternshipForm = ({
   }
 
   const teacher = data.me?.user || null
-  const workplaces = data.workplaces?.workplaces || null
-  const qualificationUnits = data.units?.units || null
+  const workplaces = data.workplaces?.workplaces || []
+  const qualificationUnits = data.units?.units || []
 
   const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors || []
 
@@ -146,32 +146,35 @@ const InternshipForm = ({
               </MenuItem>
             ))}
           </TextField>
-          <TextField
-            value={formData.workplaceId}
-            onChange={workplaceHandleChange}
-            name="workplaceId"
-            label='Työpaikka'
-            required
-            select
-            fullWidth
-            sx={{ my: 2 }}
-            slotProps={{
-              htmlInput: {
-                sx: {
-                  textAlign: "left",
+          {workplaces.length ?
+            <TextField
+              value={formData.workplaceId}
+              onChange={workplaceHandleChange}
+              name="workplaceId"
+              label='Työpaikka'
+              required
+              select
+              fullWidth
+              sx={{ my: 2 }}
+              slotProps={{
+                htmlInput: {
+                  sx: {
+                    textAlign: "left",
+                  },
                 },
-              },
-            }}
-          >
-            {workplaces.map((workplace: { id: string; name: string }) => (
-              <MenuItem
-                key={workplace.id}
-                value={workplace.id}
-              >
-                {workplace.name}
-              </MenuItem>
-            ))}
-          </TextField>
+              }}
+            >
+
+              {workplaces.map((workplace: { id: string; name: string }) => (
+                <MenuItem
+                  key={workplace.id}
+                  value={workplace.id}
+                >
+                  {workplace.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            : <Box><Typography color="error">Ei yhtään työpaikkaa löytynyt</Typography></Box>}
           {formData.workplaceId &&
             <TextField
               value={formData.jobSupervisorId}
@@ -200,6 +203,7 @@ const InternshipForm = ({
               ))}
             </TextField>
           }
+
           <TextField
             type="date"
             label="Milloin alkaa"
@@ -245,6 +249,7 @@ const InternshipForm = ({
                 mr: 1,
               }}
             />
+            Tallenna
           </IconButton>
         </Box>
       </Box>

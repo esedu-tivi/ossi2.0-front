@@ -161,7 +161,7 @@ const Internships = ({ student }: { student: StudentData }) => {
           {sortedInternships.map(internship => (
             <TableRow key={internship.id} className="table-row">
               <TableCell>{internship.id}</TableCell>
-              <TableCell>{internship.workplace.name}</TableCell>
+              <TableCell>{internship.workplace?.name}</TableCell>
               <TableCell>{internship.info}</TableCell>
               <TableCell>{internship.startDate}</TableCell>
               <TableCell>{internship.endDate}</TableCell>
