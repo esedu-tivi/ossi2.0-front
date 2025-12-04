@@ -11,6 +11,7 @@ import ProjectDescription from "./ProjectDescription";
 import { GET_ASSIGNED_PROJECT } from "../../../graphql/GetAssignedProject";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+
 interface StudentEditProjectProps {
   open: boolean;
   onClose: () => void;
@@ -42,6 +43,9 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
       height:'100%',
       margin:'0px',
       padding:'0px',
+    },
+    extrBtn:{
+      
     }
   }
 
@@ -130,17 +134,14 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
 
   return (
     <Dialog scroll="paper" fullWidth={true} maxWidth={false} style={styles.dialog} open={open} onClose={() => handleClose()}>
-      <Box sx={{display:'flex',flexDirection:'row' ,alignItems:'space-between'}}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width:'auto'}}>
         <DialogTitle sx={{ width: '60%' }}>{data.me.user.assignedProjectSingle.project.parentProject.name}</DialogTitle>
-        <Accordion sx={{width:'30%', margin:0}} disableGutters={true} >
+        <Accordion sx={{width:'20%', margin:0}} disableGutters={true}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Ekstra</Typography>
+            <Typography onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Button variant="contained" onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Button>
-          </AccordionDetails>
-          <AccordionDetails>
-            <Button variant="contained" color="error" onClick={() => setConfirmCancelOpen(true)}>Peruuta projekti</Button>
+            <Typography color="error" onClick={() => setConfirmCancelOpen(true)}>Peruuta projekti</Typography>
           </AccordionDetails>
         </Accordion>
       </Box>
@@ -167,16 +168,13 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
         <TimeTrackingTable project={data.me.user.assignedProjectSingle.project} studentId={studentId} />
         {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
         <Box sx={{ p: 1 }}>
-          <Box sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ pb: 1, display: 'flex',justifyContent:'space-between', alignItems: 'center', width:'auto', marginTop:'1rem' }}>
             <Typography>Projektiin käytetty aika: {daysUsed}/{data.me.user.assignedProjectSingle.project.parentProject.duration} päivää</Typography>
             <Button variant="contained">Pyydä lisää aikaa</Button>
           </Box>
-          <LinearProgress variant="determinate" value={100 / data.me.user.assignedProjectSingle.project.parentProject.duration * daysUsed} />
-        </Box>
-      }
-        <Box sx={{ mt: 2 }}>
+          <LinearProgress sx={{maxWidth:'100%'}} variant="determinate" value={100 / data.me.user.assignedProjectSingle.project.parentProject.duration * daysUsed} />
           {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working && 
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "end" }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width:'auto', marginTop:'1rem'}}>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 { recentlySaved && <Typography>Tallennettu</Typography>}
                 <Button variant="contained" onClick={() => saveProject()}>Tallenna muutokset</Button>
@@ -184,8 +182,7 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
               <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
             </Box>
           }
-          {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Returned && <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>}
-        </Box>
+        </Box>}
       </Box>
       <ProjectDescription project={data.me.user.assignedProjectSingle.project.parentProject} descriptionOpen={descriptionOpen} onClose={() => setDescriptionOpen(false)} />
       <Dialog open={confirmCancelOpen} onClose={() => setConfirmCancelOpen(false)}>
