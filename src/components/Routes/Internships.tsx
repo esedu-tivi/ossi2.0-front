@@ -12,9 +12,10 @@ import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 import { useConfirm } from "material-ui-confirm";
+import { DELETE_INTERNSHIP } from "../../graphql/DeleteInternship";
 
 export interface Internship {
-  id: string | number | null
+  id: string | number
   startDate: Date | string
   endDate: Date | string
   info: string
@@ -54,6 +55,7 @@ const Internships = ({ student }: { student: StudentData }) => {
   const [showAddInternship, setShowInternship] = useState(false)
   const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
   const [createInternship] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
+  const [deleteInternship] = useMutation(DELETE_INTERNSHIP)
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
   const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
   const [internship, setInternship] = useState<ParsedInternships[]>([])
@@ -95,6 +97,21 @@ const Internships = ({ student }: { student: StudentData }) => {
     }
   }
 
+  const handleDelete = async (id: string | number) => {
+    console.log(id)
+    const { confirmed } = await confirm({
+      title: "Poisto",
+      description: "Oletko aivan varma, että haluat poistaa harjoittelu jakson?"
+    })
+
+    if (confirmed) {
+      await deleteInternship({
+        variables: { internshipId: id },
+        refetchQueries: [GET_STUDENT_INTERNSHIPS]
+      })
+    }
+  }
+
   if (showAddInternship) {
     return <InternshipForm
       formTitle="Lisää harjoittelujakso"
@@ -105,9 +122,6 @@ const Internships = ({ student }: { student: StudentData }) => {
       formSubmitHandler={handleNewFormSubmit}
     />
   }
-
-
-
 
   const headerParts: TableHeaderPart[] = [
     {
@@ -164,7 +178,7 @@ const Internships = ({ student }: { student: StudentData }) => {
           {sortedInternships.map(internship => (
             <TableRow key={internship.id} className="table-row">
               <TableCell>{internship.id}</TableCell>
-              <TableCell>{internship.workplace.name}</TableCell>
+              <TableCell>{internship.workplace?.name}</TableCell>
               <TableCell>{internship.info}</TableCell>
               <TableCell>{internship.startDate}</TableCell>
               <TableCell>{internship.endDate}</TableCell>
@@ -193,7 +207,7 @@ const Internships = ({ student }: { student: StudentData }) => {
                     color="primary"
                     startIcon={<DeleteIcon />}
                     size="small"
-                    onClick={() => console.log("Delete")}
+                    onClick={() => handleDelete(internship.id)}
                   >
                     Poista
                   </Button>

@@ -35,4 +35,4 @@ Open localhost to view it in your browser.
 
 ### Extra
 For student devs with @esedulainen.fi email --> if you want to dev on teacher views, change in auth-provider.tsx line 28 setRole(student) to setRole(teacher).
-
+For development change DISABLE_ROLE_BASED_ACCESS_CONTROL in .env file to be true
