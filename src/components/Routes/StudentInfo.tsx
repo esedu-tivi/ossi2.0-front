@@ -1,20 +1,30 @@
-import { Button, Tab, Tabs } from "@mui/material"
+import { Button, Tab, Tabs, Typography } from "@mui/material"
 import { useState } from "react";
-import Internships from "../Routes/Internships";
-import EducationPath from "../Routes/EducationPath";
-import EditStudies from "../Routes/EditStudies";
+import Internships from "./Internships";
+import EducationPath from "./EducationPath";
+import EditStudies from "./EditStudies";
 import BackIcon from "@mui/icons-material/ArrowBack"
 import '../../css/StudentList.css';
-import StudentProjectsPath from "../Routes/StudentProjectsPath";
-import { StudentData } from "./studentHelpers";
+import StudentProjectsPath from "./StudentProjectsPath";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@apollo/client";
+import { GET_STUDENT } from "../../graphql/GetStudent";
 
-interface StudentTabsProps {
-  student: StudentData
-  setShowStudentInfo: React.Dispatch<React.SetStateAction<boolean>>
-}
-
-const StudentTabs = ({ student, setShowStudentInfo }: StudentTabsProps) => {
+const StudentInfo = () => {
   const [tabIndex, setTabIndex] = useState(0)
+  const navigate = useNavigate()
+  const { studentId } = useParams()
+
+  const { data, loading, error } = useQuery(GET_STUDENT, { variables: { studentId } })
+
+  if (loading) {
+    return <Typography>Loading...</Typography>
+  }
+  if (error) {
+    return <Typography>Error: {error.message}</Typography>
+  }
+
+  const student = data.student?.student
 
   const handleTabChange = (_event: React.SyntheticEvent, newIndex: number) => {
     setTabIndex(newIndex)
@@ -22,7 +32,7 @@ const StudentTabs = ({ student, setShowStudentInfo }: StudentTabsProps) => {
 
   return (
     <>
-      <Button variant="contained" sx={{ marginBottom: '10px' }} startIcon={<BackIcon />} onClick={() => setShowStudentInfo(false)}>Palaa</Button>
+      <Button variant="contained" sx={{ marginBottom: '10px' }} startIcon={<BackIcon />} onClick={() => navigate(-1)}>Palaa</Button>
       <Tabs
         value={tabIndex}
         onChange={handleTabChange}
@@ -53,5 +63,5 @@ const StudentTabs = ({ student, setShowStudentInfo }: StudentTabsProps) => {
   )
 }
 
-export default StudentTabs
+export default StudentInfo
 

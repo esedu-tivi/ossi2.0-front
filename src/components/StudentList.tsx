@@ -12,13 +12,12 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { GET_STUDENTS } from '../graphql/GetStudents';
 import '../css/StudentList.css';
 import { filterStudents, sortStudents, StudentData, SortConfig } from './common/studentHelpers';
-import StudentTabs from './common/StudentTabs';
+import { useNavigate } from 'react-router-dom';
 
 const StudentList: React.FC = () => {
     //GraphQL query to fetch student data
     const { loading, error, data } = useQuery(GET_STUDENTS);
-    const [showStudentInfo, setShowStudentInfo] = useState(false)
-    const [student, setStudent] = useState<StudentData | null>(null)
+    const navigate = useNavigate()
 
     // State for the user-entered search query, used to filter displayed students
     const [searchQuery, setSearchQuery] = useState('');
@@ -32,12 +31,6 @@ const StudentList: React.FC = () => {
     // Update the search query state as the user types in the search field
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(event.target.value);
-    };
-
-    const goToStudies = (student: StudentData) => {
-        //navigate('/teacherdashboard/teacherstudies', { state: { student } });
-        setStudent(student)
-        setShowStudentInfo(true)
     };
 
     // Update the sorting configuration when a column header is clicked
@@ -63,10 +56,6 @@ const StudentList: React.FC = () => {
     // Filter students based on the current search query and sort config
     const filteredStudents = filterStudents(students, searchQuery);
     const sortedStudents = sortStudents(filteredStudents, sortConfig);
-
-    if (student && showStudentInfo) {
-        return <StudentTabs student={student} setShowStudentInfo={setShowStudentInfo} />
-    }
 
     return (
         <div className="student-list-container">
@@ -127,7 +116,7 @@ const StudentList: React.FC = () => {
                                 <TableCell>{student.studyingQualificationTitle ? student.studyingQualificationTitle.name : ''}</TableCell>
                                 <TableCell>
                                     <div className="hover-buttons">
-                                        <Button variant="outlined" size="small" startIcon={<InfoIcon />} onClick={() => goToStudies(student)}>
+                                        <Button variant="outlined" size="small" startIcon={<InfoIcon />} onClick={() => navigate(`/teacherdashboard/students/${student.id}`)}>
                                             Tiedot
                                         </Button>
                                         <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => console.log('Edit Student')}>

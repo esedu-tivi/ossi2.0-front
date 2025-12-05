@@ -20,6 +20,7 @@ import EditPart from './components/Routes/EditPart';
 import ReorderParts from './components/Routes/ReorderParts';
 import NewUserLogin from './components/Routes/NewUserLogin';
 import Workplaces from './components/Routes/Workplaces';
+import StudentInfo from './components/Routes/StudentInfo';
 
 const App = () => {
     const { isAuthenticated, userEmail, role } = useAuth();
@@ -240,6 +241,19 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <ReorderParts />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route
+                path="/teacherdashboard/students/:studentId"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={["teacher"]}
+                        element={
+                            <AppLayout>
+                                <StudentInfo />
                             </AppLayout>
                         }
                     />
