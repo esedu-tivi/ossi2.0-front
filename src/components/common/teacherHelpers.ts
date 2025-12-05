@@ -11,9 +11,17 @@ export interface SortConfig {
   order: "asc" | "desc" | null;
 }
 
+export interface JobSupervisor {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+}
+
 export interface Workplace {
   id: number
   name: string
+  jobSupervisors: JobSupervisor[]
 }
 
 // Filter the list of projects by search query. Checks project name 

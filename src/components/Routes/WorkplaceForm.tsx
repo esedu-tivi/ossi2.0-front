@@ -1,19 +1,57 @@
-import { Box, IconButton, TextField, Typography } from "@mui/material"
+import { Box, FormControl, IconButton, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from "@mui/material"
 import formStyles from "../../styles/formStyles"
 import buttonStyles from "../../styles/buttonStyles"
-//import { useNavigate } from "react-router-dom"
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
 import { WorkplaceFormData } from "./Workplaces";
+import React from "react";
+import { JobSupervisor } from "../common/teacherHelpers";
 
 interface WorkplaceFormProps {
-  formData: { name: string }
+  formData: WorkplaceFormData
   setFormData: React.Dispatch<React.SetStateAction<WorkplaceFormData>>
   handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void
   setShowForm: () => void
   formTitle: string
   submitText: string
   loading: boolean
+  jobSupervisors?: JobSupervisor[]
+}
+
+interface JobSupervisorFieldProps {
+  formData: WorkplaceFormData
+  onChange: (event: SelectChangeEvent<string[]>) => void
+  jobSupervisors: JobSupervisor[]
+}
+
+const SupervisorField = ({ formData, onChange, jobSupervisors }: JobSupervisorFieldProps) => {
+  return (
+    <Box textAlign={"left"}>
+      <FormControl fullWidth>
+        <InputLabel shrink={true} id="jobSupervisor-label">
+          Työpaikka ohjaajat
+        </InputLabel>
+        <Select
+          labelId="jobSupervisor-label"
+          variant="outlined"
+          name="jobSupervisorIds"
+          value={formData.jobSupervisorIds}
+          onChange={onChange}
+          fullWidth
+          multiple
+          sx={{ my: 2 }}
+        >
+          {jobSupervisors.length > 0 && jobSupervisors.map((jobSupervisor: JobSupervisor) => (
+            <MenuItem
+              key={jobSupervisor.id}
+              value={jobSupervisor.id}
+            >
+              {`${jobSupervisor.firstName} ${jobSupervisor.lastName}`}
+            </MenuItem>
+          ))}
+        </Select></FormControl>
+    </Box>
+  )
 }
 
 const WorkplaceForm = ({
@@ -24,12 +62,12 @@ const WorkplaceForm = ({
   formTitle,
   submitText,
   loading,
+  jobSupervisors
 }: WorkplaceFormProps) => {
 
-  //const navigate = useNavigate();
-
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string[]>
+  ) => {
     const { name, value } = e.target;
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -74,6 +112,7 @@ const WorkplaceForm = ({
             fullWidth
             sx={{ my: 2 }}
           />
+          {(jobSupervisors && <SupervisorField jobSupervisors={jobSupervisors} formData={formData} onChange={handleChange} />)}
           <IconButton
             type="submit"
             sx={buttonStyles.saveButton}

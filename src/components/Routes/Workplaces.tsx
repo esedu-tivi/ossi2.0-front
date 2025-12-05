@@ -2,11 +2,9 @@ import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { Alert, Button, TableBody, TableCell, TableRow } from "@mui/material"
+import { Alert, Button, TableBody, TableCell, TableRow, Typography } from "@mui/material"
+
 import AddIcon from "@mui/icons-material/Add"
-// import SearchIcon from "@mui/icons-material/Search"
-// import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
-// import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -18,15 +16,20 @@ import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
 import { DELETE_WORKPLACE } from "../../graphql/DeleteWorkplace"
 import { useConfirm } from "material-ui-confirm"
 import Table, { TableHeaderPart } from "../common/Table"
+import { GET_JOB_SUPERVISORS } from "../../graphql/GetJobSupervisors"
+import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisorAssigns"
 
 export interface WorkplaceFormData {
   id: string | number | null
   name: string;
+  jobSupervisorIds: string[]
 }
 
 const Workplaces = () => {
   const navigate = useNavigate()
-  const { loading, error, data } = useQuery(GET_WORKPLACES)
+  const { loading: workplaceLoading, error: workplaceError, data: workplaceData } = useQuery(GET_WORKPLACES)
+  const { loading: jobSupervisorsLoading, error: jobSupervisorsError, data: jobSupervisorsData } = useQuery(GET_JOB_SUPERVISORS)
+
   const [createWorkplace] = useMutation(CREATE_WORKPLACE, {
     refetchQueries: [{ query: GET_WORKPLACES }]
   })
@@ -39,6 +42,8 @@ const Workplaces = () => {
     refetchQueries: [{ query: GET_WORKPLACES }]
   })
 
+  const [updateSupervisorAssigns] = useMutation(UPDATE_JOB_SUPERVISOR_ASSIGNS, { refetchQueries: [GET_JOB_SUPERVISORS] })
+
   const [message, setMessage] = useState<{ type: 'error' | 'info'; message: string | null }>({ type: 'info', message: null })
 
   const [showNewForm, setNewForm] = useState(false)
@@ -47,15 +52,14 @@ const Workplaces = () => {
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
   const [sortedWorkplaces, setSortedWorkplaces] = useState<Workplace[]>([])
 
-  const workplaces: Workplace[] = data?.workplaces?.workplaces || []
-
   //const filteredWorkplaces = filterWorkplaces(workplaces, searchQuery)
 
   //const sortedWorkplaces = sortWorkplaces(filteredWorkplaces, sortConfig)
 
   const initFormData = {
     id: null,
-    name: ''
+    name: "",
+    jobSupervisorIds: []
   }
 
   const [formData, setFormData] = useState<WorkplaceFormData>(initFormData);
@@ -71,6 +75,16 @@ const Workplaces = () => {
 
     return () => clearTimeout(timeoutId)
   }, [message])
+
+  const loading = workplaceLoading || jobSupervisorsLoading
+  const error = workplaceError || jobSupervisorsError
+
+  if (loading) return <Typography>Loading...</Typography>
+  if (error) return <Typography>Error: {error.message}</Typography>
+
+  const workplaces: Workplace[] = workplaceData.workplaces?.workplaces || []
+
+  const jobSupervisors = jobSupervisorsData.jobSupervisors?.jobSupervisors || []
 
   const handleDelete = async (id: number, name: string) => {
     console.log(id);
@@ -108,14 +122,35 @@ const Workplaces = () => {
 
   const handleEditFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
+
+    const workplace = workplaces.find((workplace: Workplace) => workplace.id === formData.id)
+
+    if (workplace) {
+      const jobSupervisorIds = workplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
+
+      const assignIds: string[] = formData.jobSupervisorIds.filter(id => !jobSupervisorIds.includes(id))
+      const unassignIds: string[] = jobSupervisorIds.filter(id => !formData.jobSupervisorIds.includes(id))
+
+      if (!assignIds.length && !unassignIds.length) {
+        assignIds.push(...formData.jobSupervisorIds)
+      }
+
+      console.log("assignIds", assignIds)
+      console.log("unassignIds", unassignIds)
+      await updateSupervisorAssigns({
+        variables: {
+          workplaceId: workplace.id,
+          assignIds,
+          unassignIds
+        }
+      })
+    }
+
     await editWorkplace({ variables: { editWorkplaceId: formData.id, name: formData.name } })
 
     setEditForm(false)
     setMessage({ type: "info", message: "Työpaikkaa muokattu" })
   }
-
-  if (loading) return <p>Loading...</p>
-  if (error) return <p>Error: {error.message}</p>
 
   if (showNewForm) {
     return (<WorkplaceForm
@@ -129,11 +164,14 @@ const Workplaces = () => {
     />)
   }
 
-
   if (selectedWorkplaceId) {
-    const workplace = sortedWorkplaces.find(workplace => workplace.id === selectedWorkplaceId)
+    const foundWorkplace = sortedWorkplaces.find(workplace => workplace.id === selectedWorkplaceId)
+    const workplace = foundWorkplace ? {
+      ...foundWorkplace,
+      jobSupervisorIds: foundWorkplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
+    } : initFormData
 
-    setFormData(workplace || initFormData)
+    setFormData(workplace)
     setSelectedWorkplaceId(null)
   }
 
@@ -146,6 +184,7 @@ const Workplaces = () => {
       formTitle='Työpaikan muokkaus'
       submitText='Muokkaa työpaikkaa'
       loading={loading}
+      jobSupervisors={jobSupervisors}
     />
   }
 

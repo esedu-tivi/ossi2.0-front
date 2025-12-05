@@ -8,6 +8,12 @@ export const GET_WORKPLACES = gql`
     workplaces {
       name
       id
+      jobSupervisors {
+        email
+        firstName
+        id
+        lastName
+      }
     }
   }
 }
