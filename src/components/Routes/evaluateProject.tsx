@@ -42,7 +42,7 @@ const EvaluateProject=({ project, studentId, })=>{
       if(project.projectStatus==='WORKING'){
         console.log(project)
         return(
-            <Accordion disableGutters={true} sx={{ border: '1px solid #95a5a6', backgroundColor:'#c6c6c6ff', width:'100%' }}>
+            <Accordion disableGutters={true} sx={{ border: '1px solid #f3f3f3', backgroundColor:'#f3f3f3', width:'100%' }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography style={styles.text}>{project.parentProject.name}</Typography>
                 </AccordionSummary>
@@ -63,7 +63,7 @@ const EvaluateProject=({ project, studentId, })=>{
       }
       if(project.projectStatus==='RETURNED'){
         return(
-            <Accordion disableGutters={true} sx={{ border: '1px solid #95a5a6', backgroundColor: '#979797ff',width:'100%' }}>
+            <Accordion disableGutters={true} sx={{ border: '1px solid #f3f3f3', backgroundColor: '#f3f3f3',width:'100%' }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography>{project.parentProject.name}</Typography>
                 </AccordionSummary>
@@ -84,7 +84,7 @@ const EvaluateProject=({ project, studentId, })=>{
       }
     if(project.projectStatus==='ACCEPTED'){
         return(
-            <Accordion disableGutters={true} sx={{ border: '1px solid #95a5a6', backgroundColor:'#94FF7C', width:'100%' }}>
+            <Accordion disableGutters={true} sx={{ border: '1px solid #f3f3f3', backgroundColor:'#94FF7C', width:'100%' }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography style={styles.text}>{project.parentProject.name}</Typography>
                 </AccordionSummary>
