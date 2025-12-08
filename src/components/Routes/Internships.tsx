@@ -1,18 +1,20 @@
-import { Box, Button, TableBody, TableCell, TableRow } from "@mui/material";
+import { Box, Button, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import { useEffect, useState } from "react"
 import InternshipForm from "../InternshipForm";
 import { StudentData } from "../common/studentHelpers";
 import { useMutation, useQuery } from "@apollo/client";
+import { useConfirm } from "material-ui-confirm";
 import { CREATE_INTERNSHIP } from "../../graphql/CreateInternship";
 import { GET_STUDENT_INTERNSHIPS } from "../../graphql/GetStudentInternships";
+import { DELETE_INTERNSHIP } from "../../graphql/DeleteInternship";
+
 import Table, { TableHeaderPart } from "../common/Table";
 
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
-import { useConfirm } from "material-ui-confirm";
-import { DELETE_INTERNSHIP } from "../../graphql/DeleteInternship";
+import Dialog from "../common/Dialog";
 
 export interface Internship {
   id: string | number
@@ -52,7 +54,7 @@ const initFormData: InternshipWithoutId = {
 }
 
 const Internships = ({ student }: { student: StudentData }) => {
-  const [showAddInternship, setShowInternship] = useState(false)
+  const [showAddInternship, setShowAddInternship] = useState(false)
   const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
   const [createInternship] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const [deleteInternship] = useMutation(DELETE_INTERNSHIP)
@@ -60,6 +62,7 @@ const Internships = ({ student }: { student: StudentData }) => {
   const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
   const [internship, setInternship] = useState<ParsedInternships[]>([])
   const confirm = useConfirm()
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   useEffect(() => {
     if (data && !loading) {
@@ -74,13 +77,13 @@ const Internships = ({ student }: { student: StudentData }) => {
   }, [setInternship, data, loading])
 
   useEffect(() => {
-    if (!showAddInternship) {
+    if (!showAddInternship || !dialogOpen) {
       setFormData(initFormData)
     }
-  }, [showAddInternship, formData])
+  }, [showAddInternship, formData, dialogOpen])
 
   if (loading) {
-    return <div>Loading...</div>
+    return <Box><Typography>Loading...</Typography></Box>
   }
 
   const handleNewFormSubmit = async (event: React.FormEvent) => {
@@ -93,7 +96,7 @@ const Internships = ({ student }: { student: StudentData }) => {
     })
     if (confirmed) {
       await createInternship({ variables: { internship: formData } })
-      setShowInternship(false)
+      setDialogOpen(false)
     }
   }
 
@@ -112,15 +115,11 @@ const Internships = ({ student }: { student: StudentData }) => {
     }
   }
 
-  if (showAddInternship) {
-    return <InternshipForm
-      formTitle="Lisää harjoittelujakso"
-      formData={formData}
-      setFormData={setFormData}
-      student={student}
-      setShowForm={setShowInternship}
-      formSubmitHandler={handleNewFormSubmit}
-    />
+  const handleDialogClose = () => setDialogOpen(false)
+
+  const handleShowAddForm = () => {
+    setShowAddInternship(true)
+    setDialogOpen(true)
   }
 
   const headerParts: TableHeaderPart[] = [
@@ -163,7 +162,7 @@ const Internships = ({ student }: { student: StudentData }) => {
           color="primary"
           className="add-internship-button"
           startIcon={<AddIcon />}
-          onClick={() => { setShowInternship(true) }}
+          onClick={handleShowAddForm}
         >
           Lisää harjoittelujakso
         </Button>
@@ -217,9 +216,22 @@ const Internships = ({ student }: { student: StudentData }) => {
           ))}
         </TableBody>
       </Table>
+      <Dialog
+        title={showAddInternship ? 'Lisää harjoittelu' : ''}
+        open={dialogOpen}
+        onClose={handleDialogClose}
+      >
+        {showAddInternship ? (
+          <InternshipForm
+            formData={formData}
+            setFormData={setFormData}
+            student={student}
+            formSubmitHandler={handleNewFormSubmit}
+          />
+        ) : null}
+      </Dialog>
     </>
   )
-
 }
 
 export default Internships

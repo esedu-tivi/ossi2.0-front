@@ -3,7 +3,6 @@ import { InternshipWithoutId } from "./Routes/Internships"
 import formStyles from "../styles/formStyles"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 
-import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import buttonStyles from "../styles/buttonStyles";
 import { useLazyQuery, useQuery } from "@apollo/client";
@@ -12,9 +11,7 @@ import { GET_INTERNSHIP_DATA } from "../graphql/GetInternshipData";
 import { GET_JOB_SUPERVISORS_BY_WORKPLACE } from "../graphql/GetJobSupervisorsByWorkplace";
 
 interface InternshipFormProps {
-  formTitle: string
   formSubmitHandler: (event: React.FormEvent<HTMLFormElement>) => void
-  setShowForm: Dispatch<SetStateAction<boolean>>
   student: StudentData
   formData: InternshipWithoutId
   setFormData: Dispatch<SetStateAction<InternshipWithoutId>>
@@ -24,8 +21,6 @@ const InternshipForm = ({
   formSubmitHandler,
   formData,
   setFormData,
-  setShowForm,
-  formTitle,
   student,
 }: InternshipFormProps) => {
 
@@ -61,12 +56,12 @@ const InternshipForm = ({
     }
   }, [data, setFormData, student, loading, error])
 
-  if (loading || jobSupervisorsData.loading) {
-    return <div>loading</div>
+  if (loading) {
+    return <Box><Typography>Loading...</Typography></Box>
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>
+    return <Box><Typography>Error: {error.message}</Typography></Box>
   }
 
   const teacher = data.me?.user || null
@@ -80,25 +75,7 @@ const InternshipForm = ({
       component="form"
       onSubmit={formSubmitHandler}
       textAlign={'center'}
-      sx={formStyles.formOuterBox}
     >
-      <Box sx={{ ...formStyles.formBannerBox, textAlign: "center", marginBottom: 3, position: 'relative', }}>
-        <IconButton
-          onClick={() => setShowForm(false)}
-          sx={{
-            position: 'absolute',
-            left: '16px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'white',
-          }}
-        >
-          <ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
-        </IconButton>
-        <Typography variant="h4" align="center" color="white">
-          {formTitle}
-        </Typography>
-      </Box>
       <Box
         sx={formStyles.formColumnBox}
       >
@@ -193,14 +170,16 @@ const InternshipForm = ({
                 },
               }}
             >
-              {jobSupervisors.map((jobSupervisor: { id: string; firstName: string, lastName: string, email: string }) => (
-                <MenuItem
-                  key={jobSupervisor.id}
-                  value={jobSupervisor.id}
-                >
-                  {`${jobSupervisor.firstName} ${jobSupervisor.lastName}`}
-                </MenuItem>
-              ))}
+              {jobSupervisorsData.loading
+                ? <Typography>loading...</Typography>
+                : jobSupervisors.map((jobSupervisor: { id: string; firstName: string, lastName: string, email: string }) => (
+                  <MenuItem
+                    key={jobSupervisor.id}
+                    value={jobSupervisor.id}
+                  >
+                    {`${jobSupervisor.firstName} ${jobSupervisor.lastName}`}
+                  </MenuItem>
+                ))}
             </TextField>
           }
 
