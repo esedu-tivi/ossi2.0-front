@@ -15,6 +15,7 @@ import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Dialog from "../common/Dialog";
+import { convertDateForForm } from "../../utils/convertDateForForm";
 
 export interface Internship {
   id: string | number
@@ -32,12 +33,27 @@ interface InternshipData extends Internship {
   workplace: {
     id: string
     name: string
+    jobSupervisor: {
+      id: string
+      fistName: string
+      lastName: string
+    }
+  },
+  teacher: {
+    id: string
+    firstName: string
+    lastName: string
+  },
+  qualificationUnit: {
+    id: string,
+    name: string
   }
 }
 
 interface ParsedInternships extends InternshipData {
   startDate: string
   endDate: string
+
 }
 
 export type InternshipWithoutId = Omit<Internship, "id">
@@ -53,16 +69,50 @@ const initFormData: InternshipWithoutId = {
   jobSupervisorId: ""
 }
 
+const headerParts: TableHeaderPart[] = [
+  {
+    name: "id",
+    title: "#ID",
+    type: "sort"
+  },
+  {
+    name: "workplaceName",
+    title: "Työpaikka",
+    type: "sort",
+  },
+  {
+    name: "info",
+    title: "Info",
+    type: "sort"
+  },
+  {
+    name: "startDate",
+    title: "Aloitusaika",
+    type: "sort",
+  },
+  {
+    name: "endDate",
+    title: "Lopetusaika",
+    type: "sort",
+  },
+  {
+    name: "search",
+    type: "search"
+  }
+]
+
 const Internships = ({ student }: { student: StudentData }) => {
   const [showAddInternship, setShowAddInternship] = useState(false)
+  const [showEditInternship, setShowEditInternship] = useState(false)
   const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
   const [createInternship] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const [deleteInternship] = useMutation(DELETE_INTERNSHIP)
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
   const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
-  const [internship, setInternship] = useState<ParsedInternships[]>([])
+  const [internships, setInternships] = useState<ParsedInternships[]>([])
   const confirm = useConfirm()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<string | null>(null)
 
   useEffect(() => {
     if (data && !loading) {
@@ -71,14 +121,18 @@ const Internships = ({ student }: { student: StudentData }) => {
         startDate: new Date(internship.startDate).toLocaleDateString("fi-FI"),
         endDate: new Date(internship.endDate).toLocaleDateString("fi-FI")
       })) as ParsedInternships[]
-      setInternship(parsedInternships)
+      setInternships(parsedInternships)
     }
 
-  }, [setInternship, data, loading])
+  }, [setInternships, data, loading])
 
   useEffect(() => {
-    if (!showAddInternship || !dialogOpen) {
-      setFormData(initFormData)
+    if (!dialogOpen) {
+      setShowAddInternship(false)
+      setShowEditInternship(false)
+      if (!showAddInternship) {
+        setFormData(initFormData)
+      }
     }
   }, [showAddInternship, formData, dialogOpen])
 
@@ -115,6 +169,11 @@ const Internships = ({ student }: { student: StudentData }) => {
     }
   }
 
+  const handleEditFormSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    console.log(formData)
+  }
+
   const handleDialogClose = () => setDialogOpen(false)
 
   const handleShowAddForm = () => {
@@ -122,37 +181,29 @@ const Internships = ({ student }: { student: StudentData }) => {
     setDialogOpen(true)
   }
 
-  const headerParts: TableHeaderPart[] = [
-    {
-      name: "id",
-      title: "#ID",
-      type: "sort"
-    },
-    {
-      name: "workplaceName",
-      title: "Työpaikka",
-      type: "sort",
-    },
-    {
-      name: "info",
-      title: "Info",
-      type: "sort"
-    },
-    {
-      name: "startDate",
-      title: "Aloitusaika",
-      type: "sort",
-    },
-    {
-      name: "endDate",
-      title: "Lopetusaika",
-      type: "sort",
-    },
-    {
-      name: "search",
-      type: "search"
+  const handleShowEditForm = async (id: number | string) => {
+    const internship = data.internships?.internships.find((internship: InternshipData) => internship.id === id)
+
+    if (internship) {
+      const startDate = new Date(internship.startDate)
+      const endDate = new Date(internship.endDate)
+
+      setSelectedWorkplaceId(internship.workplace.id)
+      const parsedInternship = {
+        info: internship.info || "",
+        startDate: convertDateForForm(startDate),
+        endDate: convertDateForForm(endDate),
+        qualificationUnitId: internship.qualificationUnit?.id || '',
+        workplaceId: internship.workplace.id || '',
+        teacherId: internship.teacher.id,
+        studentId: student.id.toString(),
+        jobSupervisorId: internship.workplace.jobSupervisor.id || '',
+      }
+      setFormData(parsedInternship)
+      setShowEditInternship(true)
+      setDialogOpen(true)
     }
-  ]
+  }
 
   return (
     <>
@@ -169,7 +220,7 @@ const Internships = ({ student }: { student: StudentData }) => {
       </Box>
       <Table<ParsedInternships>
         headerParts={headerParts}
-        data={internship}
+        data={internships}
         setSortedData={setSortedInternships}
         filterField={"workplace.name"}
       >
@@ -188,7 +239,7 @@ const Internships = ({ student }: { student: StudentData }) => {
                     color="primary"
                     startIcon={<EditIcon />}
                     size="small"
-                    onClick={() => console.log("Edit")}
+                    onClick={() => handleShowEditForm(internship.id)}
                   >
                     Muokkaa
                   </Button>
@@ -217,7 +268,7 @@ const Internships = ({ student }: { student: StudentData }) => {
         </TableBody>
       </Table>
       <Dialog
-        title={showAddInternship ? 'Lisää harjoittelu' : ''}
+        title={showAddInternship ? 'Lisää harjoittelu' : showEditInternship ? 'Muokkaa harjoittelujaksoa' : ''}
         open={dialogOpen}
         onClose={handleDialogClose}
       >
@@ -227,6 +278,18 @@ const Internships = ({ student }: { student: StudentData }) => {
             setFormData={setFormData}
             student={student}
             formSubmitHandler={handleNewFormSubmit}
+            setWorkplaceId={setSelectedWorkplaceId}
+            workplaceId={selectedWorkplaceId}
+          />
+        ) : null}
+        {showEditInternship ? (
+          <InternshipForm
+            formData={formData}
+            setFormData={setFormData}
+            student={student}
+            formSubmitHandler={handleEditFormSubmit}
+            setWorkplaceId={setSelectedWorkplaceId}
+            workplaceId={selectedWorkplaceId}
           />
         ) : null}
       </Dialog>

@@ -1,7 +1,7 @@
 import { Box, IconButton, MenuItem, TextField, Typography } from "@mui/material"
 import { InternshipWithoutId } from "./Routes/Internships"
 import formStyles from "../styles/formStyles"
-import { Dispatch, SetStateAction, useEffect, useState } from "react"
+import { Dispatch, SetStateAction, useEffect } from "react"
 
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import buttonStyles from "../styles/buttonStyles";
@@ -15,6 +15,8 @@ interface InternshipFormProps {
   student: StudentData
   formData: InternshipWithoutId
   setFormData: Dispatch<SetStateAction<InternshipWithoutId>>
+  workplaceId: string | null,
+  setWorkplaceId: Dispatch<SetStateAction<string | null>>
 }
 
 const InternshipForm = ({
@@ -22,13 +24,15 @@ const InternshipForm = ({
   formData,
   setFormData,
   student,
+  workplaceId,
+  setWorkplaceId,
 }: InternshipFormProps) => {
 
-  const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<string | null>(null)
+
 
   const { loading, data, error } = useQuery(GET_INTERNSHIP_DATA)
   const [loadSupervisors, jobSupervisorsData] = useLazyQuery(GET_JOB_SUPERVISORS_BY_WORKPLACE, {
-    variables: { workplaceId: selectedWorkplaceId }
+    variables: { workplaceId: workplaceId }
   })
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -40,8 +44,7 @@ const InternshipForm = ({
   };
 
   const workplaceHandleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setSelectedWorkplaceId(event.target.value)
-    loadSupervisors()
+    setWorkplaceId(event.target.value)
     handleChange(event)
   }
 
@@ -55,6 +58,12 @@ const InternshipForm = ({
       }))
     }
   }, [data, setFormData, student, loading, error])
+
+  useEffect(() => {
+    if (workplaceId) {
+      loadSupervisors()
+    }
+  }, [workplaceId, loadSupervisors])
 
   if (loading) {
     return <Box><Typography>Loading...</Typography></Box>
