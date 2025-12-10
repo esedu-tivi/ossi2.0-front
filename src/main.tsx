@@ -6,6 +6,8 @@ import { client } from './graphql/apolloClient';
 import { ApolloProvider } from '@apollo/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ConfirmProvider } from "material-ui-confirm"
+import AlertContainer from './components/AlertContainer';
+import AlertContextProvider from './context/AlertContext';
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -17,7 +19,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             confirmationText: "Ok",
             cancellationText: "Peruuta"
           }}>
-            <App />
+            <AlertContextProvider>
+              <AlertContainer />
+              <App />
+            </AlertContextProvider>
           </ConfirmProvider>
         </BrowserRouter >
       </AuthProvider>

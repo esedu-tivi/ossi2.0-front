@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { Alert, Button, TableBody, TableCell, TableRow, Typography } from "@mui/material"
+import { Button, TableBody, TableCell, TableRow, Typography } from "@mui/material"
 
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
@@ -19,6 +19,7 @@ import Table, { TableHeaderPart } from "../common/Table"
 import { GET_JOB_SUPERVISORS } from "../../graphql/GetJobSupervisors"
 import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisorAssigns"
 import Dialog from "../common/Dialog"
+import { useAlerts } from "../../context/AlertContext"
 
 export interface WorkplaceFormData {
   id: string | number | null
@@ -45,7 +46,7 @@ const Workplaces = () => {
 
   const [updateSupervisorAssigns] = useMutation(UPDATE_JOB_SUPERVISOR_ASSIGNS, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
-  const [message, setMessage] = useState<{ type: 'error' | 'info'; message: string | null }>({ type: 'info', message: null })
+  const { addAlert } = useAlerts()
 
   const [showNewForm, setShowNewForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -67,16 +68,6 @@ const Workplaces = () => {
   const [formData, setFormData] = useState<WorkplaceFormData>(initFormData);
 
   const confirm = useConfirm()
-
-  useEffect(() => {
-    if (message.message === null) return
-
-    const timeoutId = setTimeout(() => {
-      setMessage({ ...message, message: null })
-    }, 5000)
-
-    return () => clearTimeout(timeoutId)
-  }, [message])
 
   useEffect(() => {
     if (!dialogOpen) {
@@ -114,9 +105,9 @@ const Workplaces = () => {
       const response = await deleteWorkplace({ variables: { deleteWorkplaceId: id } })
       console.log(response)
       if (response.data.deleteWorkplace.success) {
-        return setMessage({ type: "info", message: "Työpaikka poistettu" })
+        return addAlert("Työpaikka poistettu", "success")
       }
-      setMessage({ type: "error", message: "Poistossa tapahtui virhe" })
+      addAlert("Poistossa tapahtui virhe", "error")
     }
   }
 
@@ -132,7 +123,7 @@ const Workplaces = () => {
       console.log('GraphQL Response:', response.data);
       setFormData(initFormData)
 
-      setMessage({ type: "info", message: "Työpaikka lisätty" })
+      addAlert("Työpaikka lisätty", "success")
       setDialogOpen(false)
     }
   }
@@ -166,7 +157,7 @@ const Workplaces = () => {
     await editWorkplace({ variables: { editWorkplaceId: formData.id, name: formData.name } })
 
     setDialogOpen(false)
-    setMessage({ type: "info", message: "Työpaikkaa muokattu" })
+    addAlert("Työpaikkaa muokattu", "success")
   }
 
   const handleDialogClose = () => setDialogOpen(false)
@@ -222,7 +213,6 @@ const Workplaces = () => {
           Lisää työpaikka
         </Button>
       </div>
-      {message.message && <Alert security={message.type}>{message.message}</Alert>}
 
       <Table<Workplace> headerParts={headerParts} data={workplaces} setSortedData={setSortedWorkplaces} filterField="name">
         <TableBody>
