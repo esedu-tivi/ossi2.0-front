@@ -1,18 +1,23 @@
 import { createContext, useCallback, useContext, useState } from "react"
 
-type AlertId = string
+export type AlertId = string
 type AlertSeverity = "info" | "success" | "warning" | "error"
 type AlertMessage = string
 
+interface AddAlert {
+  (message: AlertMessage, severity?: AlertSeverity, permanent?: boolean): void
+}
+
 interface Alert {
   id: AlertId
-  severity: AlertSeverity
+  severity?: AlertSeverity
   message: AlertMessage
+  permanent?: boolean
 }
 
 interface AlertContextType {
   alerts: Alert[]
-  addAlert: (message: AlertMessage, type: AlertSeverity) => void
+  addAlert: AddAlert
   removeAlert: (id: AlertId) => void
 }
 
@@ -25,11 +30,23 @@ const AlertContextProvider = ({ children }: { children: React.ReactNode }) => {
     setAlerts((prev) => prev.filter(alert => alert.id !== id))
   }, [])
 
-  const addAlert = useCallback((message: AlertMessage, severity: AlertSeverity = "success") => {
-    const id = Math.random().toString(36).slice(2, 9) + new Date().getTime().toString(36)
-    setAlerts((prev) => [...prev, { id, message, severity }])
 
-    setTimeout(() => removeAlert(id), 5000)
+  const addAlert: AddAlert = useCallback((message, severity = "success", permanent = false) => {
+    const id: AlertId = Math.random().toString(36).slice(2, 9) + new Date().getTime().toString(36)
+    setAlerts((prev: Alert[]) => [
+      ...prev,
+      {
+        id,
+        message,
+        severity,
+        permanent
+      }
+    ])
+
+    if (!permanent) {
+      setTimeout(() => removeAlert(id), 5000)
+    }
+
   }, [removeAlert])
 
 
