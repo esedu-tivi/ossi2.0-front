@@ -1,20 +1,16 @@
-import { Box, FormControl, IconButton, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from "@mui/material"
-import formStyles from "../../styles/formStyles"
-import buttonStyles from "../../styles/buttonStyles"
+import { Box, FormControl, IconButton, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material"
+import formStyles from "../styles/formStyles"
+import buttonStyles from "../styles/buttonStyles"
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
-import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
-import { WorkplaceFormData } from "./Workplaces";
+import { WorkplaceFormData } from "./Routes/Workplaces";
 import React from "react";
-import { JobSupervisor } from "../common/teacherHelpers";
+import { JobSupervisor } from "./common/teacherHelpers";
 
 interface WorkplaceFormProps {
   formData: WorkplaceFormData
   setFormData: React.Dispatch<React.SetStateAction<WorkplaceFormData>>
   handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void
-  setShowForm: () => void
-  formTitle: string
-  submitText: string
-  loading: boolean
+  submitButtonTitle: string
   jobSupervisors?: JobSupervisor[]
 }
 
@@ -58,11 +54,8 @@ const WorkplaceForm = ({
   formData,
   setFormData,
   handleSubmit,
-  setShowForm,
-  formTitle,
-  submitText,
-  loading,
-  jobSupervisors
+  jobSupervisors,
+  submitButtonTitle
 }: WorkplaceFormProps) => {
 
   const handleChange = (
@@ -80,27 +73,8 @@ const WorkplaceForm = ({
       component="form"
       onSubmit={handleSubmit}
       textAlign={'center'}
-      sx={formStyles.formOuterBox}
     >
-      <Box sx={{ ...formStyles.formBannerBox, textAlign: "center", marginBottom: 3, position: 'relative', }}>
-        <IconButton
-          onClick={setShowForm}
-          sx={{
-            position: 'absolute',
-            left: '16px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'white',
-          }}
-        >
-          <ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
-        </IconButton>
-        <Typography variant="h4" align="center" color="white">
-          {formTitle}
-        </Typography>
-      </Box>
-      <Box
-        sx={formStyles.formColumnBox}
+      <Box sx={formStyles.formColumnBox}
       >
         <Box sx={{ flex: 1 }}>
           <TextField
@@ -115,14 +89,14 @@ const WorkplaceForm = ({
           {(jobSupervisors && <SupervisorField jobSupervisors={jobSupervisors} formData={formData} onChange={handleChange} />)}
           <IconButton
             type="submit"
-            sx={buttonStyles.saveButton}
+            sx={{ ...buttonStyles.saveButton, px: 10 }}
           >
             <SaveSharpIcon
               sx={{
                 mr: 1,
               }}
             />
-            {loading ? 'Submitting...' : submitText}
+            {submitButtonTitle}
           </IconButton>
         </Box>
       </Box>

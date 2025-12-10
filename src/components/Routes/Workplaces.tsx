@@ -10,7 +10,7 @@ import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 
 import { Workplace } from "../common/teacherHelpers"
-import WorkplaceForm from "./WorkplaceForm"
+import WorkplaceForm from "../WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
 import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
 import { DELETE_WORKPLACE } from "../../graphql/DeleteWorkplace"
@@ -18,6 +18,7 @@ import { useConfirm } from "material-ui-confirm"
 import Table, { TableHeaderPart } from "../common/Table"
 import { GET_JOB_SUPERVISORS } from "../../graphql/GetJobSupervisors"
 import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisorAssigns"
+import Dialog from "../common/Dialog"
 
 export interface WorkplaceFormData {
   id: string | number | null
@@ -46,8 +47,9 @@ const Workplaces = () => {
 
   const [message, setMessage] = useState<{ type: 'error' | 'info'; message: string | null }>({ type: 'info', message: null })
 
-  const [showNewForm, setNewForm] = useState(false)
-  const [showEditForm, setEditForm] = useState(false)
+  const [showNewForm, setShowNewForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
   const [sortedWorkplaces, setSortedWorkplaces] = useState<Workplace[]>([])
@@ -75,6 +77,21 @@ const Workplaces = () => {
 
     return () => clearTimeout(timeoutId)
   }, [message])
+
+  useEffect(() => {
+    if (!dialogOpen) {
+      setShowNewForm(false)
+      setShowEditForm(false)
+    }
+  }, [dialogOpen])
+
+  useEffect(() => {
+    if (showNewForm || showEditForm) {
+      setDialogOpen(true)
+    } else {
+      setDialogOpen(false)
+    }
+  }, [showNewForm, showEditForm])
 
   const loading = workplaceLoading || jobSupervisorsLoading
   const error = workplaceError || jobSupervisorsError
@@ -116,7 +133,7 @@ const Workplaces = () => {
       setFormData(initFormData)
 
       setMessage({ type: "info", message: "Työpaikka lisätty" })
-      setNewForm(false)
+      setDialogOpen(false)
     }
   }
 
@@ -148,20 +165,20 @@ const Workplaces = () => {
 
     await editWorkplace({ variables: { editWorkplaceId: formData.id, name: formData.name } })
 
-    setEditForm(false)
+    setDialogOpen(false)
     setMessage({ type: "info", message: "Työpaikkaa muokattu" })
   }
 
-  if (showNewForm) {
-    return (<WorkplaceForm
-      formData={formData}
-      setFormData={setFormData}
-      handleSubmit={handleNewFormSubmit}
-      setShowForm={() => setNewForm(false)}
-      formTitle='Uusi työpaikka'
-      submitText='Luo työpaikka'
-      loading={loading}
-    />)
+  const handleDialogClose = () => setDialogOpen(false)
+
+  const handleShowAddForm = () => {
+    setFormData(initFormData)
+    setShowNewForm(true)
+  }
+
+  const handleShowEditForm = async (id: number) => {
+    setSelectedWorkplaceId(id)
+    setShowEditForm(true)
   }
 
   if (selectedWorkplaceId) {
@@ -173,19 +190,6 @@ const Workplaces = () => {
 
     setFormData(workplace)
     setSelectedWorkplaceId(null)
-  }
-
-  if (showEditForm) {
-    return <WorkplaceForm
-      formData={formData}
-      setFormData={setFormData}
-      handleSubmit={handleEditFormSubmit}
-      setShowForm={() => setEditForm(false)}
-      formTitle='Työpaikan muokkaus'
-      submitText='Muokkaa työpaikkaa'
-      loading={loading}
-      jobSupervisors={jobSupervisors}
-    />
   }
 
   const headerParts: TableHeaderPart[] = [
@@ -213,7 +217,7 @@ const Workplaces = () => {
           color="primary"
           className="add-project-button"
           startIcon={<AddIcon />}
-          onClick={() => setNewForm(true)}
+          onClick={handleShowAddForm}
         >
           Lisää työpaikka
         </Button>
@@ -233,10 +237,7 @@ const Workplaces = () => {
                     color="primary"
                     startIcon={<EditIcon />}
                     size="small"
-                    onClick={() => {
-                      setSelectedWorkplaceId(workplace.id)
-                      setEditForm(true)
-                    }}
+                    onClick={() => handleShowEditForm(workplace.id)}
                   >
                     Muokkaa
                   </Button>
@@ -264,6 +265,29 @@ const Workplaces = () => {
           ))}
         </TableBody>
       </Table>
+      <Dialog
+        title={showNewForm ? 'Lisää uusi työpaikka' : showEditForm ? 'Muokkaa työpaikkaa' : ''}
+        open={dialogOpen}
+        onClose={handleDialogClose}
+      >
+        {showNewForm ? (
+          <WorkplaceForm
+            formData={formData}
+            setFormData={setFormData}
+            handleSubmit={handleNewFormSubmit}
+            submitButtonTitle='Luo työpaikka'
+          />
+        ) : null}
+        {showEditForm ? (
+          <WorkplaceForm
+            formData={formData}
+            setFormData={setFormData}
+            handleSubmit={handleEditFormSubmit}
+            submitButtonTitle='Muokkaa työpaikkaa'
+            jobSupervisors={jobSupervisors}
+          />
+        ) : null}
+      </Dialog>
     </>
   )
 }

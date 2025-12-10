@@ -8,7 +8,7 @@ interface ModalProps {
   children: React.ReactNode
 }
 
-const modalStyle = {
+const style = {
   title: {
     display: 'flex',
     backgroundColor: '#65558F',
@@ -30,16 +30,17 @@ const modalStyle = {
 const Dialog = ({ title, open, onClose, children }: ModalProps) => (
   <MuiDialog
     open={open}
+    fullWidth
   >
-    <DialogTitle sx={modalStyle.title}>
+    <DialogTitle sx={style.title}>
       <DialogActions>
         <IconButton
           onClick={() => onClose(false)}
-          sx={modalStyle.button}
+          sx={style.button}
         ><ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
         </IconButton>
       </DialogActions>
-      <Box sx={modalStyle.titleText}>
+      <Box sx={style.titleText}>
         {title}
       </Box>
     </DialogTitle>

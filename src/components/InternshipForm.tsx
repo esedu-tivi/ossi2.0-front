@@ -27,9 +27,6 @@ const InternshipForm = ({
   workplaceId,
   setWorkplaceId,
 }: InternshipFormProps) => {
-
-
-
   const { loading, data, error } = useQuery(GET_INTERNSHIP_DATA)
   const [loadSupervisors, jobSupervisorsData] = useLazyQuery(GET_JOB_SUPERVISORS_BY_WORKPLACE, {
     variables: { workplaceId: workplaceId }
@@ -230,7 +227,7 @@ const InternshipForm = ({
           />
           <IconButton
             type="submit"
-            sx={buttonStyles.saveButton}
+            sx={{ ...buttonStyles.saveButton, px: 10 }}
           >
             <SaveSharpIcon
               sx={{
