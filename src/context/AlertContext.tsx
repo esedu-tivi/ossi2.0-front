@@ -29,7 +29,7 @@ const AlertContextProvider = ({ children }: { children: React.ReactNode }) => {
     const id = Math.random().toString(36).slice(2, 9) + new Date().getTime().toString(36)
     setAlerts((prev) => [...prev, { id, message, severity }])
 
-    //setTimeout(() => removeAlert(id), 5000)
+    setTimeout(() => removeAlert(id), 5000)
   }, [removeAlert])
 
 
