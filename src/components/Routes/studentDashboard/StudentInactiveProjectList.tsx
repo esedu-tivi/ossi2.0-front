@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Accordion, AccordionDetails, AccordionSummary, Box, List, Typography } from '@mui/material';
 import formStyles from '../../../styles/formStyles';
-import { BaseProject } from './types';
+import { BaseProject } from '../../../types';
 import StudentProjectListItem from './StudentProjectListItem';
 
 interface UnitPart {
@@ -27,24 +27,24 @@ interface UnitPartAccordionProps {
   openEditProject: (project: BaseProject) => void;
 };
 
-const UnitPartAccordion: React.FC<UnitPartAccordionProps> = ({ unitPart, activeProjectIds, expanded, handleChange, openEditProject}) => {
+const UnitPartAccordion: React.FC<UnitPartAccordionProps> = ({ unitPart, activeProjectIds, expanded, handleChange, openEditProject }) => {
   const [inactiveProjects, setInactiveProjects] = useState<BaseProject[]>([]);
-  
+
   useEffect(() => {
     setInactiveProjects(unitPart.projects.filter((project) => !activeProjectIds.includes(project.id)));
   }, [activeProjectIds]);
-  
+
   return (
     <Accordion expanded={expanded === unitPart.id} onChange={() => handleChange(unitPart.id)}>
-        <AccordionSummary>
-          <Typography>{unitPart.name}</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <List sx={{ overflow:'auto', position: 'relative' }}>
-            {inactiveProjects.map((project) => <StudentProjectListItem key={project.id} project={project} openEditProject={() => openEditProject(project)} />)}
-          </List>
-        </AccordionDetails>
-      </Accordion>
+      <AccordionSummary>
+        <Typography>{unitPart.name}</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <List sx={{ overflow: 'auto', position: 'relative' }}>
+          {inactiveProjects.map((project) => <StudentProjectListItem key={project.id} project={project} openEditProject={() => openEditProject(project)} />)}
+        </List>
+      </AccordionDetails>
+    </Accordion>
   );
 };
 
@@ -66,7 +66,7 @@ const StudentInactiveProjectList: React.FC<StudentInactiveProjectListProps> = ({
 
   return (
     <Box sx={{ ...formStyles.formOuterBox, m: 1, minHeight: 240 }}>
-      <Box sx={{...formStyles.formBannerBox}}>
+      <Box sx={{ ...formStyles.formBannerBox }}>
         <Typography variant='h6' align='center' color='white'>{title}</Typography>
       </Box>
       {unitParts.map((part) => <UnitPartAccordion key={part.id} unitPart={part} activeProjectIds={activeProjectIds} expanded={expanded} handleChange={handleChange} openEditProject={handleOpenEditProject} />)}

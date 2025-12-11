@@ -1,26 +1,16 @@
-export type StudentData = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  groupId: string;
-  studyingQualificationTitle: {
-    name: string | null;
-  };
-  studyingQualification: {
-    "name": string | null
-  }
-};
+import { Student } from "../../types";
+
 
 export interface SortConfig {
-  key: keyof StudentData | null; // The data to sort from
+  key: keyof Student | null; // The data to sort from
   order: "asc" | "desc" | null; // The order of sorting: ascending, descending or none
 }
 
 // Filter the list of students by search query.
 export function filterStudents(
-  students: StudentData[], //The list of students to filter.
+  students: Student[], //The list of students to filter.
   searchQuery: string // The search term used to filter students.
-): StudentData[] { // Returns the filtered list of students.
+): Student[] { // Returns the filtered list of students.
   const lowerQuery = searchQuery.toLowerCase();
   return students.filter((student) => {
     const name = `${student.firstName} ${student.lastName}`.toLowerCase();
@@ -38,9 +28,9 @@ export function filterStudents(
 
 // Sorts the list of students based on the filtering.
 export function sortStudents(
-  students: StudentData[],
+  students: Student[],
   sortConfig: SortConfig
-): StudentData[] {
+): Student[] {
   if (!sortConfig.order || !sortConfig.key) return students;
 
   const { key, order } = sortConfig;

@@ -1,7 +1,6 @@
 import { Box, Button, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import { useEffect, useState } from "react"
 import InternshipForm from "../InternshipForm";
-import { StudentData } from "../common/studentHelpers";
 import { useMutation, useQuery } from "@apollo/client";
 import { useConfirm } from "material-ui-confirm";
 import { CREATE_INTERNSHIP } from "../../graphql/CreateInternship";
@@ -16,6 +15,7 @@ import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Dialog from "../common/Dialog";
 import { convertDateForForm } from "../../utils/convertDateForForm";
+import { Student } from "../../types";
 
 export interface Internship {
   id: string | number
@@ -99,7 +99,7 @@ const headerCells: readonly TableHeaderCell[] = [
   }
 ]
 
-const Internships = ({ student }: { student: StudentData }) => {
+const Internships = ({ student }: { student: Student }) => {
   const [showAddInternship, setShowAddInternship] = useState(false)
   const [showEditInternship, setShowEditInternship] = useState(false)
   const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
@@ -122,7 +122,7 @@ const Internships = ({ student }: { student: StudentData }) => {
       setInternships(parsedInternships)
     }
 
-  }, [setInternships, data, loading])
+  }, [data, loading])
 
   useEffect(() => {
     if (!dialogOpen) {

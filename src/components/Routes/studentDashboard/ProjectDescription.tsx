@@ -1,6 +1,6 @@
 import { Dialog, DialogTitle, DialogContent, Typography } from "@mui/material";
 import React from "react";
-import { BaseProject } from "./types";
+import { BaseProject } from "../../../types";
 
 interface ProjectDescriptionProps {
   project: BaseProject;

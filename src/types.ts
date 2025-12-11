@@ -30,3 +30,16 @@ export interface StudentProject {
   deadline?: Date;
   worktimeEntries?: WorktimeEntry[];
 };
+
+export type Student = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  groupId: string;
+  studyingQualificationTitle: {
+    name: string | null;
+  };
+  studyingQualification: {
+    "name": string | null
+  }
+};

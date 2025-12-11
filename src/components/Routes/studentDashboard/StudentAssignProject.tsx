@@ -1,7 +1,7 @@
-import { Box, Button, Dialog, DialogTitle} from "@mui/material";
+import { Box, Button, Dialog, DialogTitle } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import RichTextEditor from "../../common/RichTextEditor";
-import { BaseProject } from "./types";
+import { BaseProject } from "../../../types";
 import { useMutation } from "@apollo/client";
 import { ASSIGN_STUDENT_PROJECT } from "../../../graphql/AssignStudentProject";
 import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
@@ -11,13 +11,13 @@ interface StudentAssignProjectProps {
   open: boolean;
   onClose: () => void;
   studentId: number;
-  project: BaseProject|null;
+  project: BaseProject | null;
 };
 
 const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClose, studentId, project }) => {
   const [formData, setFormData] = useState({ plan: '', report: '' });
   const [descriptionOpen, setDescriptionOpen] = useState(false);
-  const [assignProject] = useMutation(ASSIGN_STUDENT_PROJECT, {refetchQueries: [GET_STUDENT_PROJECTS]});
+  const [assignProject] = useMutation(ASSIGN_STUDENT_PROJECT, { refetchQueries: [GET_STUDENT_PROJECTS] });
 
   useEffect(() => {
     if (!project) {
@@ -25,7 +25,7 @@ const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClo
       return;
     };
 
-    setFormData({plan: '', report: ''});
+    setFormData({ plan: '', report: '' });
   }, [open]);
 
   if (!project) {
@@ -33,7 +33,7 @@ const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClo
   }
 
   const handleChange = (content: string, field: 'plan' | 'report') => {
-    setFormData({...formData, [field]: content});
+    setFormData({ ...formData, [field]: content });
   };
 
   const handleClose = async () => {
@@ -47,7 +47,7 @@ const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClo
       return
     };
 
-    await assignProject({ variables: { studentId, projectId: project.id }});
+    await assignProject({ variables: { studentId, projectId: project.id } });
 
     onClose();
     setFormData({ plan: '', report: '' });

@@ -1,13 +1,13 @@
 import React from 'react';
 import { ListItem, ListItemButton, ListItemText } from '@mui/material';
-import { BaseProject } from './types';
+import { BaseProject } from '../../../types';
 
 interface StudentProjectListItemProps {
   project: BaseProject;
   openEditProject: () => void;
 };
 
-const StudentProjectListItem: React.FC<StudentProjectListItemProps> = ({project, openEditProject}) => {
+const StudentProjectListItem: React.FC<StudentProjectListItemProps> = ({ project, openEditProject }) => {
   return (
     <ListItem>
       <ListItemButton onClick={openEditProject}>

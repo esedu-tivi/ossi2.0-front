@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { Box, Typography } from '@mui/material';
-import { BaseProject, StudentProject, ProjectStatus } from './types';
+import { BaseProject, StudentProject, ProjectStatus } from '../../../types';
 import StudentProjectList from './StudentProjectList';
 import StudentInactiveProjectList from './StudentInactiveProjectList';
 import StudentEditProject from './StudentEditProject';
@@ -11,8 +11,8 @@ import StudentAssignProject from './StudentAssignProject';
 const StudentDashboard: React.FC = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [selectedEditProject, setSelectedEditProject] = useState<number|null>(null);
-  const [selectedAssignProject, setSelectedAssignProject] = useState<BaseProject|null>(null);
+  const [selectedEditProject, setSelectedEditProject] = useState<number | null>(null);
+  const [selectedAssignProject, setSelectedAssignProject] = useState<BaseProject | null>(null);
 
   const { loading, data, startPolling, stopPolling } = useQuery(GET_STUDENT_PROJECTS);
 
