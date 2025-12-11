@@ -1,12 +1,15 @@
 import { useQuery } from "@apollo/client";
-import { GET_STUDENT_PROJECTS } from "../../graphql/GetStudentProjects";
 import { Box, List, ListItem, Typography } from '@mui/material';
-import { ProjectStatus, StudentProject } from "../../types";
+import { ProjectStatus, Student, StudentProject } from "../../types";
 import EvaluateProject from "./evaluateProject";
 import formStyles from "../../styles/formStyles";
+import { GET_STUDENT_PROJECTS_BY_STUDENT_ID } from "../../graphql/GetStudentProjectsByStudentId";
+import { useParams } from "react-router-dom";
 
-const StudentProjectsPath = () => {
-  const { loading, data, startPolling, stopPolling } = useQuery(GET_STUDENT_PROJECTS);
+const StudentProjectsPath = ({ student }: { student: Student }) => {
+  const { studentId } = useParams()
+
+  const { loading, data, startPolling, stopPolling } = useQuery(GET_STUDENT_PROJECTS_BY_STUDENT_ID, { variables: { studentId } });
   if (loading || !data) {
     startPolling(500); // making sure data has loaded
     return (
@@ -14,23 +17,23 @@ const StudentProjectsPath = () => {
     );
   };
   stopPolling();
-  var assignedProjects = data.me.user.assignedProjects;
+  const assignedProjects = data.assignedProjects.assignedProjects;
   console.log(assignedProjects)
-  var startedProjects = assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Working);
-  var returnedProjects = assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Returned);
-  var acceptedProjects = assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Accepted);
+  const startedProjects = assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Working);
+  const returnedProjects = assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Returned);
+  const acceptedProjects = assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Accepted);
 
   return (
     <Box sx={formStyles.formOuterBox}>
       <Box sx={{ ...formStyles.formBannerBox, textAlign: 'center', marginBottom: 3, position: 'relative', borderTopLeftRadius: '0px' }}>
-        <Typography variant="h5" color="white" fontWeight="bold">{data.me.user.firstName} {data.me.user.lastName}:n Projektit</Typography>
+        <Typography variant="h5" color="white" fontWeight="bold">{student.firstName} {student.lastName}:n Projektit</Typography>
       </Box>
       <Typography variant='h4' align='center' color='black'></Typography>
       <Typography variant='h6' align='center' color='black'>Työn ala</Typography>
       <List sx={{ overflow: 'auto', position: 'relative' }}>
         {startedProjects.map((project) => (
           <ListItem key={project.projectId}>
-            <EvaluateProject project={project} studentId={data.me.user.id}></EvaluateProject>
+            <EvaluateProject project={project} studentId={student.id}></EvaluateProject>
           </ListItem>
         ))}
       </List>
@@ -38,7 +41,7 @@ const StudentProjectsPath = () => {
       <List sx={{ overflow: 'auto', position: 'relative' }}>
         {returnedProjects.map((project) => (
           <ListItem key={project.projectId}>
-            <EvaluateProject project={project} studentId={data.me.user.id} ></EvaluateProject>
+            <EvaluateProject project={project} studentId={student.id} ></EvaluateProject>
           </ListItem>
         ))}
       </List>
@@ -46,7 +49,7 @@ const StudentProjectsPath = () => {
       <List sx={{ overflow: 'auto', position: 'relative' }}>
         {acceptedProjects.map((project) => (
           <ListItem key={project.projectId}>
-            <EvaluateProject project={project} studentId={data.me.user.id}></EvaluateProject>
+            <EvaluateProject project={project} studentId={student.id}></EvaluateProject>
           </ListItem>
         ))}
       </List>

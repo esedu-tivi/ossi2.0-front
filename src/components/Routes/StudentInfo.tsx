@@ -57,7 +57,7 @@ const StudentInfo = () => {
       </Tabs>
       {(tabIndex === 0) && <EditStudies student={student} />}
       {(tabIndex === 1) && <EducationPath student={student} />}
-      {(tabIndex === 2) && <StudentProjectsPath />}
+      {(tabIndex === 2) && <StudentProjectsPath student={student} />}
       {(tabIndex === 3) && <Internships student={student} />}
     </>
   )

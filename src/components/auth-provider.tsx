@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data } = await loginMutation({ variables: { idToken } });
       if (data && data.login && data.login.token) {
-        sessionStorage.setItem("mutatedToken", data.login.token); 
+        sessionStorage.setItem("mutatedToken", data.login.token);
       }
     } catch (error) {
       console.error("Failed to send idToken to backend:", error);
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Handles redirect during login
     const initializeMsal = async () => {
       try {
-        
+
         if (!msalInstance) {
           throw new Error("MSAL instance is not initialized");
         }
@@ -86,10 +86,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     // Removes event callback
-   if (msalInstance) {
-    initializeMsal();
-  }
-    
+    if (msalInstance) {
+      initializeMsal();
+    }
+
     return () => {
       if (callbackId) {
         msalInstance.removeEventCallback(callbackId);
