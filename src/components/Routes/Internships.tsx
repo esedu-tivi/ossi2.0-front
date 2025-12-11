@@ -8,7 +8,7 @@ import { CREATE_INTERNSHIP } from "../../graphql/CreateInternship";
 import { GET_STUDENT_INTERNSHIPS } from "../../graphql/GetStudentInternships";
 import { DELETE_INTERNSHIP } from "../../graphql/DeleteInternship";
 
-import Table, { TableHeaderPart } from "../common/Table";
+import Table, { TableHeaderCell } from "../common/Table";
 
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
@@ -53,7 +53,6 @@ interface InternshipData extends Internship {
 interface ParsedInternships extends InternshipData {
   startDate: string
   endDate: string
-
 }
 
 export type InternshipWithoutId = Omit<Internship, "id">
@@ -69,34 +68,33 @@ const initFormData: InternshipWithoutId = {
   jobSupervisorId: ""
 }
 
-const headerParts: TableHeaderPart[] = [
+const headerCells: readonly TableHeaderCell[] = [
   {
-    name: "id",
-    title: "#ID",
-    type: "sort"
-  },
-  {
-    name: "workplaceName",
-    title: "Työpaikka",
+    label: "#ID",
     type: "sort",
+    sortPath: "id"
   },
   {
-    name: "info",
-    title: "Info",
-    type: "sort"
-  },
-  {
-    name: "startDate",
-    title: "Aloitusaika",
+    label: "Työpaikka",
     type: "sort",
+    sortPath: "workplace.name"
   },
   {
-    name: "endDate",
-    title: "Lopetusaika",
+    label: "Info",
     type: "sort",
+    sortPath: "info"
   },
   {
-    name: "search",
+    label: "Aloitusaika",
+    type: "sort",
+    sortPath: "startDate"
+  },
+  {
+    label: "Lopetusaika",
+    type: "sort",
+    sortPath: "endDate"
+  },
+  {
     type: "search"
   }
 ]
@@ -219,7 +217,7 @@ const Internships = ({ student }: { student: StudentData }) => {
         </Button>
       </Box>
       <Table<ParsedInternships>
-        headerParts={headerParts}
+        headerCells={headerCells}
         data={internships}
         setSortedData={setSortedInternships}
         filterField={"workplace.name"}

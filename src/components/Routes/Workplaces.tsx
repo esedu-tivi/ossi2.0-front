@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { Button, TableBody, TableCell, TableRow, Typography } from "@mui/material"
+import { Box, Button, TableBody, TableCell, TableRow, Typography } from "@mui/material"
 
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
@@ -15,7 +15,7 @@ import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
 import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
 import { DELETE_WORKPLACE } from "../../graphql/DeleteWorkplace"
 import { useConfirm } from "material-ui-confirm"
-import Table, { TableHeaderPart } from "../common/Table"
+import Table, { TableHeaderCell } from "../common/Table"
 import { GET_JOB_SUPERVISORS } from "../../graphql/GetJobSupervisors"
 import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisorAssigns"
 import Dialog from "../common/Dialog"
@@ -28,6 +28,22 @@ export interface WorkplaceFormData {
 }
 
 const Workplaces = () => {
+  const headerCells: readonly TableHeaderCell[] = [
+    {
+      sortPath: "id",
+      label: "ID#",
+      type: "sort"
+    },
+    {
+      sortPath: "name",
+      label: "Työpaikan nimi",
+      type: "sort"
+    },
+    {
+      type: "search"
+    }
+  ]
+
   const navigate = useNavigate()
   const { loading: workplaceLoading, error: workplaceError, data: workplaceData } = useQuery(GET_WORKPLACES)
   const { loading: jobSupervisorsLoading, error: jobSupervisorsError, data: jobSupervisorsData } = useQuery(GET_JOB_SUPERVISORS)
@@ -183,26 +199,11 @@ const Workplaces = () => {
     setSelectedWorkplaceId(null)
   }
 
-  const headerParts: TableHeaderPart[] = [
-    {
-      name: "id",
-      title: "ID#",
-      type: "sort"
-    },
-    {
-      name: "name",
-      title: "Työpaikan nimi",
-      type: "sort"
-    },
-    {
-      name: "search",
-      type: "search"
-    }
-  ]
+
 
   return (
     <>
-      <div className="button-container">
+      <Box className="button-container">
         <Button
           variant="contained"
           color="primary"
@@ -212,9 +213,9 @@ const Workplaces = () => {
         >
           Lisää työpaikka
         </Button>
-      </div>
+      </Box>
 
-      <Table<Workplace> headerParts={headerParts} data={workplaces} setSortedData={setSortedWorkplaces} filterField="name">
+      <Table<Workplace> headerCells={headerCells} data={workplaces} setSortedData={setSortedWorkplaces} filterField="name">
         <TableBody>
           {sortedWorkplaces.map((workplace) => (
             <TableRow key={workplace.id} className="table-row">

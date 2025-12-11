@@ -1,21 +1,25 @@
 import { useState, useEffect } from "react";
-import { Paper, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material"
+import { Box, Paper, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material"
 import MuiTable from "@mui/material/Table"
 
 import SearchIcon from "@mui/icons-material/Search"
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
+import { sort, SortConfig } from "../../utils/sort";
+import { filter } from "../../utils/filter";
 
-import { filter, sort, SortConfig } from "./teacherHelpers"
-
-export interface TableHeaderPart {
-  name: string;
-  title?: string;
-  type: "search" | "sort";
-}
+export type TableHeaderCell =
+  | {
+    type: "search";
+  }
+  | {
+    type: "sort";
+    label: string;
+    sortPath: string;
+  }
 
 export interface TableProps<T> {
-  headerParts: TableHeaderPart[]
+  headerCells: readonly TableHeaderCell[]
   children: React.ReactElement<typeof TableBody>
   data: T[]
   setSortedData: React.Dispatch<React.SetStateAction<T[]>>
@@ -24,7 +28,7 @@ export interface TableProps<T> {
 
 type HeadProps<T> = Omit<TableProps<T>, "children">
 
-const Head = <T,>({ headerParts, setSortedData, filterField, data }: HeadProps<T>) => {
+const Head = <T,>({ headerCells, setSortedData, filterField, data }: HeadProps<T>) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState<T[]>([])
@@ -46,7 +50,8 @@ const Head = <T,>({ headerParts, setSortedData, filterField, data }: HeadProps<T
     setSortedData(sort<T>(filteredData, sortConfig))
   }, [setSortedData, filteredData, sortConfig])
 
-  const handleSort = (column: string) => {
+  const handleSort = (column: string | null) => {
+    if (!column) return null
     setSortConfig((prevConfig) => {
       switch (prevConfig.order) {
         case ("asc"):
@@ -62,20 +67,20 @@ const Head = <T,>({ headerParts, setSortedData, filterField, data }: HeadProps<T
   return (
     <TableHead>
       <TableRow className="table-header">
-        {headerParts.map((part: TableHeaderPart, index) => (part.type === "sort") ?
+        {headerCells.map((part: TableHeaderCell, index) => (part.type === "sort") ?
           <TableCell
             className="table-header-cell table-header-id"
-            onClick={() => handleSort(part.name)}
+            onClick={() => handleSort(part.sortPath ? part.sortPath : null)}
             key={index}
           >
-            <div className="sortable-header">
-              {part.title}
-              {sortConfig.column === part.name && sortConfig.order === "asc" ? (
+            <Box className="sortable-header">
+              {part.label}
+              {sortConfig.column === part.sortPath && sortConfig.order === "asc" ? (
                 <ArrowUpwardIcon fontSize="small" />
-              ) : sortConfig.column === part.name && sortConfig.order === "desc" ? (
+              ) : sortConfig.column === part.sortPath && sortConfig.order === "desc" ? (
                 <ArrowDownwardIcon fontSize="small" />
               ) : null}
-            </div>
+            </Box>
           </TableCell>
           : (part.type === "search") ?
             <TableCell className="table-header-cell" key={index}>
@@ -97,10 +102,10 @@ const Head = <T,>({ headerParts, setSortedData, filterField, data }: HeadProps<T
   )
 }
 
-const Table = <T,>({ headerParts, children, data, setSortedData, filterField }: TableProps<T>) => (
+const Table = <T,>({ headerCells, children, data, setSortedData, filterField }: TableProps<T>) => (
   <TableContainer component={Paper}>
     <MuiTable>
-      <Head<T> headerParts={headerParts} data={data} setSortedData={setSortedData} filterField={filterField} />
+      <Head<T> headerCells={headerCells} data={data} setSortedData={setSortedData} filterField={filterField} />
       {children}
     </MuiTable>
   </TableContainer>

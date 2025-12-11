@@ -82,46 +82,6 @@ export const filterWorkplaces = (workplaces: Workplace[], searchQuery: string): 
   )
 }
 
-const getValue = <T>(obj: T, path: string) => {
-  return path.split(".").reduce<unknown>((acc, key) => (acc as Record<string, unknown> | undefined)?.[key], obj as unknown);
-};
-
-export const filter = <T>(dataToFilter: T[], searchQuery: string, field: string): T[] => {
-  if (!searchQuery) return dataToFilter;
-
-  const lowerQuery = searchQuery.toLowerCase();
-
-  return dataToFilter.filter(item => {
-    const value = getValue<T>(item, field);
-
-    if (value == null) return false;
-
-    return String(value).toLowerCase().includes(lowerQuery);
-  });
-}
-
-export const sort = <T>(dataToSort: T[], sortConfig: SortConfig): T[] => {
-  if (!sortConfig.column || !sortConfig.order) return dataToSort;
-  return [...dataToSort].sort((a, b) => {
-    let valueA: string | number;
-    let valueB: string | number;
-    switch (sortConfig.column) {
-      case "id":
-        valueA = (a as Record<string, unknown>)["id"] as number;
-        valueB = (b as Record<string, unknown>)["id"] as number;
-        break;
-      default:
-        valueA = ((a as Record<string, unknown>)["name"] ?? "").toString().toLowerCase();
-        valueB = ((b as Record<string, unknown>)["name"] ?? "").toString().toLowerCase();
-        break;
-    }
-
-    if (valueA > valueB) return sortConfig.order === "asc" ? 1 : -1;
-    if (valueA < valueB) return sortConfig.order === "asc" ? -1 : 1;
-    return 0;
-  });
-}
-
 export const sortWorkplaces = (workplaces: Workplace[], sortConfig: SortConfig): Workplace[] => {
   if (!sortConfig.column || !sortConfig.order) return workplaces;
 
