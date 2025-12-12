@@ -194,8 +194,6 @@ const Workplaces = () => {
     setSelectedWorkplaceId(null)
   }
 
-
-
   return (
     <>
       <Box className="button-container">

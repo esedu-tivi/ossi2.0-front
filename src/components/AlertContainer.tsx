@@ -20,10 +20,10 @@ const AlertContainer = () => {
   return (
     <Box sx={style.container}>
       {alerts.map(alert =>
-        <Box>
+        <Box key={alert.id}>
           {alert.permanent
-            ? <Alert sx={{ mb: 2 }} variant="filled" onClose={() => handleClose(alert.id)} severity={alert.severity} key={alert.id}>{alert.message}</Alert>
-            : <Alert sx={{ mb: 2 }} variant="filled" severity={alert.severity} key={alert.id}>{alert.message}</Alert>
+            ? <Alert sx={{ mb: 2 }} variant="filled" onClose={() => handleClose(alert.id)} severity={alert.severity}>{alert.message}</Alert>
+            : <Alert sx={{ mb: 2 }} variant="filled" severity={alert.severity}>{alert.message}</Alert>
           }
         </Box>
       )}
