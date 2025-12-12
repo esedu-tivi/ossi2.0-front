@@ -67,3 +67,26 @@ export interface Workplace {
   name: string
   jobSupervisors: JobSupervisor[]
 }
+
+export interface Part {
+  id: number;
+  name: string;
+}
+
+export interface QualificationUnit {
+  id: number;
+  name: string;
+  parts: Part[];
+}
+
+export type QualificationUnitPart = {
+  id: number;
+  name: string;
+  parentQualificationUnit: { name: string };
+};
+
+export interface CompetenceRequirement {
+  id: string;
+  description: string;
+}
+

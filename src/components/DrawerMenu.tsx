@@ -27,10 +27,10 @@ const DrawerMenu = () => {
   // Sidebar navigation drawer based on the role of user
   const teacherMenu = [
     { text: 'Etusivu', icon: <HomeIcon />, route: '/teacherdashboard' },
-    { text: 'Opiskelijat', icon: <SchoolIcon />, route: '/teacherdashboard' }, // Temp route
+    { text: 'Opiskelijat', icon: <SchoolIcon />, route: '/teacherdashboard' },
     { text: 'Projektit', icon: <FolderIcon />, route: '/teacherprojects' },
     { text: 'Teemat', icon: <EventIcon />, route: '/qualificationunitparts' },
-    { text: 'Työpaikat', icon: <WorkIcon />, route: '/workplaces' }, // Temp route
+    { text: 'Työpaikat', icon: <WorkIcon />, route: '/workplaces' },
     { text: 'Tutkinnot', icon: <GradeIcon />, route: '/teacherdashboard' }, // Temp route
   ];
 

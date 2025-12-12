@@ -4,7 +4,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import StudiesData, { Task, Subtopic, Study } from '../../data/StudiesData';
-import { StudentData } from '../common/studentHelpers';
+import { Student } from '../../types';
 // import HoksGraphsComponent from '../HoksGraphsComponent';
 
 // Calculate progress
@@ -19,7 +19,7 @@ const handleInfoClick = (id: number) => {
   console.log('Info clicked for task or subtopic with id:', id);
 };
 
-const EditStudies: React.FC<{ student: StudentData }> = ({ student }) => {
+const EditStudies: React.FC<{ student: Student }> = ({ student }) => {
   //const location = useLocation();
 
   // This subtopic state must match the same interface from StudiesData

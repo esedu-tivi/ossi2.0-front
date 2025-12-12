@@ -6,13 +6,13 @@ import { Dispatch, SetStateAction, useEffect } from "react"
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import buttonStyles from "../styles/buttonStyles";
 import { useLazyQuery, useQuery } from "@apollo/client";
-import { StudentData } from "./common/studentHelpers";
 import { GET_INTERNSHIP_DATA } from "../graphql/GetInternshipData";
 import { GET_JOB_SUPERVISORS_BY_WORKPLACE } from "../graphql/GetJobSupervisorsByWorkplace";
+import { Student } from "../types";
 
 interface InternshipFormProps {
   formSubmitHandler: (event: React.FormEvent<HTMLFormElement>) => void
-  student: StudentData
+  student: Student
   formData: InternshipWithoutId
   setFormData: Dispatch<SetStateAction<InternshipWithoutId>>
   workplaceId: string | null,

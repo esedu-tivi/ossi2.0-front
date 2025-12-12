@@ -21,12 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import "../css/QualificationUnitPartsList.css";
 import { GET_QUALIFICATION_UNIT_PARTS } from "../graphql/GetQualificationUnitParts";
 import buttonStyles from '../styles/buttonStyles';
-
-type QualificationUnitPartData = {
-  id: number;
-  name: string;
-  parentQualificationUnit: { name: string };
-};
+import { QualificationUnitPart } from "../types";
 
 const QualificationUnitPartList: React.FC = () => {
   const { loading, error, data } = useQuery(GET_QUALIFICATION_UNIT_PARTS);
@@ -40,7 +35,7 @@ const QualificationUnitPartList: React.FC = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const parts: QualificationUnitPartData[] = data?.parts.parts || [];
+  const parts: QualificationUnitPart[] = data?.parts.parts || [];
 
   // Handle search input changes
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) =>

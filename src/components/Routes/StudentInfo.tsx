@@ -9,6 +9,7 @@ import StudentProjectsPath from "./StudentProjectsPath";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { GET_STUDENT } from "../../graphql/GetStudent";
+import { Student } from "../../types";
 
 const StudentInfo = () => {
   const [tabIndex, setTabIndex] = useState(0)
@@ -24,7 +25,7 @@ const StudentInfo = () => {
     return <Typography>Error: {error.message}</Typography>
   }
 
-  const student = data.student?.student
+  const student: Student = data.student?.student
 
   const handleTabChange = (_event: React.SyntheticEvent, newIndex: number) => {
     setTabIndex(newIndex)

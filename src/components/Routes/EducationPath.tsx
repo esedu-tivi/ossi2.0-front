@@ -22,7 +22,7 @@ import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import CheckBoxSharpIcon from '@mui/icons-material/CheckBoxSharp';
 import AddCircleOutlineSharpIcon from '@mui/icons-material/AddCircleOutlineSharp';
 import { mandatoryModules, choiceModules, optionalModulesList } from '../../data/EducationPathData';
-import { StudentData } from '../common/studentHelpers';
+import { Student } from '../../types';
 //import StudentTabs from '../common/StudentTabs';
 
 interface ModulePart {
@@ -41,7 +41,7 @@ interface Module {
   completed: boolean;
 }
 
-const EducationPath: React.FC<{ student: StudentData }> = ({ student }) => {
+const EducationPath: React.FC<{ student: Student }> = ({ student }) => {
   const [modules] = useState<Module[]>(mandatoryModules);
   const [optionalModules, setOptionalModules] = useState<Module[]>(choiceModules);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

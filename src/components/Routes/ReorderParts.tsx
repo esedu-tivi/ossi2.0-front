@@ -10,17 +10,7 @@ import { Accordion, AccordionSummary, AccordionDetails, List, ListItem, ListItem
 import { GET_QUALIFICATION_UNITS } from "../../graphql/GetQualificationUnits";
 import { UPDATE_PART_ORDER } from "../../graphql/UpdatePartOrder";
 import { useNavigate } from 'react-router-dom';
-
-interface Part {
-  id: number;
-  name: string;
-}
-
-interface QualificationUnit {
-  id: number;
-  name: string;
-  parts: Part[];
-}
+import { QualificationUnit } from "../../types";
 
 const ReorderParts: React.FC = () => {
   // Fetch qualification units with their parts
@@ -38,20 +28,20 @@ const ReorderParts: React.FC = () => {
 
   // Handle drag-and-drop sorting within a unit
   const handleDragEnd = (result: DropResult, unitId: number) => {
-    if (!result.destination) return; 
-  
+    if (!result.destination) return;
+
     setQualificationUnits((prevUnits) =>
       prevUnits.map((unit) => {
         if (unit.id !== unitId) return unit;
-  
+
         const updatedParts = [...unit.parts];
         const [movedItem] = updatedParts.splice(result.source.index, 1);
         updatedParts.splice(result.destination!.index, 0, movedItem);
-  
+
         return { ...unit, parts: updatedParts };
       })
     );
-  
+
     setHasChanges((prev) => ({ ...prev, [unitId]: true }));
   };
 
@@ -62,26 +52,26 @@ const ReorderParts: React.FC = () => {
         console.error("Unit not found:", unitId);
         return;
       }
-  
+
       const orderedIds = unit.parts.map((part) => part.id);
-  
+
       console.log("Sending to API:", { updatePartOrderId: unitId, partOrder: orderedIds });
-  
+
       await updatePartOrder({
         variables: {
           unitId: String(unitId),
           partOrder: orderedIds.map(id => String(id))
         },
       });
-  
+
       await refetch();
       setHasChanges((prev) => ({ ...prev, [unitId]: false }));
-  
+
       console.log(`Order for unit ${unitId} saved successfully!`);
     } catch (error) {
       console.error("Error saving order:", error);
     }
-  };  
+  };
 
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography>Error loading qualification units.</Typography>;
@@ -90,22 +80,22 @@ const ReorderParts: React.FC = () => {
     <Box component="form" textAlign={'center'} sx={formStyles.formOuterBox}>
       <Box sx={{ ...formStyles.formBannerBox, textAlign: "center", marginBottom: 3, position: 'relative', }}>
         <IconButton
-            onClick={() => navigate("/qualificationunitparts")}
-            sx={{
-                position: 'absolute',
-                left: '16px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'white',
-            }}
-            >
-            <ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
+          onClick={() => navigate("/qualificationunitparts")}
+          sx={{
+            position: 'absolute',
+            left: '16px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'white',
+          }}
+        >
+          <ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
         </IconButton>
         <Typography variant="h4" align="center" color="white">
           Teemojen järjestys
         </Typography>
       </Box>
-  
+
       {qualificationUnits.map((unit) => (
         <Accordion key={unit.id}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -152,6 +142,6 @@ const ReorderParts: React.FC = () => {
       ))}
     </Box>
   );
-}  
+}
 
 export default ReorderParts;

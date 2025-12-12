@@ -9,8 +9,7 @@ import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 
-
-import WorkplaceForm from "../WorkplaceForm"
+import WorkplaceForm, { WorkplaceFormData } from "../WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
 import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
 import { DELETE_WORKPLACE } from "../../graphql/DeleteWorkplace"
@@ -21,12 +20,6 @@ import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisor
 import Dialog from "../common/Dialog"
 import { useAlerts } from "../../context/AlertContext"
 import { Workplace } from "../../types"
-
-export interface WorkplaceFormData {
-  id: string | number | null
-  name: string;
-  jobSupervisorIds: string[]
-}
 
 const Workplaces = () => {
   const headerCells: readonly TableHeaderCell[] = [

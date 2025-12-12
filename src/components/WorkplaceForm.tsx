@@ -2,9 +2,14 @@ import { Box, FormControl, IconButton, InputLabel, MenuItem, Select, SelectChang
 import formStyles from "../styles/formStyles"
 import buttonStyles from "../styles/buttonStyles"
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
-import { WorkplaceFormData } from "./Routes/Workplaces";
 import React from "react";
 import { JobSupervisor } from "../types";
+
+export interface WorkplaceFormData {
+  id: string | number | null
+  name: string;
+  jobSupervisorIds: string[]
+}
 
 interface WorkplaceFormProps {
   formData: WorkplaceFormData

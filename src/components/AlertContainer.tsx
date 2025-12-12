@@ -26,9 +26,7 @@ const AlertContainer = () => {
             : <Alert sx={{ mb: 2 }} variant="filled" severity={alert.severity} key={alert.id}>{alert.message}</Alert>
           }
         </Box>
-
       )}
-
     </Box>
   )
 }

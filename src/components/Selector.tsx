@@ -23,6 +23,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useMutation, useLazyQuery } from '@apollo/client';
 import { CREATE_PROJECT_TAG } from '../graphql/CreateProjectTag';
 import { GET_COMPETENCE_REQUIREMENTS } from '../graphql/GetCompetenceRequirements';
+import { CompetenceRequirement } from '../types';
 
 // Define the Item interface
 interface Item {
@@ -35,12 +36,6 @@ interface Item {
 interface CompetenceRequirementGroup {
     id: string;
     requirements: CompetenceRequirement[];
-}
-
-// Define the structure of CompetenceRequirement
-interface CompetenceRequirement {
-    id: string;
-    description: string;
 }
 
 // Define the props for the Selector component
@@ -87,14 +82,14 @@ const Selector: React.FC<SelectorProps> = ({
             console.log("Raw initialSelectedItems:", initialSelectedItems, typeof initialSelectedItems);
 
             const validSelectedItems = Array.isArray(initialSelectedItems) ? initialSelectedItems : [];
-            
+
             // Ensure only relevant selections are preserved
             if (currentField === 'competenceRequirements') {
-                setSelectedItems(validSelectedItems.filter(item => 'description' in item)); 
+                setSelectedItems(validSelectedItems.filter(item => 'description' in item));
             } else {
                 setSelectedItems(validSelectedItems.filter(item => 'name' in item));
             }
-            
+
             setCompetenceOptions([]);
         }
     }, [initialSelectedItems, currentField]);
@@ -175,7 +170,7 @@ const Selector: React.FC<SelectorProps> = ({
             setSelectedItems(newChecked); // Update the selection state
         }
     };
-    
+
     // Handle adding the selected items
     const handleAdd = () => {
         console.log("Added items:", selectedItems);
@@ -204,7 +199,7 @@ const Selector: React.FC<SelectorProps> = ({
         }
     };
 
-    const filteredItems = 
+    const filteredItems =
         currentField === 'competenceRequirements'
             ? (competenceOptions.length > 0 ? competenceOptions : [])
             : (Array.isArray(items) ? items : []).filter((item) => item?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -268,8 +263,8 @@ const Selector: React.FC<SelectorProps> = ({
                             key={item.id}
                             onClick={handleToggle(item)}
                         >
-                            <ListItemText                 
-                                primary={currentField === 'competenceRequirements' ? item.description : item.name} 
+                            <ListItemText
+                                primary={currentField === 'competenceRequirements' ? item.description : item.name}
                             />
                             <Checkbox
                                 sx={{
