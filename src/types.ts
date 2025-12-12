@@ -43,3 +43,27 @@ export type Student = {
     "name": string | null
   }
 };
+
+export interface Project {
+  id: number;
+  name: string;
+  includedInQualificationUnitParts: { id: number; name: string }[];
+}
+
+export interface SortConfig {
+  column: string | null;
+  order: "asc" | "desc" | null;
+}
+
+export interface JobSupervisor {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+}
+
+export interface Workplace {
+  id: number
+  name: string
+  jobSupervisors: JobSupervisor[]
+}

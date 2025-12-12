@@ -1,28 +1,5 @@
+import { Project, SortConfig, Workplace } from "../../types";
 import { Internship } from "../Routes/Internships";
-
-export interface Project {
-  id: number;
-  name: string;
-  includedInQualificationUnitParts: { id: number; name: string }[];
-}
-
-export interface SortConfig {
-  column: string | null;
-  order: "asc" | "desc" | null;
-}
-
-export interface JobSupervisor {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-}
-
-export interface Workplace {
-  id: number
-  name: string
-  jobSupervisors: JobSupervisor[]
-}
 
 // Filter the list of projects by search query. Checks project name 
 //and the names of the included qualification unit parts.

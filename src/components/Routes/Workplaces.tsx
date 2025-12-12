@@ -9,7 +9,7 @@ import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 
-import { Workplace } from "../common/teacherHelpers"
+
 import WorkplaceForm from "../WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
 import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
@@ -20,6 +20,7 @@ import { GET_JOB_SUPERVISORS } from "../../graphql/GetJobSupervisors"
 import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisorAssigns"
 import Dialog from "../common/Dialog"
 import { useAlerts } from "../../context/AlertContext"
+import { Workplace } from "../../types"
 
 export interface WorkplaceFormData {
   id: string | number | null

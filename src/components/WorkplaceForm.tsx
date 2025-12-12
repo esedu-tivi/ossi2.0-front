@@ -4,7 +4,7 @@ import buttonStyles from "../styles/buttonStyles"
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import { WorkplaceFormData } from "./Routes/Workplaces";
 import React from "react";
-import { JobSupervisor } from "./common/teacherHelpers";
+import { JobSupervisor } from "../types";
 
 interface WorkplaceFormProps {
   formData: WorkplaceFormData
