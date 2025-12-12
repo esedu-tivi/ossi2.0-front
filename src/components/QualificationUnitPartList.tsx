@@ -33,7 +33,8 @@ const tableHeaderCells: readonly TableHeaderCell[] = [
     sortPath: "parentQualificationUnit.name"
   },
   {
-    type: "search"
+    type: "search",
+    searchPath: "name"
   }
 ]
 
@@ -73,7 +74,7 @@ const QualificationUnitPartList: React.FC = () => {
           Järjestele Teemoja
         </Button>
       </div>
-      <Table<QualificationUnitPart> headerCells={tableHeaderCells} data={parts} setSortedData={setSortedParts} filterField="name">
+      <Table<QualificationUnitPart> headerCells={tableHeaderCells} data={parts} setSortedData={setSortedParts}>
         <TableBody>
           {sortedParts.map((part) => (
             <TableRow key={part.id} className="table-row">

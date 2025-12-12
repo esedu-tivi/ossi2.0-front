@@ -32,7 +32,8 @@ const headerCells: readonly TableHeaderCell[] = [
         sortPath: "studyingQualificationTitle.name"
     },
     {
-        type: "search"
+        type: "search",
+        searchPath: "fullName"
     }
 ]
 
@@ -67,7 +68,7 @@ const StudentList: React.FC = () => {
     if (error) return <p>Error: {error.message}</p>;
 
     return (
-        <Table<ParsedStudent> headerCells={headerCells} data={students} setSortedData={setSortedStudents} filterField='fullName'>
+        <Table<ParsedStudent> headerCells={headerCells} data={students} setSortedData={setSortedStudents}>
             <TableBody>
                 {sortedStudents.map((student: ParsedStudent) => (
                     <TableRow key={student.id} className="table-row">

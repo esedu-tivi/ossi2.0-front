@@ -34,7 +34,8 @@ const headerCells: readonly TableHeaderCell[] = [
     sortPath: "includedInQualificationUnitParts.name"
   },
   {
-    type: "search"
+    type: "search",
+    searchPath: "name"
   }
 ]
 
@@ -67,7 +68,7 @@ export default function ProjectTable() {
           Lisää Projekti
         </Button>
       </Box>
-      <Table<Project> headerCells={headerCells} setSortedData={setSortedProjects} data={projects} filterField="name">
+      <Table<Project> headerCells={headerCells} setSortedData={setSortedProjects} data={projects}>
         <TableBody>
           {sortedProjects.map((project) => (
             <TableRow key={project.id} className="table-row">

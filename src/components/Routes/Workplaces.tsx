@@ -34,7 +34,8 @@ const Workplaces = () => {
       type: "sort"
     },
     {
-      type: "search"
+      type: "search",
+      searchPath: "name"
     }
   ]
 
@@ -209,7 +210,7 @@ const Workplaces = () => {
         </Button>
       </Box>
 
-      <Table<Workplace> headerCells={headerCells} data={workplaces} setSortedData={setSortedWorkplaces} filterField="name">
+      <Table<Workplace> headerCells={headerCells} data={workplaces} setSortedData={setSortedWorkplaces}>
         <TableBody>
           {sortedWorkplaces.map((workplace) => (
             <TableRow key={workplace.id} className="table-row">

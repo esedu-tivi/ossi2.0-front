@@ -95,7 +95,8 @@ const headerCells: readonly TableHeaderCell[] = [
     sortPath: "endDate"
   },
   {
-    type: "search"
+    type: "search",
+    searchPath: "workplace.name"
   }
 ]
 
@@ -220,7 +221,6 @@ const Internships = ({ student }: { student: Student }) => {
         headerCells={headerCells}
         data={internships}
         setSortedData={setSortedInternships}
-        filterField={"workplace.name"}
       >
         <TableBody>
           {sortedInternships.map(internship => (
