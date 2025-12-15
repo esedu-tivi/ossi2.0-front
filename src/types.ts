@@ -90,3 +90,14 @@ export interface CompetenceRequirement {
   description: string;
 }
 
+export interface Internship {
+  id: string | number
+  startDate: Date | string
+  endDate: Date | string
+  info: string
+  qualificationUnitId: string
+  workplaceId: string
+  teacherId: string
+  studentId: string
+  jobSupervisorId: string
+}

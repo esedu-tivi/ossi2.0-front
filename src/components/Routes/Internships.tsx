@@ -6,28 +6,16 @@ import { useConfirm } from "material-ui-confirm";
 import { CREATE_INTERNSHIP } from "../../graphql/CreateInternship";
 import { GET_STUDENT_INTERNSHIPS } from "../../graphql/GetStudentInternships";
 import { DELETE_INTERNSHIP } from "../../graphql/DeleteInternship";
-
 import Table, { TableHeaderCell } from "../common/Table";
-
+import { convertDateForForm } from "../../utils/convertDateForForm";
+import { Internship, Student } from "../../types";
+import { EDIT_INTERNSHIP } from "../../graphql/EditInternship";
+import { useAlerts } from "../../context/AlertContext";
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Dialog from "../common/Dialog";
-import { convertDateForForm } from "../../utils/convertDateForForm";
-import { Student } from "../../types";
-
-export interface Internship {
-  id: string | number
-  startDate: Date | string
-  endDate: Date | string
-  info: string
-  qualificationUnitId: string
-  workplaceId: string
-  teacherId: string
-  studentId: string
-  jobSupervisorId: string
-}
 
 interface InternshipData extends Internship {
   workplace: {
@@ -103,15 +91,18 @@ const headerCells: readonly TableHeaderCell[] = [
 const Internships = ({ student }: { student: Student }) => {
   const [showAddInternship, setShowAddInternship] = useState(false)
   const [showEditInternship, setShowEditInternship] = useState(false)
-  const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
+  const [formData, setFormData] = useState<InternshipWithoutId | Internship>(initFormData);
+  const [selectedInternshipId, setSelectedInternshipId] = useState<string | number | null>(null)
   const [createInternship] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const [deleteInternship] = useMutation(DELETE_INTERNSHIP)
+  const [editInternship, { data: editData }] = useMutation(EDIT_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
   const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
   const [internships, setInternships] = useState<ParsedInternships[]>([])
   const confirm = useConfirm()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<string | null>(null)
+  const { addAlert } = useAlerts()
 
   useEffect(() => {
     if (data && !loading) {
@@ -141,8 +132,7 @@ const Internships = ({ student }: { student: Student }) => {
 
   const handleNewFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    console.log(event.target)
-    console.log(formData)
+
     const { confirmed } = await confirm({
       title: "Lisäys",
       description: "Oletko aivan varma, että haluat lisätä harjoittelu jakson?"
@@ -168,9 +158,26 @@ const Internships = ({ student }: { student: Student }) => {
     }
   }
 
-  const handleEditFormSubmit = (event: React.FormEvent) => {
-    event.preventDefault()
-    console.log(formData)
+  const handleEditFormSubmit = async (event: React.FormEvent) => {
+    try {
+      event.preventDefault()
+
+      const { confirmed } = await confirm({
+        title: "Muokkaus",
+        description: "Oletko aivan varma, että haluat muokata harjoittelu jaksoa?"
+      })
+      if (confirmed) {
+        await editInternship({ variables: { internshipId: selectedInternshipId, internship: formData } })
+        setDialogOpen(false)
+        if (editData.editInternship?.success) {
+          addAlert(`Opiskelijan ${student.firstName} ${student.lastName} harjoittelujakson muokkaus onnistui`, 'success')
+        }
+      }
+    }
+    catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      addAlert(`Muokkauksessa tapahtui virhe: ${errorMessage}`, 'error', true)
+    }
   }
 
   const handleDialogClose = () => setDialogOpen(false)
@@ -181,6 +188,7 @@ const Internships = ({ student }: { student: Student }) => {
   }
 
   const handleShowEditForm = async (id: number | string) => {
+    setSelectedInternshipId(id)
     const internship = data.internships?.internships.find((internship: InternshipData) => internship.id === id)
 
     if (internship) {
@@ -188,7 +196,7 @@ const Internships = ({ student }: { student: Student }) => {
       const endDate = new Date(internship.endDate)
 
       setSelectedWorkplaceId(internship.workplace.id)
-      const parsedInternship = {
+      const parsedInternship: InternshipWithoutId = {
         info: internship.info || "",
         startDate: convertDateForForm(startDate),
         endDate: convertDateForForm(endDate),
@@ -231,7 +239,7 @@ const Internships = ({ student }: { student: Student }) => {
               <TableCell>{internship.startDate}</TableCell>
               <TableCell>{internship.endDate}</TableCell>
               <TableCell>
-                <div className="button-group">
+                <Box className="button-group">
                   <Button
                     variant="outlined"
                     color="primary"
@@ -259,7 +267,7 @@ const Internships = ({ student }: { student: Student }) => {
                   >
                     Poista
                   </Button>
-                </div>
+                </Box>
               </TableCell>
             </TableRow>
           ))}

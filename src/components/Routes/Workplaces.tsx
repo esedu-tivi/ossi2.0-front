@@ -21,24 +21,24 @@ import Dialog from "../common/Dialog"
 import { useAlerts } from "../../context/AlertContext"
 import { Workplace } from "../../types"
 
-const Workplaces = () => {
-  const headerCells: readonly TableHeaderCell[] = [
-    {
-      sortPath: "id",
-      label: "ID#",
-      type: "sort"
-    },
-    {
-      sortPath: "name",
-      label: "Työpaikan nimi",
-      type: "sort"
-    },
-    {
-      type: "search",
-      searchPath: "name"
-    }
-  ]
+const headerCells: readonly TableHeaderCell[] = [
+  {
+    sortPath: "id",
+    label: "ID#",
+    type: "sort"
+  },
+  {
+    sortPath: "name",
+    label: "Työpaikan nimi",
+    type: "sort"
+  },
+  {
+    type: "search",
+    searchPath: "name"
+  }
+]
 
+const Workplaces = () => {
   const navigate = useNavigate()
   const { loading: workplaceLoading, error: workplaceError, data: workplaceData } = useQuery(GET_WORKPLACES)
   const { loading: jobSupervisorsLoading, error: jobSupervisorsError, data: jobSupervisorsData } = useQuery(GET_JOB_SUPERVISORS)
@@ -65,10 +65,6 @@ const Workplaces = () => {
 
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
   const [sortedWorkplaces, setSortedWorkplaces] = useState<Workplace[]>([])
-
-  //const filteredWorkplaces = filterWorkplaces(workplaces, searchQuery)
-
-  //const sortedWorkplaces = sortWorkplaces(filteredWorkplaces, sortConfig)
 
   const initFormData = {
     id: null,
