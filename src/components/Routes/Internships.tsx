@@ -95,7 +95,7 @@ const Internships = ({ student }: { student: Student }) => {
   const [selectedInternshipId, setSelectedInternshipId] = useState<string | number | null>(null)
   const [createInternship] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const [deleteInternship] = useMutation(DELETE_INTERNSHIP)
-  const [editInternship, { data: editData }] = useMutation(EDIT_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
+  const [editInternship, { data: editData, error: editError, loading: editLoading }] = useMutation(EDIT_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
   const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
   const [internships, setInternships] = useState<ParsedInternships[]>([])
@@ -125,6 +125,18 @@ const Internships = ({ student }: { student: Student }) => {
       }
     }
   }, [showAddInternship, formData, dialogOpen])
+
+  useEffect(() => {
+    if (!editLoading) {
+      if (editData) {
+        addAlert(`Opiskelijan ${student.firstName} ${student.lastName} harjoittelujakson muokkaus onnistui`, 'success')
+      }
+      if (editError) {
+        return addAlert(`Muokkauksessa tapahtui virhe: ${editError.message}`, 'error', true)
+      }
+    }
+
+  }, [editData, editError, editLoading, addAlert, student])
 
   if (loading) {
     return <Box><Typography>Loading...</Typography></Box>
@@ -159,24 +171,15 @@ const Internships = ({ student }: { student: Student }) => {
   }
 
   const handleEditFormSubmit = async (event: React.FormEvent) => {
-    try {
-      event.preventDefault()
+    event.preventDefault()
 
-      const { confirmed } = await confirm({
-        title: "Muokkaus",
-        description: "Oletko aivan varma, että haluat muokata harjoittelu jaksoa?"
-      })
-      if (confirmed) {
-        await editInternship({ variables: { internshipId: selectedInternshipId, internship: formData } })
-        setDialogOpen(false)
-        if (editData.editInternship?.success) {
-          addAlert(`Opiskelijan ${student.firstName} ${student.lastName} harjoittelujakson muokkaus onnistui`, 'success')
-        }
-      }
-    }
-    catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      addAlert(`Muokkauksessa tapahtui virhe: ${errorMessage}`, 'error', true)
+    const { confirmed } = await confirm({
+      title: "Muokkaus",
+      description: "Oletko aivan varma, että haluat muokata harjoittelu jaksoa?"
+    })
+    if (confirmed) {
+      await editInternship({ variables: { internshipId: selectedInternshipId, internship: formData } })
+      setDialogOpen(false)
     }
   }
 
