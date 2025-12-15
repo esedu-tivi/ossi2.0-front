@@ -15,10 +15,12 @@ Also clone the Ossi-Api repository and follow the instructions for setting that 
 Navigate to the project directory:
 
 ### Install the dependencies:
+
 npm install
 
 - Remember to add .env file to your project with correct client/tenantId's
-  
+
+```env
 VITE_CLIENT_ID=client-id-here
 
 VITE_TENANT_ID=tenant-id-here
@@ -26,6 +28,7 @@ VITE_TENANT_ID=tenant-id-here
 VITE_REDIRECT_URI=http://localhost:5174/
 
 VITE_POST_LOGOUT_REDIRECT_URI=http://localhost:5174/
+```
 
 ### Run the development server:
 
@@ -34,5 +37,6 @@ npm run dev
 Open localhost to view it in your browser.
 
 ### Extra
+
 For student devs with @esedulainen.fi email --> if you want to dev on teacher views, change in auth-provider.tsx line 28 setRole(student) to setRole(teacher).
 For development change DISABLE_ROLE_BASED_ACCESS_CONTROL in .env file to be true
