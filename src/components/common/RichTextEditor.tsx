@@ -32,6 +32,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       <Editor
         tinymceScriptSrc="/tinymce/tinymce.min.js"
         value={value}
+        licenseKey='gpl'
         onEditorChange={(content) => onChange(content)}
         init={{
           height,
