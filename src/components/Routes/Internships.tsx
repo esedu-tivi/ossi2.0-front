@@ -93,8 +93,8 @@ const Internships = ({ student }: { student: Student }) => {
   const [showEditInternship, setShowEditInternship] = useState(false)
   const [formData, setFormData] = useState<InternshipWithoutId | Internship>(initFormData);
   const [selectedInternshipId, setSelectedInternshipId] = useState<string | number | null>(null)
-  const [createInternship] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
-  const [deleteInternship] = useMutation(DELETE_INTERNSHIP)
+  const [createInternship, { data: createData, error: createError, loading: createLoading }] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
+  const [deleteInternship, { data: deleteData, error: deleteError, loading: deleteLoading }] = useMutation(DELETE_INTERNSHIP)
   const [editInternship, { data: editData, error: editError, loading: editLoading }] = useMutation(EDIT_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
   const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
@@ -129,14 +129,38 @@ const Internships = ({ student }: { student: Student }) => {
   useEffect(() => {
     if (!editLoading) {
       if (editData) {
-        addAlert(`Opiskelijan ${student.firstName} ${student.lastName} harjoittelujakson muokkaus onnistui`, 'success')
+        addAlert(`Opiskelijan '${student.firstName} ${student.lastName}' harjoittelujakson muokkaus onnistui`, 'success')
       }
       if (editError) {
-        return addAlert(`Muokkauksessa tapahtui virhe: ${editError.message}`, 'error', true)
+        addAlert(`Muokkauksessa tapahtui virhe: ${editError.message}`, 'error', true)
       }
     }
 
   }, [editData, editError, editLoading, addAlert, student])
+
+  useEffect(() => {
+    if (!deleteLoading) {
+      if (deleteData) {
+        addAlert(`Opiskelijan '${student.firstName} ${student.lastName}' harjoittelujakson poisto onnistui`, 'success')
+      }
+      if (deleteError) {
+        addAlert(`Poistamisessa tapahtui virhe: ${deleteError.message}`, 'error', true)
+      }
+    }
+  }, [deleteData, deleteError, deleteLoading, addAlert, student])
+
+  useEffect(() => {
+    if (!createLoading) {
+      if (createData) {
+        addAlert(`Harjoittelujakson lisäys onnistui opiskelijalle '${student.firstName} ${student.lastName}'`, 'success')
+      }
+      if (createError) {
+        addAlert(`Lisäyksessä tapahtui virhe: ${createError.message}`, 'error', true)
+      }
+    }
+  }, [createData, createError, createLoading, addAlert, student])
+
+
 
   if (loading) {
     return <Box><Typography>Loading...</Typography></Box>
