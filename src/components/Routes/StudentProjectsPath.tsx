@@ -17,7 +17,8 @@ const StudentProjectsPath = ({ student }: { student: Student }) => {
     );
   };
   stopPolling();
-  const assignedProjects = data.assignedProjects.assignedProjects;
+
+  const assignedProjects = data.assignedStudentProjects?.assignedProjects || [];
   console.log(assignedProjects)
   const startedProjects = assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Working);
   const returnedProjects = assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Returned);
