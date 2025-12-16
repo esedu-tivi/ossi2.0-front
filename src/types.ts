@@ -101,3 +101,9 @@ export interface Internship {
   studentId: string
   jobSupervisorId: string
 }
+
+export interface UnitPart {
+  id: number;
+  name: string;
+  projects: BaseProject[];
+};

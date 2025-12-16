@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Accordion, AccordionDetails, AccordionSummary, Box, List, Typography } from '@mui/material';
 import formStyles from '../../../styles/formStyles';
-import { BaseProject } from '../../../types';
+import { BaseProject, UnitPart } from '../../../types';
 import StudentProjectListItem from './StudentProjectListItem';
-
-interface UnitPart {
-  id: number;
-  name: string;
-  projects: BaseProject[];
-};
 
 interface StudentInactiveProjectListProps {
   title: string;
@@ -32,7 +26,7 @@ const UnitPartAccordion: React.FC<UnitPartAccordionProps> = ({ unitPart, activeP
 
   useEffect(() => {
     setInactiveProjects(unitPart.projects.filter((project) => !activeProjectIds.includes(project.id)));
-  }, [activeProjectIds]);
+  }, [activeProjectIds, unitPart]);
 
   return (
     <Accordion expanded={expanded === unitPart.id} onChange={() => handleChange(unitPart.id)}>
