@@ -40,7 +40,7 @@ export type Student = {
     name: string | null;
   };
   studyingQualification: {
-    "name": string | null
+    name: string | null
   }
 };
 
@@ -107,3 +107,10 @@ export interface UnitPart {
   name: string;
   projects: BaseProject[];
 };
+
+export interface AssignedProject extends Omit<StudentProject, 'parentProject'> {
+  projectId: string
+  deadlineDate: Date
+  parentProject: Project
+  teacherComment: string
+}
