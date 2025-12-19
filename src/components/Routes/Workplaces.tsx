@@ -2,13 +2,14 @@ import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { Button, Stack, TableBody, TableCell, TableRow, Typography } from "@mui/material"
+import { Accordion as MuiAccordion, AccordionDetails, AccordionSummary as MuiAccordionSummary, Button, Stack, TableBody, TableCell, TableRow, Typography, styled, AccordionProps, AccordionSummaryProps, accordionSummaryClasses, Box } from "@mui/material"
 
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 
 import WorkplaceForm, { WorkplaceFormData } from "../WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
@@ -20,10 +21,15 @@ import { GET_JOB_SUPERVISORS } from "../../graphql/GetJobSupervisors"
 import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisorAssigns"
 import Dialog from "../common/Dialog"
 import { useAlerts } from "../../context/AlertContext"
-import { Workplace } from "../../types"
+import { JobSupervisor, Workplace } from "../../types"
 import JobSupervisorForm, { JobSupervisorFormData } from "../JobSupervisorForm"
 import buttonStyles from "../../styles/buttonStyles"
 import { CREATE_JOB_SUPERVISOR } from "../../graphql/CreateJobSupervisor"
+
+interface JobSupervisorWithFullNameAndWorkplace extends JobSupervisor {
+  fullName: string,
+  workplace?: Workplace
+}
 
 const headerCells: readonly TableHeaderCell[] = [
   {
@@ -41,6 +47,55 @@ const headerCells: readonly TableHeaderCell[] = [
     searchPath: "name"
   }
 ]
+
+const jobSupervisorsHeaderCells: readonly TableHeaderCell[] = [
+  {
+    sortPath: "id",
+    label: "ID#",
+    type: "sort"
+  },
+  {
+    sortPath: "fullName",
+    label: "Nimi",
+    type: "sort"
+  },
+  {
+    sortPath: "workplace.name",
+    label: "Työpaikan nimi",
+    type: "sort"
+  },
+  {
+    type: "search",
+    searchPath: "fullName"
+  }
+]
+
+const Accordion = styled((props: AccordionProps) => (
+  <MuiAccordion disableGutters elevation={0} square {...props} />
+))(() => ({
+  border: `1px solid grey`,
+  '&:not(:last-child)': {
+    borderBottom: 0,
+  },
+  '&::before': {
+    display: 'none',
+  },
+}));
+
+
+const AccordionSummary = styled((props: AccordionSummaryProps) => (
+  <MuiAccordionSummary
+    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
+    {...props}
+  />
+))(() => ({
+  backgroundColor: 'rgba(0, 0, 0, .03)',
+  flexDirection: 'row-reverse',
+  [`& .${accordionSummaryClasses.expandIconWrapper}.${accordionSummaryClasses.expanded}`]:
+  {
+    transform: 'rotate(90deg)',
+  },
+}));
 
 const Workplaces = () => {
   const navigate = useNavigate()
@@ -72,6 +127,10 @@ const Workplaces = () => {
 
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
   const [sortedWorkplaces, setSortedWorkplaces] = useState<Workplace[]>([])
+
+  const [sortedJobSupervisors, setSortedJobSupervisors] = useState<JobSupervisorWithFullNameAndWorkplace[]>([])
+
+  const [expandedAccordion, setExpandedAccordion] = useState<"workplaces" | "jobSupervisors" | false>(false)
 
   const initWorkplaceFormData = {
     id: null,
@@ -115,7 +174,12 @@ const Workplaces = () => {
 
   const workplaces: Workplace[] = workplaceData.workplaces?.workplaces || []
 
-  const jobSupervisors = jobSupervisorsData.jobSupervisors?.jobSupervisors || []
+  const jobSupervisors = jobSupervisorsData.jobSupervisors?.jobSupervisors.map(((jobSupervisor: JobSupervisorWithFullNameAndWorkplace) => ({
+    ...jobSupervisor,
+    fullName: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
+
+  })))
+
 
   const handleDelete = async (id: number, name: string) => {
     console.log(id);
@@ -216,6 +280,10 @@ const Workplaces = () => {
     setShowNewJobSupervisorForm(true)
   }
 
+  const handleAccordionChange = (panel: "workplaces" | "jobSupervisors") => (_event: React.SyntheticEvent, newExpanded: boolean) => {
+    setExpandedAccordion(newExpanded ? panel : false)
+  }
+
   if (selectedWorkplaceId) {
     const foundWorkplace = sortedWorkplaces.find(workplace => workplace.id === selectedWorkplaceId)
     const workplace = foundWorkplace ? {
@@ -248,47 +316,109 @@ const Workplaces = () => {
         </Button>
       </Stack>
 
-      <Table<Workplace> headerCells={headerCells} data={workplaces} setSortedData={setSortedWorkplaces}>
-        <TableBody>
-          {sortedWorkplaces.map((workplace) => (
-            <TableRow key={workplace.id} className="table-row">
-              <TableCell>{workplace.id}</TableCell>
-              <TableCell>{workplace.name}</TableCell>
-              <TableCell>
-                <div className="button-group">
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<EditIcon />}
-                    size="small"
-                    onClick={() => handleShowEditForm(workplace.id)}
-                  >
-                    Muokkaa
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<InfoIcon />}
-                    size="small"
-                    onClick={() => navigate(`/workplaces/${workplace.id}`)}
-                  >
-                    Tiedot
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<DeleteIcon />}
-                    size="small"
-                    onClick={() => handleDelete(workplace.id, workplace.name)}
-                  >
-                    Poista
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Accordion expanded={expandedAccordion === 'workplaces'} onChange={handleAccordionChange('workplaces')}>
+        <AccordionSummary
+          aria-controls="workplaces-accordion-content"
+          id="workplaces-accordion-header"
+        >
+          <Typography sx={{ fontWeight: 600 }} component="span">Työpaikat</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Table<Workplace> headerCells={headerCells} data={workplaces} setSortedData={setSortedWorkplaces}>
+            <TableBody>
+              {sortedWorkplaces.map((workplace) => (
+                <TableRow key={workplace.id} className="table-row">
+                  <TableCell>{workplace.id}</TableCell>
+                  <TableCell>{workplace.name}</TableCell>
+                  <TableCell>
+                    <Box className="button-group">
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<EditIcon />}
+                        size="small"
+                        onClick={() => handleShowEditForm(workplace.id)}
+                      >
+                        Muokkaa
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<InfoIcon />}
+                        size="small"
+                        onClick={() => navigate(`/workplaces/${workplace.id}`)}
+                      >
+                        Tiedot
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<DeleteIcon />}
+                        size="small"
+                        onClick={() => handleDelete(workplace.id, workplace.name)}
+                      >
+                        Poista
+                      </Button>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </AccordionDetails>
+      </Accordion>
+      <Accordion expanded={expandedAccordion === 'jobSupervisors'} onChange={handleAccordionChange('jobSupervisors')}>
+        <AccordionSummary
+          aria-controls="jobSupervisors-accordion-content"
+          id="jobSupervisors-accordion-header"
+        >
+          <Typography sx={{ fontWeight: 600 }} component="span">Työpaikkaohjaajat</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Table<JobSupervisorWithFullNameAndWorkplace> headerCells={jobSupervisorsHeaderCells} data={jobSupervisors} setSortedData={setSortedJobSupervisors}>
+            <TableBody>
+              {sortedJobSupervisors.map((jobSupervisor) => (
+                <TableRow key={jobSupervisor.id} className="table-row">
+                  <TableCell>{jobSupervisor.id}</TableCell>
+                  <TableCell>{jobSupervisor.fullName}</TableCell>
+                  <TableCell>{jobSupervisor.workplace?.name || ""}</TableCell>
+                  <TableCell>
+                    <Box className="button-group">
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<EditIcon />}
+                        size="small"
+                        onClick={() => console.log('muokkaa')}
+                      >
+                        Muokkaa
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<InfoIcon />}
+                        size="small"
+                        onClick={() => console.log('tiedot')}
+                      >
+                        Tiedot
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<DeleteIcon />}
+                        size="small"
+                        onClick={() => console.log('delete')}
+                      >
+                        Poista
+                      </Button>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </AccordionDetails>
+      </Accordion>
       <Dialog
         title={
           showNewWorkplaceForm
