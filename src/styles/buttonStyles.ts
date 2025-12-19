@@ -1,3 +1,16 @@
+const baseButtonStyles = {
+  backgroundColor: '#65558F',
+  color: '#fff',
+  borderRadius: 5,
+  fontSize: '1rem',
+  fontWeight: 400,
+  '&:hover': {
+    backgroundColor: '#4e4574',
+  },
+  boxShadow: 3,
+  textWrap: 'nowrap',
+}
+
 const buttonStyles = {
   openModalButton: {
     position: 'absolute',
@@ -6,67 +19,42 @@ const buttonStyles = {
     transform: 'translateY(-50%)',
   },
 
-  saveButton: {
-    backgroundColor: '#65558F',
-    color: '#fff',
-    borderRadius: 5,
-    mt: 3,
-    width: 1 / 4,
-    padding: 1,
-    fontSize: '1rem',
-    fontWeight: 400,
-    '&:hover': {
-        backgroundColor: '#4e4574',
-    },
-    boxShadow: 3,
-  },
-
-  cancelButton: {
-    backgroundColor: '#65558F',
-    color: '#fff',
-    borderRadius: 5,
-    width: 1 / 6,
-    padding: 1,
-    mb: 2,
-    fontSize: '1rem',
-    fontWeight: 400,
-    textTransform: 'none',
-    '&:hover': {
-      backgroundColor: '#4e4574',
-    },
-    boxShadow: 3,
-  },
-
   archiveButton: {
-    backgroundColor: '#65558F',
-    color: '#fff',
-    borderRadius: 5,
+    ...baseButtonStyles,
     width: 1 / 10,
     padding: 1,
     ml: 3,
     mb: 2,
-    fontSize: '1rem',
-    fontWeight: 400,
-    '&:hover': {
-      backgroundColor: '#4e4574',
-    },
-    boxShadow: 3,
+  },
+
+  saveButton: {
+    ...baseButtonStyles,
+    mt: 3,
+    px: 2,
+    width: 'auto',
+    fontWeight: 500,
+  },
+
+  cancelButton: {
+    ...baseButtonStyles,
+    width: 1 / 6,
+    padding: 1,
+    mb: 2,
+    textTransform: 'none',
   },
 
   educationButton: {
+    ...baseButtonStyles,
     visibility: 'hidden',
-    backgroundColor: '#65558F',
-    color: '#fff',
-    borderRadius: 3,
     width: 'auto',
     paddingX: 1.5,
-    fontSize: '1rem',
     fontWeight: 200,
     textTransform: 'none',
-    '&:hover': {
-      backgroundColor: '#4e4574',
-    },
-    boxShadow: 3,
+  },
+
+  showButton: {
+    ...baseButtonStyles,
+    textTransform: 'default',
   },
 }
 

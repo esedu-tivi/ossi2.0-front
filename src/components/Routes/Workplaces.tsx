@@ -2,12 +2,13 @@ import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { Box, Button, TableBody, TableCell, TableRow, Typography } from "@mui/material"
+import { Button, Stack, TableBody, TableCell, TableRow, Typography } from "@mui/material"
 
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 import WorkplaceForm, { WorkplaceFormData } from "../WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
@@ -20,6 +21,9 @@ import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisor
 import Dialog from "../common/Dialog"
 import { useAlerts } from "../../context/AlertContext"
 import { Workplace } from "../../types"
+import JobSupervisorForm, { JobSupervisorFormData } from "../JobSupervisorForm"
+import buttonStyles from "../../styles/buttonStyles"
+import { CREATE_JOB_SUPERVISOR } from "../../graphql/CreateJobSupervisor"
 
 const headerCells: readonly TableHeaderCell[] = [
   {
@@ -57,22 +61,33 @@ const Workplaces = () => {
 
   const [updateSupervisorAssigns] = useMutation(UPDATE_JOB_SUPERVISOR_ASSIGNS, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
+  const [createJobSupervisor] = useMutation(CREATE_JOB_SUPERVISOR, { refetchQueries: [{ query: GET_JOB_SUPERVISORS }] })
+
   const { addAlert } = useAlerts()
 
-  const [showNewForm, setShowNewForm] = useState(false)
-  const [showEditForm, setShowEditForm] = useState(false)
+  const [showNewWorkplaceForm, setShowNewForm] = useState(false)
+  const [showEditWorkplaceForm, setShowEditForm] = useState(false)
+  const [showNewJobSupervisorForm, setShowNewJobSupervisorForm] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
   const [sortedWorkplaces, setSortedWorkplaces] = useState<Workplace[]>([])
 
-  const initFormData = {
+  const initWorkplaceFormData = {
     id: null,
     name: "",
     jobSupervisorIds: []
   }
 
-  const [formData, setFormData] = useState<WorkplaceFormData>(initFormData);
+  const initJobSupervisorFormData = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+  }
+
+  const [workplaceFormData, setWorkplaceFormData] = useState<WorkplaceFormData>(initWorkplaceFormData);
+  const [jobSupervisorFormData, setJobSupervisorFormData] = useState<JobSupervisorFormData>(initJobSupervisorFormData)
 
   const confirm = useConfirm()
 
@@ -80,16 +95,17 @@ const Workplaces = () => {
     if (!dialogOpen) {
       setShowNewForm(false)
       setShowEditForm(false)
+      setShowNewJobSupervisorForm(false)
     }
   }, [dialogOpen])
 
   useEffect(() => {
-    if (showNewForm || showEditForm) {
+    if (showNewWorkplaceForm || showEditWorkplaceForm || showNewJobSupervisorForm) {
       setDialogOpen(true)
     } else {
       setDialogOpen(false)
     }
-  }, [showNewForm, showEditForm])
+  }, [showNewWorkplaceForm, showEditWorkplaceForm, showNewJobSupervisorForm])
 
   const loading = workplaceLoading || jobSupervisorsLoading
   const error = workplaceError || jobSupervisorsError
@@ -118,36 +134,36 @@ const Workplaces = () => {
     }
   }
 
-  const handleNewFormSubmit = async (event: React.FormEvent) => {
+  const handleNewWorkplaceFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     const { confirmed } = await confirm({
       title: 'Lisäys',
-      description: `Oletko aivan varma, että haluat lisätä '${formData.name}' työpaikan?`
+      description: `Oletko aivan varma, että haluat lisätä '${workplaceFormData.name}' työpaikan?`
     })
 
     if (confirmed) {
-      const response = await createWorkplace({ variables: { name: formData.name } })
+      const response = await createWorkplace({ variables: { name: workplaceFormData.name } })
       console.log('GraphQL Response:', response.data);
-      setFormData(initFormData)
+      setWorkplaceFormData(initWorkplaceFormData)
 
       addAlert("Työpaikka lisätty", "success")
       setDialogOpen(false)
     }
   }
 
-  const handleEditFormSubmit = async (event: React.FormEvent) => {
+  const handleEditWorkplaceFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
-    const workplace = workplaces.find((workplace: Workplace) => workplace.id === formData.id)
+    const workplace = workplaces.find((workplace: Workplace) => workplace.id === workplaceFormData.id)
 
     if (workplace) {
       const jobSupervisorIds = workplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
 
-      const assignIds: string[] = formData.jobSupervisorIds.filter(id => !jobSupervisorIds.includes(id))
-      const unassignIds: string[] = jobSupervisorIds.filter(id => !formData.jobSupervisorIds.includes(id))
+      const assignIds: string[] = workplaceFormData.jobSupervisorIds.filter(id => !jobSupervisorIds.includes(id))
+      const unassignIds: string[] = jobSupervisorIds.filter(id => !workplaceFormData.jobSupervisorIds.includes(id))
 
       if (!assignIds.length && !unassignIds.length) {
-        assignIds.push(...formData.jobSupervisorIds)
+        assignIds.push(...workplaceFormData.jobSupervisorIds)
       }
 
       console.log("assignIds", assignIds)
@@ -161,22 +177,43 @@ const Workplaces = () => {
       })
     }
 
-    await editWorkplace({ variables: { editWorkplaceId: formData.id, name: formData.name } })
+    await editWorkplace({ variables: { editWorkplaceId: workplaceFormData.id, name: workplaceFormData.name } })
 
     setDialogOpen(false)
     addAlert("Työpaikkaa muokattu", "success")
   }
 
+  const handleNewJobSupervisorFormSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    console.log(jobSupervisorFormData)
+
+    const { confirmed } = await confirm({
+      title: "Poisto",
+      description: `Oletko aivan varma, että haluat luoda työpaikkaohjaajan nimellä '${jobSupervisorFormData.firstName} ${jobSupervisorFormData.lastName}' ja sähköpostiosoitteella '${jobSupervisorFormData.email}'?`
+    })
+    if (confirmed) {
+      await createJobSupervisor({ variables: { jobSupervisor: jobSupervisorFormData } })
+      setJobSupervisorFormData(initJobSupervisorFormData)
+      setDialogOpen(false)
+      addAlert("Uusi työpaikka ohjaaja luotu onnistuneesti", "success")
+    }
+  }
+
   const handleDialogClose = () => setDialogOpen(false)
 
-  const handleShowAddForm = () => {
-    setFormData(initFormData)
+  const handleShowNewWorkplaceForm = () => {
+    setWorkplaceFormData(initWorkplaceFormData)
     setShowNewForm(true)
   }
 
-  const handleShowEditForm = async (id: number) => {
+  const handleShowEditForm = (id: number) => {
     setSelectedWorkplaceId(id)
     setShowEditForm(true)
+  }
+
+  const handleShowNewJobSupervisorForm = () => {
+    setJobSupervisorFormData(initJobSupervisorFormData)
+    setShowNewJobSupervisorForm(true)
   }
 
   if (selectedWorkplaceId) {
@@ -184,25 +221,32 @@ const Workplaces = () => {
     const workplace = foundWorkplace ? {
       ...foundWorkplace,
       jobSupervisorIds: foundWorkplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
-    } : initFormData
+    } : initWorkplaceFormData
 
-    setFormData(workplace)
+    setWorkplaceFormData(workplace)
     setSelectedWorkplaceId(null)
   }
 
   return (
     <>
-      <Box className="button-container">
+      <Stack className="button-container" sx={{ mx: 2 }} direction="row" spacing={2} useFlexGap={true}>
         <Button
           variant="contained"
-          color="primary"
-          className="add-project-button"
           startIcon={<AddIcon />}
-          onClick={handleShowAddForm}
+          onClick={handleShowNewWorkplaceForm}
+          sx={buttonStyles.showButton}
         >
           Lisää työpaikka
         </Button>
-      </Box>
+        <Button
+          variant="contained"
+          startIcon={<PersonAddIcon />}
+          onClick={handleShowNewJobSupervisorForm}
+          sx={buttonStyles.showButton}
+        >
+          Lisää uusi työpaikka ohjaaja
+        </Button>
+      </Stack>
 
       <Table<Workplace> headerCells={headerCells} data={workplaces} setSortedData={setSortedWorkplaces}>
         <TableBody>
@@ -246,25 +290,41 @@ const Workplaces = () => {
         </TableBody>
       </Table>
       <Dialog
-        title={showNewForm ? 'Lisää uusi työpaikka' : showEditForm ? 'Muokkaa työpaikkaa' : ''}
+        title={
+          showNewWorkplaceForm
+            ? 'Lisää uusi työpaikka'
+            : showEditWorkplaceForm
+              ? 'Muokkaa työpaikkaa'
+              : showNewJobSupervisorForm
+                ? "Lisää uusi työpaikkaohjaaja" :
+                ''
+        }
         open={dialogOpen}
         onClose={handleDialogClose}
       >
-        {showNewForm ? (
+        {showNewWorkplaceForm ? (
           <WorkplaceForm
-            formData={formData}
-            setFormData={setFormData}
-            handleSubmit={handleNewFormSubmit}
+            formData={workplaceFormData}
+            setFormData={setWorkplaceFormData}
+            handleSubmit={handleNewWorkplaceFormSubmit}
             submitButtonTitle='Luo työpaikka'
           />
         ) : null}
-        {showEditForm ? (
+        {showEditWorkplaceForm ? (
           <WorkplaceForm
-            formData={formData}
-            setFormData={setFormData}
-            handleSubmit={handleEditFormSubmit}
+            formData={workplaceFormData}
+            setFormData={setWorkplaceFormData}
+            handleSubmit={handleEditWorkplaceFormSubmit}
             submitButtonTitle='Muokkaa työpaikkaa'
             jobSupervisors={jobSupervisors}
+          />
+        ) : null}
+        {showNewJobSupervisorForm ? (
+          <JobSupervisorForm
+            formData={jobSupervisorFormData}
+            setFormData={setJobSupervisorFormData}
+            handleSubmit={handleNewJobSupervisorFormSubmit}
+            submitButtonTitle="Lisää työpaikka ohjaaja"
           />
         ) : null}
       </Dialog>
