@@ -25,6 +25,7 @@ import { JobSupervisor, Workplace } from "../../types"
 import JobSupervisorForm, { JobSupervisorFormData } from "../JobSupervisorForm"
 import buttonStyles from "../../styles/buttonStyles"
 import { CREATE_JOB_SUPERVISOR } from "../../graphql/CreateJobSupervisor"
+import { DELETE_JOB_SUPERVISOR } from "../../graphql/DeleteJobSupervisor"
 
 interface JobSupervisorWithFullNameAndWorkplace extends JobSupervisor {
   fullName: string,
@@ -117,6 +118,7 @@ const Workplaces = () => {
   const [updateSupervisorAssigns] = useMutation(UPDATE_JOB_SUPERVISOR_ASSIGNS, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
   const [createJobSupervisor] = useMutation(CREATE_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS] })
+  const [deleteJobSupervisor] = useMutation(DELETE_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
   const { addAlert } = useAlerts()
 
@@ -190,6 +192,23 @@ const Workplaces = () => {
       console.log(response)
       if (response.data.deleteWorkplace.success) {
         return addAlert("Työpaikka poistettu", "success")
+      }
+      addAlert("Poistossa tapahtui virhe", "error")
+    }
+  }
+
+  const handleJobSupervisorDelete = async (id: string, fullName: string) => {
+    console.log(id);
+    const { confirmed } = await confirm({
+      title: "Poisto",
+      description: `Oletko aivan varma, että haluat poistaa '${fullName}' työpaikka ohjaajan?`
+    })
+
+    if (confirmed) {
+      const response = await deleteJobSupervisor({ variables: { jobSupervisorId: id } })
+      console.log(response)
+      if (response.data.deleteWorkplace.success) {
+        return addAlert("Työpaikkaohjaaja poistettu", "success")
       }
       addAlert("Poistossa tapahtui virhe", "error")
     }
@@ -407,7 +426,7 @@ const Workplaces = () => {
                           color="primary"
                           startIcon={<DeleteIcon />}
                           size="small"
-                          onClick={() => console.log('delete')}
+                          onClick={() => handleJobSupervisorDelete(jobSupervisor.id, jobSupervisor.fullName)}
                         >
                           Poista
                         </Button>
