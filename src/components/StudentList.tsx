@@ -46,7 +46,7 @@ const StudentList: React.FC = () => {
     const { loading, error, data } = useQuery(GET_STUDENTS);
     const navigate = useNavigate()
 
-    const [sortedStudents, setSortedStudents] = useState<ParsedStudent[]>([])
+    //const [sortedStudents, setSortedStudents] = useState<ParsedStudent[]>([])
     const [students, setStudents] = useState<ParsedStudent[]>([])
     // State for the user-entered search query, used to filter displayed students
 
@@ -68,30 +68,31 @@ const StudentList: React.FC = () => {
     if (error) return <p>Error: {error.message}</p>;
 
     return (
-        <Table<ParsedStudent> headerCells={headerCells} data={students} setSortedData={setSortedStudents}>
-            <TableBody>
-                {sortedStudents.map((student: ParsedStudent) => (
-                    <TableRow key={student.id} className="table-row">
-                        <TableCell>{student.id}</TableCell>
-                        <TableCell>{`${student.fullName}`}</TableCell>
-                        <TableCell>{student.groupId}</TableCell>
-                        <TableCell>{student.studyingQualificationTitle ? student.studyingQualificationTitle.name : ''}</TableCell>
-                        <TableCell>
-                            <div className="hover-buttons">
-                                <Button variant="outlined" size="small" startIcon={<InfoIcon />} onClick={() => navigate(`/teacherdashboard/students/${student.id}`)}>
-                                    Tiedot
-                                </Button>
-                                <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => console.log('Edit Student')}>
-                                    Muokkaa
-                                </Button>
-                                <Button variant="outlined" size="small" startIcon={<ArchiveIcon />} onClick={() => console.log('Archive')}>
-                                    Arkistoi
-                                </Button>
-                            </div>
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
+        <Table<ParsedStudent> headerCells={headerCells} data={students}>
+            {(rows) =>
+                <TableBody>
+                    {rows.map((student: ParsedStudent) => (
+                        <TableRow key={student.id} className="table-row">
+                            <TableCell>{student.id}</TableCell>
+                            <TableCell>{`${student.fullName}`}</TableCell>
+                            <TableCell>{student.groupId}</TableCell>
+                            <TableCell>{student.studyingQualificationTitle ? student.studyingQualificationTitle.name : ''}</TableCell>
+                            <TableCell>
+                                <div className="hover-buttons">
+                                    <Button variant="outlined" size="small" startIcon={<InfoIcon />} onClick={() => navigate(`/teacherdashboard/students/${student.id}`)}>
+                                        Tiedot
+                                    </Button>
+                                    <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => console.log('Edit Student')}>
+                                        Muokkaa
+                                    </Button>
+                                    <Button variant="outlined" size="small" startIcon={<ArchiveIcon />} onClick={() => console.log('Archive')}>
+                                        Arkistoi
+                                    </Button>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>}
         </Table>
     );
 };

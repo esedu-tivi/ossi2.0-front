@@ -97,7 +97,6 @@ const Internships = ({ student }: { student: Student }) => {
   const [deleteInternship, { data: deleteData, error: deleteError, loading: deleteLoading }] = useMutation(DELETE_INTERNSHIP)
   const [editInternship, { data: editData, error: editError, loading: editLoading }] = useMutation(EDIT_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
-  const [sortedInternships, setSortedInternships] = useState<ParsedInternships[]>([])
   const [internships, setInternships] = useState<ParsedInternships[]>([])
   const confirm = useConfirm()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -255,50 +254,51 @@ const Internships = ({ student }: { student: Student }) => {
       <Table<ParsedInternships>
         headerCells={headerCells}
         data={internships}
-        setSortedData={setSortedInternships}
       >
-        <TableBody>
-          {sortedInternships.map(internship => (
-            <TableRow key={internship.id} className="table-row">
-              <TableCell>{internship.id}</TableCell>
-              <TableCell>{internship.workplace?.name}</TableCell>
-              <TableCell>{internship.info}</TableCell>
-              <TableCell>{internship.startDate}</TableCell>
-              <TableCell>{internship.endDate}</TableCell>
-              <TableCell>
-                <Box className="button-group">
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<EditIcon />}
-                    size="small"
-                    onClick={() => handleShowEditForm(internship.id)}
-                  >
-                    Muokkaa
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<InfoIcon />}
-                    size="small"
-                    onClick={() => console.log("Info")}
-                  >
-                    Tiedot
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<DeleteIcon />}
-                    size="small"
-                    onClick={() => handleDelete(internship.id)}
-                  >
-                    Poista
-                  </Button>
-                </Box>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+        {rows => (
+          <TableBody>
+            {rows.map(internship => (
+              <TableRow key={internship.id} className="table-row">
+                <TableCell>{internship.id}</TableCell>
+                <TableCell>{internship.workplace?.name}</TableCell>
+                <TableCell>{internship.info}</TableCell>
+                <TableCell>{internship.startDate}</TableCell>
+                <TableCell>{internship.endDate}</TableCell>
+                <TableCell>
+                  <Box className="button-group">
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<EditIcon />}
+                      size="small"
+                      onClick={() => handleShowEditForm(internship.id)}
+                    >
+                      Muokkaa
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<InfoIcon />}
+                      size="small"
+                      onClick={() => console.log("Info")}
+                    >
+                      Tiedot
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<DeleteIcon />}
+                      size="small"
+                      onClick={() => handleDelete(internship.id)}
+                    >
+                      Poista
+                    </Button>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        )}
       </Table>
       <Dialog
         title={showAddInternship ? 'Lisää harjoittelu' : showEditInternship ? 'Muokkaa harjoittelujaksoa' : ''}

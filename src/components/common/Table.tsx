@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Box, Paper, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material"
 import MuiTable from "@mui/material/Table"
 
@@ -21,57 +21,45 @@ export type TableHeaderCell =
 
 export interface TableProps<T> {
   headerCells: readonly TableHeaderCell[]
-  children: React.ReactElement<typeof TableBody>
+  children: React.ReactElement<typeof TableBody> | ((data: T[]) => React.ReactNode)
   data: T[]
-  setSortedData: React.Dispatch<React.SetStateAction<T[]>>
 }
 
-type HeadProps<T> = Omit<TableProps<T>, "children">
+interface HeadProps {
+  headerCells: readonly TableHeaderCell[]
+  searchQuery: string
+}
 
-const Head = <T,>({ headerCells, setSortedData, data }: HeadProps<T>) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredData, setFilteredData] = useState<T[]>([])
-
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    column: null,
-    order: null,
-  })
-
-  const searchPath = headerCells.find(cell => cell.type === "search")?.searchPath || null
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value)
-  }
-
-  useEffect(() => {
-    if (searchPath) {
-      setFilteredData(filter<T>(data, searchQuery, searchPath));
-    }
-
-  }, [data, searchQuery, setFilteredData, searchPath]);
-
-  useEffect(() => {
-    setSortedData(sort<T>(filteredData, sortConfig))
-  }, [setSortedData, filteredData, sortConfig])
-
+const Head = ({
+  headerCells,
+  searchQuery,
+  onSearchChange,
+  sortConfig,
+  onSortChange
+}: HeadProps & {
+  onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
+  sortConfig: SortConfig,
+  onSortChange: React.Dispatch<React.SetStateAction<SortConfig>>
+}) => {
   const handleSort = (column: string | null) => {
-    if (!column) return null
-    setSortConfig((prevConfig) => {
-      switch (prevConfig.order) {
-        case ("asc"):
-          return { column, order: "desc" }
-        case ("desc"):
-          return { column: null, order: null }
+    if (!column) return;
 
+    onSortChange((prev: SortConfig) => {
+      switch (prev.order) {
+        case "asc":
+          return { column, order: "desc" };
+        case "desc":
+          return { column: null, order: null };
         default:
-          return { column, order: "asc" }
+          return { column, order: "asc" };
       }
-    })
-  }
+    });
+  };
+
   return (
     <TableHead>
       <TableRow className="table-header">
-        {headerCells.map((part: TableHeaderCell, index) => (part.type === "sort") ?
+        {headerCells.map((part: TableHeaderCell, index: number) => (part.type === "sort") ?
           <TableCell
             className="table-header-cell table-header-id"
             onClick={() => handleSort(part.sortPath)}
@@ -95,7 +83,7 @@ const Head = <T,>({ headerCells, setSortedData, data }: HeadProps<T>) => {
                   variant="outlined"
                   size="small"
                   value={searchQuery}
-                  onChange={handleSearchChange}
+                  onChange={onSearchChange}
                 />
               </div>
             </TableCell>
@@ -106,13 +94,42 @@ const Head = <T,>({ headerCells, setSortedData, data }: HeadProps<T>) => {
   )
 }
 
-const Table = <T,>({ headerCells, children, data, setSortedData }: TableProps<T>) => (
-  <TableContainer component={Paper}>
-    <MuiTable>
-      <Head<T> headerCells={headerCells} data={data} setSortedData={setSortedData} />
-      {children}
-    </MuiTable>
-  </TableContainer>
-)
+const Table = <T,>({ headerCells, children, data }: TableProps<T>) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    column: null,
+    order: null,
+  });
+
+  const searchPath =
+    headerCells.find(cell => cell.type === "search")?.searchPath ?? null;
+
+  const filteredData = useMemo(() => {
+    if (!searchPath) return data;
+    return filter<T>(data, searchQuery, searchPath);
+  }, [data, searchQuery, searchPath]);
+
+  const sortedData = useMemo(() => {
+    return sort<T>(filteredData, sortConfig);
+  }, [filteredData, sortConfig]);
+
+  return (
+    <TableContainer component={Paper}>
+      <MuiTable>
+        <Head
+          headerCells={headerCells}
+          searchQuery={searchQuery}
+          onSearchChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(event.target.value)}
+          sortConfig={sortConfig}
+          onSortChange={setSortConfig}
+        />
+        {typeof children === "function"
+          ? children(sortedData)
+          : children}
+      </MuiTable>
+    </TableContainer>
+  )
+}
 
 export default Table

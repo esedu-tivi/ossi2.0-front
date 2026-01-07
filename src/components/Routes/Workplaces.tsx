@@ -126,9 +126,6 @@ const Workplaces = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
-  const [sortedWorkplaces, setSortedWorkplaces] = useState<Workplace[]>([])
-
-  const [sortedJobSupervisors, setSortedJobSupervisors] = useState<JobSupervisorWithFullNameAndWorkplace[]>([])
 
   const [expandedAccordion, setExpandedAccordion] = useState<"workplaces" | "jobSupervisors" | false>(false)
 
@@ -285,7 +282,7 @@ const Workplaces = () => {
   }
 
   if (selectedWorkplaceId) {
-    const foundWorkplace = sortedWorkplaces.find(workplace => workplace.id === selectedWorkplaceId)
+    const foundWorkplace = workplaces.find(workplace => workplace.id === selectedWorkplaceId)
     const workplace = foundWorkplace ? {
       ...foundWorkplace,
       jobSupervisorIds: foundWorkplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
@@ -324,46 +321,47 @@ const Workplaces = () => {
           <Typography sx={{ fontWeight: 600 }} component="span">Työpaikat</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Table<Workplace> headerCells={headerCells} data={workplaces} setSortedData={setSortedWorkplaces}>
-            <TableBody>
-              {sortedWorkplaces.map((workplace) => (
-                <TableRow key={workplace.id} className="table-row">
-                  <TableCell>{workplace.id}</TableCell>
-                  <TableCell>{workplace.name}</TableCell>
-                  <TableCell>
-                    <Box className="button-group">
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<EditIcon />}
-                        size="small"
-                        onClick={() => handleShowEditForm(workplace.id)}
-                      >
-                        Muokkaa
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<InfoIcon />}
-                        size="small"
-                        onClick={() => navigate(`/workplaces/${workplace.id}`)}
-                      >
-                        Tiedot
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<DeleteIcon />}
-                        size="small"
-                        onClick={() => handleDelete(workplace.id, workplace.name)}
-                      >
-                        Poista
-                      </Button>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+          <Table<Workplace> headerCells={headerCells} data={workplaces}>
+            {rows =>
+              <TableBody>
+                {rows.map((workplace) => (
+                  <TableRow key={workplace.id} className="table-row">
+                    <TableCell>{workplace.id}</TableCell>
+                    <TableCell>{workplace.name}</TableCell>
+                    <TableCell>
+                      <Box className="button-group">
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<EditIcon />}
+                          size="small"
+                          onClick={() => handleShowEditForm(workplace.id)}
+                        >
+                          Muokkaa
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<InfoIcon />}
+                          size="small"
+                          onClick={() => navigate(`/workplaces/${workplace.id}`)}
+                        >
+                          Tiedot
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<DeleteIcon />}
+                          size="small"
+                          onClick={() => handleDelete(workplace.id, workplace.name)}
+                        >
+                          Poista
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>}
           </Table>
         </AccordionDetails>
       </Accordion>
@@ -375,47 +373,48 @@ const Workplaces = () => {
           <Typography sx={{ fontWeight: 600 }} component="span">Työpaikkaohjaajat</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Table<JobSupervisorWithFullNameAndWorkplace> headerCells={jobSupervisorsHeaderCells} data={jobSupervisors} setSortedData={setSortedJobSupervisors}>
-            <TableBody>
-              {sortedJobSupervisors.map((jobSupervisor) => (
-                <TableRow key={jobSupervisor.id} className="table-row">
-                  <TableCell>{jobSupervisor.id}</TableCell>
-                  <TableCell>{jobSupervisor.fullName}</TableCell>
-                  <TableCell>{jobSupervisor.workplace?.name || ""}</TableCell>
-                  <TableCell>
-                    <Box className="button-group">
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<EditIcon />}
-                        size="small"
-                        onClick={() => console.log('muokkaa')}
-                      >
-                        Muokkaa
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<InfoIcon />}
-                        size="small"
-                        onClick={() => console.log('tiedot')}
-                      >
-                        Tiedot
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<DeleteIcon />}
-                        size="small"
-                        onClick={() => console.log('delete')}
-                      >
-                        Poista
-                      </Button>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+          <Table<JobSupervisorWithFullNameAndWorkplace> headerCells={jobSupervisorsHeaderCells} data={jobSupervisors}>
+            {rows =>
+              <TableBody>
+                {rows.map((jobSupervisor) => (
+                  <TableRow key={jobSupervisor.id} className="table-row">
+                    <TableCell>{jobSupervisor.id}</TableCell>
+                    <TableCell>{jobSupervisor.fullName}</TableCell>
+                    <TableCell>{jobSupervisor.workplace?.name || ""}</TableCell>
+                    <TableCell>
+                      <Box className="button-group">
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<EditIcon />}
+                          size="small"
+                          onClick={() => console.log('muokkaa')}
+                        >
+                          Muokkaa
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<InfoIcon />}
+                          size="small"
+                          onClick={() => console.log('tiedot')}
+                        >
+                          Tiedot
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<DeleteIcon />}
+                          size="small"
+                          onClick={() => console.log('delete')}
+                        >
+                          Poista
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>}
           </Table>
         </AccordionDetails>
       </Accordion>
