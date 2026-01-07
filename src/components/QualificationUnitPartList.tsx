@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import {
@@ -42,14 +42,10 @@ const QualificationUnitPartList: React.FC = () => {
   const { loading, error, data } = useQuery(GET_QUALIFICATION_UNIT_PARTS);
   const navigate = useNavigate();
 
-  const [sortedParts, setSortedParts] = useState<QualificationUnitPart[]>([])
-
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
   const parts: QualificationUnitPart[] = data?.parts.parts || [];
-
-  console.log('SortedParts: ', sortedParts)
 
   return (
     <div className="qualification-unit-parts-container">
@@ -74,36 +70,37 @@ const QualificationUnitPartList: React.FC = () => {
           Järjestele Teemoja
         </Button>
       </div>
-      <Table<QualificationUnitPart> headerCells={tableHeaderCells} data={parts} setSortedData={setSortedParts}>
-        <TableBody>
-          {sortedParts.map((part) => (
-            <TableRow key={part.id} className="table-row">
-              <TableCell>{part.id}</TableCell>
-              <TableCell>{part.name}</TableCell>
-              <TableCell>{part.parentQualificationUnit.name}</TableCell>
-              <TableCell>
-                <div className="button-group">
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<EditIcon />}
-                    onClick={() => navigate(`/qualificationunitparts/edit/${part.id}`)}
-                  >
-                    Muokkaa
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<InfoIcon />}
-                    onClick={() => navigate(`/qualificationunitparts/${part.id}`)}
-                  >
-                    Tiedot
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+      <Table<QualificationUnitPart> headerCells={tableHeaderCells} data={parts}>
+        {rows =>
+          <TableBody>
+            {rows.map((part) => (
+              <TableRow key={part.id} className="table-row">
+                <TableCell>{part.id}</TableCell>
+                <TableCell>{part.name}</TableCell>
+                <TableCell>{part.parentQualificationUnit.name}</TableCell>
+                <TableCell>
+                  <div className="button-group">
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<EditIcon />}
+                      onClick={() => navigate(`/qualificationunitparts/edit/${part.id}`)}
+                    >
+                      Muokkaa
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<InfoIcon />}
+                      onClick={() => navigate(`/qualificationunitparts/${part.id}`)}
+                    >
+                      Tiedot
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>}
       </Table>
     </div>
   );

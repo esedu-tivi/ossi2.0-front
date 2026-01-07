@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import "../../css/TeacherProjectsView.css";
@@ -45,8 +44,6 @@ export default function ProjectTable() {
   //GraphQL query to fetch projects
   const { loading, error, data } = useQuery(GET_PROJECTS);
 
-  const [sortedProjects, setSortedProjects] = useState<Project[]>([])
-
   // If the data is still loading, display a loading message.
   // If there was an error fetching data, display the error message
   if (loading) return <p>Loading...</p>;
@@ -68,50 +65,51 @@ export default function ProjectTable() {
           Lisää Projekti
         </Button>
       </Box>
-      <Table<Project> headerCells={headerCells} setSortedData={setSortedProjects} data={projects}>
-        <TableBody>
-          {sortedProjects.map((project) => (
-            <TableRow key={project.id} className="table-row">
-              <TableCell>{project.id}</TableCell>
-              <TableCell>{project.name}</TableCell>
-              <TableCell>
-                {project.includedInQualificationUnitParts
-                  .map((part) => part.name)
-                  .join(", ")}
-              </TableCell>
-              <TableCell>
-                <div className="button-group">
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<EditIcon />}
-                    size="small"
-                    onClick={() => navigate(`/teacherprojects/edit/${project.id}`)}
-                  >
-                    Muokkaa
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<InfoIcon />}
-                    size="small"
-                    onClick={() => navigate(`/teacherprojects/${project.id}`)}
-                  >
-                    Tiedot
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<AssessmentIcon />}
-                    size="small"
-                  >
-                    Käyttöaste
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+      <Table<Project> headerCells={headerCells} data={projects}>
+        {rows =>
+          <TableBody>
+            {rows.map((project) => (
+              <TableRow key={project.id} className="table-row">
+                <TableCell>{project.id}</TableCell>
+                <TableCell>{project.name}</TableCell>
+                <TableCell>
+                  {project.includedInQualificationUnitParts
+                    .map((part) => part.name)
+                    .join(", ")}
+                </TableCell>
+                <TableCell>
+                  <div className="button-group">
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<EditIcon />}
+                      size="small"
+                      onClick={() => navigate(`/teacherprojects/edit/${project.id}`)}
+                    >
+                      Muokkaa
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<InfoIcon />}
+                      size="small"
+                      onClick={() => navigate(`/teacherprojects/${project.id}`)}
+                    >
+                      Tiedot
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<AssessmentIcon />}
+                      size="small"
+                    >
+                      Käyttöaste
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>}
       </Table>
     </Box>
   );
