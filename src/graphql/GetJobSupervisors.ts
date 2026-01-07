@@ -4,9 +4,13 @@ export const GET_JOB_SUPERVISORS = gql`
   query JobSupervisors {
     jobSupervisors {
       jobSupervisors {
+        id
         firstName
         lastName
-        id
+        workplace {
+          name
+          id
+        }
       }
       status
       success

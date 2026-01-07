@@ -116,7 +116,7 @@ const Workplaces = () => {
 
   const [updateSupervisorAssigns] = useMutation(UPDATE_JOB_SUPERVISOR_ASSIGNS, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
-  const [createJobSupervisor] = useMutation(CREATE_JOB_SUPERVISOR, { refetchQueries: [{ query: GET_JOB_SUPERVISORS }] })
+  const [createJobSupervisor] = useMutation(CREATE_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
   const { addAlert } = useAlerts()
 
@@ -292,6 +292,7 @@ const Workplaces = () => {
     setSelectedWorkplaceId(null)
   }
 
+  console.log(jobSupervisors)
   return (
     <>
       <Stack className="button-container" sx={{ mx: 2 }} direction="row" spacing={2} useFlexGap={true}>
