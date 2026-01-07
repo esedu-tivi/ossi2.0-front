@@ -1,6 +1,6 @@
 // Shows user profile info
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
@@ -8,15 +8,21 @@ import Badge from '@mui/material/Badge';
 import IconButton from '@mui/material/IconButton';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MailIcon from '@mui/icons-material/Mail';
+import EngineeringIcon from '@mui/icons-material/Engineering';
 import Snackbar from '@mui/material/Snackbar';
-import { useAuth } from '../utils/auth-context';
+import AuthContext, { useAuth } from '../utils/auth-context';
 import '../css/UserProfile.css';
 import NotificationDrawer from './NotificationDrawer';
 import { GET_UNREAD_NOTIFICATION_COUNT } from '../graphql/GetUnreadNotificationCount';
 import { useQuery } from '@apollo/client';
+import { Tooltip } from '@mui/material';
+
+
+const devEnv = import.meta.env.DEV;
 
 const UserProfile = () => {
     const { userEmail } = useAuth();
+    const { setRole, role } = useContext(AuthContext)
     const [showMessage, setShowMessage] = useState(false);
     const [messageContent, setMessageContent] = useState('');
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -44,7 +50,7 @@ const UserProfile = () => {
             <Typography className="user-email">{userEmail}</Typography>
             <Box className="user-icons">
                 <IconButton className="user-icon-button" aria-label="notifications" onClick={() => setDrawerOpen(true)}>
-                <Badge badgeContent={unreadData?.unreadNotificationCount?.count || 0} color="error">
+                    <Badge badgeContent={unreadData?.unreadNotificationCount?.count || 0} color="error">
                         <NotificationsIcon />
                     </Badge>
                 </IconButton>
@@ -54,6 +60,14 @@ const UserProfile = () => {
                         <MailIcon />
                     </Badge>
                 </IconButton>
+
+                {devEnv && (
+                    <Tooltip title="Vaihda roolia">
+                        <IconButton className="user-icon-button" aria-label="role" onClick={() => setRole(role === 'student' ? 'teacher' : 'student')}>
+                            <EngineeringIcon />
+                        </IconButton>
+                    </Tooltip>
+                )}
             </Box>
             <Snackbar open={showMessage} autoHideDuration={3000} onClose={handleClose} message={messageContent} />
         </Box>
