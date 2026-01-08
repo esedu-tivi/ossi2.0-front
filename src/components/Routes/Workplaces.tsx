@@ -201,7 +201,7 @@ const Workplaces = () => {
     console.log(id);
     const { confirmed } = await confirm({
       title: "Poisto",
-      description: `Oletko aivan varma, että haluat poistaa '${fullName}' työpaikka ohjaajan?`
+      description: `Oletko aivan varma, että haluat poistaa '${fullName}' työpaikkaohjaajan?`
     })
 
     if (confirmed) {
@@ -275,7 +275,7 @@ const Workplaces = () => {
       await createJobSupervisor({ variables: { jobSupervisor: jobSupervisorFormData } })
       setJobSupervisorFormData(initJobSupervisorFormData)
       setDialogOpen(false)
-      addAlert("Uusi työpaikka ohjaaja luotu onnistuneesti", "success")
+      addAlert("Uusi työpaikkaohjaaja luotu onnistuneesti", "success")
     }
   }
 
@@ -329,7 +329,7 @@ const Workplaces = () => {
           onClick={handleShowNewJobSupervisorForm}
           sx={buttonStyles.showButton}
         >
-          Lisää uusi työpaikka ohjaaja
+          Lisää uusi työpaikkaohjaaja
         </Button>
       </Stack>
 
@@ -473,7 +473,7 @@ const Workplaces = () => {
             formData={jobSupervisorFormData}
             setFormData={setJobSupervisorFormData}
             handleSubmit={handleNewJobSupervisorFormSubmit}
-            submitButtonTitle="Lisää työpaikka ohjaaja"
+            submitButtonTitle="Lisää työpaikkaohjaaja"
           />
         ) : null}
       </Dialog>
