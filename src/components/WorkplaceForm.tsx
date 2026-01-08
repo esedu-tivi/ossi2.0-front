@@ -30,7 +30,7 @@ const SupervisorField = ({ formData, onChange, jobSupervisors }: JobSupervisorFi
     <Box textAlign={"left"}>
       <FormControl fullWidth>
         <InputLabel shrink={true} id="jobSupervisor-label">
-          Työpaikka ohjaajat
+          Työpaikkaohjaajat
         </InputLabel>
         <Select
           labelId="jobSupervisor-label"

@@ -163,7 +163,7 @@ const InternshipForm = ({
               value={formData.jobSupervisorId}
               onChange={handleChange}
               name="jobSupervisorId"
-              label='Työpaikka ohjaaja'
+              label='Työpaikkaohjaaja'
               required
               select
               fullWidth
