@@ -206,8 +206,7 @@ const Workplaces = () => {
 
     if (confirmed) {
       const response = await deleteJobSupervisor({ variables: { jobSupervisorId: id } })
-      console.log(response)
-      if (response.data.deleteWorkplace.success) {
+      if (response.data.deleteJobSupervisor.success) {
         return addAlert("Työpaikkaohjaaja poistettu", "success")
       }
       addAlert("Poistossa tapahtui virhe", "error")
@@ -268,14 +267,23 @@ const Workplaces = () => {
     console.log(jobSupervisorFormData)
 
     const { confirmed } = await confirm({
-      title: "Poisto",
+      title: "Luonti",
       description: `Oletko aivan varma, että haluat luoda työpaikkaohjaajan nimellä '${jobSupervisorFormData.firstName} ${jobSupervisorFormData.lastName}' ja sähköpostiosoitteella '${jobSupervisorFormData.email}'?`
     })
     if (confirmed) {
-      await createJobSupervisor({ variables: { jobSupervisor: jobSupervisorFormData } })
+      const response = await createJobSupervisor({ variables: { jobSupervisor: jobSupervisorFormData } })
+      if (!response.data.createJobSupervisor.success) {
+        if (response.data.createJobSupervisor.status === 400) {
+          return addAlert("Sähköpostiosoite on jo olemassa", "error")
+        }
+        addAlert("Työpaikkaohjaajan lisäämisessä tapahtui virhe", "error", true)
+
+      }
       setJobSupervisorFormData(initJobSupervisorFormData)
       setDialogOpen(false)
-      addAlert("Uusi työpaikkaohjaaja luotu onnistuneesti", "success")
+      if (response.data.createJobSupervisor.success) {
+        addAlert("Uusi työpaikkaohjaaja luotu onnistuneesti", "success")
+      }
     }
   }
 
@@ -311,7 +319,6 @@ const Workplaces = () => {
     setSelectedWorkplaceId(null)
   }
 
-  console.log(jobSupervisors)
   return (
     <>
       <Stack className="button-container" sx={{ mx: 2 }} direction="row" spacing={2} useFlexGap={true}>
