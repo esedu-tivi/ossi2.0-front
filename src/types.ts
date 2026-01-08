@@ -44,6 +44,12 @@ export type Student = {
   }
 };
 
+export type Teacher = {
+  id: number;
+  firstName: string;
+  lastName: string;
+};
+
 export interface Project {
   id: number;
   name: string;

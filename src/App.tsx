@@ -21,6 +21,7 @@ import ReorderParts from './components/Routes/ReorderParts';
 import NewUserLogin from './components/Routes/NewUserLogin';
 import Workplaces from './components/Routes/Workplaces';
 import StudentInfo from './components/Routes/StudentInfo';
+import Workplace from './components/Routes/Workplace';
 
 const App = () => {
     const { isAuthenticated, userEmail, role } = useAuth();
@@ -269,6 +270,14 @@ const App = () => {
                             </AppLayout>
                         }
                     />
+                }
+            />
+            <Route
+                path="/workplaces/:id"
+                element={
+                    <AppLayout>
+                        <Workplace />
+                    </AppLayout>
                 }
             />
         </Routes>
