@@ -26,6 +26,7 @@ import JobSupervisorForm, { JobSupervisorFormData } from "../JobSupervisorForm"
 import buttonStyles from "../../styles/buttonStyles"
 import { CREATE_JOB_SUPERVISOR } from "../../graphql/CreateJobSupervisor"
 import { DELETE_JOB_SUPERVISOR } from "../../graphql/DeleteJobSupervisor"
+import { REQUEST_MAGIC_LINK } from "../../graphql/RequestMagicLink"
 
 interface JobSupervisorWithFullNameAndWorkplace extends JobSupervisor {
   fullName: string,
@@ -115,10 +116,13 @@ const Workplaces = () => {
     refetchQueries: [{ query: GET_WORKPLACES }]
   })
 
+
   const [updateSupervisorAssigns] = useMutation(UPDATE_JOB_SUPERVISOR_ASSIGNS, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
   const [createJobSupervisor] = useMutation(CREATE_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS] })
   const [deleteJobSupervisor] = useMutation(DELETE_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS] })
+
+  const [requestMagicLink] = useMutation(REQUEST_MAGIC_LINK)
 
   const { addAlert } = useAlerts()
 
@@ -280,6 +284,7 @@ const Workplaces = () => {
 
       }
       setJobSupervisorFormData(initJobSupervisorFormData)
+      requestMagicLink({ variables: { email: jobSupervisorFormData.email } });
       setDialogOpen(false)
       if (response.data.createJobSupervisor.success) {
         addAlert("Uusi työpaikkaohjaaja luotu onnistuneesti", "success")
