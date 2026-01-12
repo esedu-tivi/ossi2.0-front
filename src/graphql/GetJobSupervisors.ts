@@ -7,6 +7,8 @@ export const GET_JOB_SUPERVISORS = gql`
         id
         firstName
         lastName
+        email
+        phoneNumber
         workplace {
           name
           id

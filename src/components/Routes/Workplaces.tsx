@@ -22,13 +22,15 @@ import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisor
 import Dialog from "../common/Dialog"
 import { useAlerts } from "../../context/AlertContext"
 import { JobSupervisor, Workplace } from "../../types"
-import JobSupervisorForm, { JobSupervisorFormData } from "../JobSupervisorForm"
+import JobSupervisorForm from "../JobSupervisorForm"
 import buttonStyles from "../../styles/buttonStyles"
 import { CREATE_JOB_SUPERVISOR } from "../../graphql/CreateJobSupervisor"
 import { DELETE_JOB_SUPERVISOR } from "../../graphql/DeleteJobSupervisor"
 import { REQUEST_MAGIC_LINK } from "../../graphql/RequestMagicLink"
+import { EDIT_JOB_SUPERVISOR } from "../../graphql/EditJobSupervisor"
 
 interface JobSupervisorWithFullNameAndWorkplace extends JobSupervisor {
+  id: string,
   fullName: string,
   workplace?: Workplace
 }
@@ -116,6 +118,7 @@ const Workplaces = () => {
     refetchQueries: [{ query: GET_WORKPLACES }]
   })
 
+  const [editJobSupervisor] = useMutation(EDIT_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS, GET_WORKPLACES] })
 
   const [updateSupervisorAssigns] = useMutation(UPDATE_JOB_SUPERVISOR_ASSIGNS, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
@@ -129,9 +132,12 @@ const Workplaces = () => {
   const [showNewWorkplaceForm, setShowNewForm] = useState(false)
   const [showEditWorkplaceForm, setShowEditForm] = useState(false)
   const [showNewJobSupervisorForm, setShowNewJobSupervisorForm] = useState(false)
+  const [showEditJobSupervisorForm, setShowEditJobSupervisorForm] = useState(false)
+
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
+  const [selectedJobSupervisorId, setSelectedJobSupervisorId] = useState<string | null>(null)
 
   const [expandedAccordion, setExpandedAccordion] = useState<"workplaces" | "jobSupervisors" | false>(false)
 
@@ -149,7 +155,7 @@ const Workplaces = () => {
   }
 
   const [workplaceFormData, setWorkplaceFormData] = useState<WorkplaceFormData>(initWorkplaceFormData);
-  const [jobSupervisorFormData, setJobSupervisorFormData] = useState<JobSupervisorFormData>(initJobSupervisorFormData)
+  const [jobSupervisorFormData, setJobSupervisorFormData] = useState<JobSupervisor>(initJobSupervisorFormData)
 
   const confirm = useConfirm()
 
@@ -158,16 +164,17 @@ const Workplaces = () => {
       setShowNewForm(false)
       setShowEditForm(false)
       setShowNewJobSupervisorForm(false)
+      setShowEditJobSupervisorForm(false)
     }
   }, [dialogOpen])
 
   useEffect(() => {
-    if (showNewWorkplaceForm || showEditWorkplaceForm || showNewJobSupervisorForm) {
+    if (showNewWorkplaceForm || showEditWorkplaceForm || showNewJobSupervisorForm || showEditJobSupervisorForm) {
       setDialogOpen(true)
     } else {
       setDialogOpen(false)
     }
-  }, [showNewWorkplaceForm, showEditWorkplaceForm, showNewJobSupervisorForm])
+  }, [showNewWorkplaceForm, showEditWorkplaceForm, showNewJobSupervisorForm, showEditJobSupervisorForm])
 
   const loading = workplaceLoading || jobSupervisorsLoading
   const error = workplaceError || jobSupervisorsError
@@ -177,10 +184,10 @@ const Workplaces = () => {
 
   const workplaces: Workplace[] = workplaceData.workplaces?.workplaces || []
 
-  const jobSupervisors = jobSupervisorsData.jobSupervisors?.jobSupervisors.map(((jobSupervisor: JobSupervisorWithFullNameAndWorkplace) => ({
+  const jobSupervisors: JobSupervisorWithFullNameAndWorkplace[] = jobSupervisorsData.jobSupervisors?.jobSupervisors.map(((jobSupervisor: JobSupervisorWithFullNameAndWorkplace) => ({
     ...jobSupervisor,
-    fullName: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
-
+    fullName: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`,
+    phoneNumber: jobSupervisor.phoneNumber || ""
   })))
 
 
@@ -292,6 +299,27 @@ const Workplaces = () => {
     }
   }
 
+  const handleEditJobSupervisorFormSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    const { confirmed } = await confirm({
+      title: "Muokkaus",
+      description: `Oletko aivan varma, että haluat muokata työpaikkaohjaajaa?`
+    })
+
+    if (confirmed) {
+      const id = jobSupervisorFormData.id
+      delete jobSupervisorFormData.id
+      const response = await editJobSupervisor({
+        variables: { jobSupervisorId: id, jobSupervisor: jobSupervisorFormData }
+      })
+      setDialogOpen(false)
+      if (response.data.editJobSupervisor.success) {
+        return addAlert("Työpaikkaohjaajan muokkaus onnistui", "success")
+      }
+      addAlert("Työpaikkaohjaajan muokkauksessa tapahtui virhe", "error", true)
+    }
+  }
+
   const handleDialogClose = () => setDialogOpen(false)
 
   const handleShowNewWorkplaceForm = () => {
@@ -309,6 +337,11 @@ const Workplaces = () => {
     setShowNewJobSupervisorForm(true)
   }
 
+  const handleShowEditJobSupervisorForm = (id: string) => {
+    setSelectedJobSupervisorId(id)
+    setShowEditJobSupervisorForm(true)
+  }
+
   const handleAccordionChange = (panel: "workplaces" | "jobSupervisors") => (_event: React.SyntheticEvent, newExpanded: boolean) => {
     setExpandedAccordion(newExpanded ? panel : false)
   }
@@ -322,6 +355,20 @@ const Workplaces = () => {
 
     setWorkplaceFormData(workplace)
     setSelectedWorkplaceId(null)
+  }
+
+  if (selectedJobSupervisorId) {
+    const foundJobSupervisor = jobSupervisors.find(jobSupervisor => jobSupervisor.id === selectedJobSupervisorId)
+    if (foundJobSupervisor) {
+      setJobSupervisorFormData({
+        id: selectedJobSupervisorId,
+        firstName: foundJobSupervisor.firstName,
+        lastName: foundJobSupervisor.lastName,
+        email: foundJobSupervisor.email,
+        phoneNumber: foundJobSupervisor.phoneNumber || ""
+      })
+    }
+    setSelectedJobSupervisorId(null)
   }
 
   return (
@@ -420,7 +467,7 @@ const Workplaces = () => {
                           color="primary"
                           startIcon={<EditIcon />}
                           size="small"
-                          onClick={() => console.log('muokkaa')}
+                          onClick={() => handleShowEditJobSupervisorForm(jobSupervisor.id)}
                         >
                           Muokkaa
                         </Button>
@@ -486,6 +533,14 @@ const Workplaces = () => {
             setFormData={setJobSupervisorFormData}
             handleSubmit={handleNewJobSupervisorFormSubmit}
             submitButtonTitle="Lisää työpaikkaohjaaja"
+          />
+        ) : null}
+        {showEditJobSupervisorForm ? (
+          <JobSupervisorForm
+            formData={jobSupervisorFormData}
+            setFormData={setJobSupervisorFormData}
+            handleSubmit={handleEditJobSupervisorFormSubmit}
+            submitButtonTitle="Muokkaa työpaikkaohjaaja"
           />
         ) : null}
       </Dialog>

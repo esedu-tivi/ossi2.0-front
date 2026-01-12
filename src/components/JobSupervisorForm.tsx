@@ -4,11 +4,11 @@ import buttonStyles from "../styles/buttonStyles";
 import formStyles from "../styles/formStyles";
 import { JobSupervisor } from "../types";
 
-export type JobSupervisorFormData = Omit<JobSupervisor, "id"> & { phoneNumber: string }
+//export type JobSupervisorFormData = Omit<JobSupervisor, "id"> & { phoneNumber: string }
 
 interface JobSupervisorFormProps {
-  formData: JobSupervisorFormData
-  setFormData: React.Dispatch<React.SetStateAction<JobSupervisorFormData>>
+  formData: JobSupervisor
+  setFormData: React.Dispatch<React.SetStateAction<JobSupervisor>>
   handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void
   submitButtonTitle: string
 }

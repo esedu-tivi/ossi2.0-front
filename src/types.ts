@@ -62,16 +62,17 @@ export interface SortConfig {
 }
 
 export interface JobSupervisor {
-  id: string
+  id?: string
   firstName: string
   lastName: string
   email: string
+  phoneNumber?: string
 }
 
 export interface Workplace {
   id: number
   name: string
-  jobSupervisors: JobSupervisor[]
+  jobSupervisors: JobSupervisor & Required<Pick<JobSupervisor, "id">>[]
 }
 
 export interface Part {
