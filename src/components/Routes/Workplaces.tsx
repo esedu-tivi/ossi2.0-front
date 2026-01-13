@@ -504,8 +504,10 @@ const Workplaces = () => {
             : showEditWorkplaceForm
               ? 'Muokkaa työpaikkaa'
               : showNewJobSupervisorForm
-                ? "Lisää uusi työpaikkaohjaaja" :
-                ''
+                ? "Lisää uusi työpaikkaohjaaja"
+                : showEditJobSupervisorForm
+                  ? "Muokkaa työpaikkaohjaajaa" :
+                  ""
         }
         open={dialogOpen}
         onClose={handleDialogClose}
