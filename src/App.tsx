@@ -22,6 +22,7 @@ import NewUserLogin from './components/Routes/NewUserLogin';
 import Workplaces from './components/Routes/Workplaces';
 import StudentInfo from './components/Routes/StudentInfo';
 import Workplace from './components/Routes/Workplace';
+import JobSupervisor from './components/Routes/JobSupervisor';
 
 const App = () => {
     const { isAuthenticated, userEmail, role } = useAuth();
@@ -286,6 +287,20 @@ const App = () => {
                     />
                 }
             />
+            <Route
+                path="/jobsupervisors/:id"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={["teacher"]}
+                        element={
+                            <AppLayout>
+                                <JobSupervisor />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+
         </Routes>
     );
 };

@@ -449,7 +449,7 @@ const Workplaces = () => {
                           color="primary"
                           startIcon={<InfoIcon />}
                           size="small"
-                          onClick={() => console.log('tiedot')}
+                          onClick={() => navigate(`/jobsupervisors/${jobSupervisor.id}`)}
                         >
                           Tiedot
                         </Button>
