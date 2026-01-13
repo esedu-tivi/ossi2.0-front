@@ -7,6 +7,8 @@ import AuthContext from "../utils/auth-context";
 import { useMutation } from "@apollo/client";
 import { LOGIN_MUTATION } from "../graphql/LoginMutation";
 
+type Role = 'teacher' | 'student' | 'unknown'
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -14,23 +16,34 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Manages user login state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    sessionStorage.getItem("ossi.authenticated") === "true"
+  );
 
   // Manages user Email data
-  const [userEmail, setUserEmail] = useState("");
+  const [userEmail, setUserEmail] = useState(sessionStorage.getItem("ossi.email") || "");
 
   const [loginMutation] = useMutation(LOGIN_MUTATION);
 
-  const [role, setRole] = useState<'teacher' | 'student' | 'unknown'>('unknown');
+  const [role, setRole] = useState<Role>("unknown");
 
   useEffect(() => {
-    if (userEmail.endsWith('@esedulainen.fi')) {
-      setRole('student');
-    } else if (userEmail.endsWith('@esedu.fi')) {
-      setRole('teacher');
-    } else {
-      setRole('unknown');
+    if (typeof window !== "undefined") {
+      const storedRole = sessionStorage.getItem('ossi.role');
+      if (storedRole) setRole(JSON.parse(storedRole));
     }
+  }, []);
+
+  useEffect(() => {
+    let role: Role = "unknown";
+    if (userEmail.endsWith('@esedulainen.fi')) {
+      role = "student";
+    } else if (userEmail.endsWith('@esedu.fi')) {
+      role = "teacher";
+    }
+
+    setRole(role)
+    sessionStorage.setItem("ossi.role", JSON.stringify(role))
   }, [userEmail]);
 
   // Sends idToken to backend and checks if the returned token is valid
@@ -53,7 +66,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Handles redirect during login
     const initializeMsal = async () => {
       try {
-
         if (!msalInstance) {
           throw new Error("MSAL instance is not initialized");
         }
@@ -68,7 +80,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (redirectResponse?.account) {
           // Sets user as active MSAL account
           msalInstance.setActiveAccount(redirectResponse.account);
-          setUserEmail(redirectResponse.account.username);
+          const email = redirectResponse.account.username
+          setUserEmail(email);
+          sessionStorage.setItem("ossi.email", email)
 
           // Separates idToken from response and saves it in variable
           const idToken = redirectResponse.idToken;
@@ -79,6 +93,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           await sendIdTokenToBackend(idToken);
 
           setIsAuthenticated(true);
+          sessionStorage.setItem("ossi.authenticated", JSON.stringify(true))
         }
       } catch (error) {
         console.error("MSAL initialization error:", error);
@@ -96,7 +111,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
   }, [sendIdTokenToBackend]); // Adds sendIdTokenToBackend as a dependency, ensuring the effect re-runs only if it changes
-
   return (
 
     // Provides isAuthenticated, userEmail, setIsAuthenticated, role, setRole and setUserEmail functions to other components through auth-context

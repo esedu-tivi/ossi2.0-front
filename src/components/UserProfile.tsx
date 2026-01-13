@@ -8,24 +8,28 @@ import Badge from '@mui/material/Badge';
 import IconButton from '@mui/material/IconButton';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MailIcon from '@mui/icons-material/Mail';
-import EngineeringIcon from '@mui/icons-material/Engineering';
 import Snackbar from '@mui/material/Snackbar';
 import AuthContext, { useAuth } from '../utils/auth-context';
 import '../css/UserProfile.css';
 import NotificationDrawer from './NotificationDrawer';
 import { GET_UNREAD_NOTIFICATION_COUNT } from '../graphql/GetUnreadNotificationCount';
 import { useQuery } from '@apollo/client';
-import { Tooltip } from '@mui/material';
+import { ButtonBase, Menu, MenuItem, Tooltip } from '@mui/material';
+import { useMsal } from '@azure/msal-react';
 
 
 const devEnv = import.meta.env.DEV;
 
 const UserProfile = () => {
+    const { instance } = useMsal();
     const { userEmail } = useAuth();
     const { setRole, role } = useContext(AuthContext)
     const [showMessage, setShowMessage] = useState(false);
     const [messageContent, setMessageContent] = useState('');
     const [drawerOpen, setDrawerOpen] = useState(false);
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
 
     const { data: unreadData } = useQuery(GET_UNREAD_NOTIFICATION_COUNT);
 
@@ -34,19 +38,62 @@ const UserProfile = () => {
         setShowMessage(true);
     };
 
+    const onLogOut = () => {
+        sessionStorage.clear()
+        instance.logoutRedirect()
+    }
+
     const handleClose = () => {
         setShowMessage(false);
     };
 
     return (
         <Box className="user-profile">
-            <Avatar className="user-avatar">
-                {userEmail
-                    ?.split('@')[0]
-                    .split('.')
-                    .map((namePart) => namePart.charAt(0).toUpperCase())
-                    .join('')}
-            </Avatar>
+            <ButtonBase
+                component="label"
+                role={undefined}
+                onClick={(event) => setAnchorEl(event.currentTarget)}
+                aria-label="Avatar image"
+                sx={{
+                    borderRadius: '40px',
+                    '&:has(:focus-visible)': {
+                        outline: '2px solid',
+                        outlineOffset: '2px',
+                    },
+                }}
+            >
+                <Avatar
+                    className="user-avatar"
+                    aria-label="Avatar image"
+                    color="inherit" >
+                    {userEmail
+                        ?.split('@')[0]
+                        .split('.')
+                        .map((namePart) => namePart.charAt(0).toUpperCase())
+                        .join('')}
+                </Avatar>
+            </ButtonBase>
+            <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+
+                open={open}
+                onClose={() => setAnchorEl(null)}
+            >
+                {devEnv && (
+                    <MenuItem aria-label="role" onClick={() => setRole(role === 'student' ? 'teacher' : 'student')} > Vaihda roolia </MenuItem>
+                )}
+                <MenuItem aria-label="logout" onClick={() => onLogOut()} > Kirjaudu ulos</MenuItem>
+            </Menu>
             <Typography className="user-email">{userEmail}</Typography>
             <Box className="user-icons">
                 <IconButton className="user-icon-button" aria-label="notifications" onClick={() => setDrawerOpen(true)}>
@@ -61,16 +108,9 @@ const UserProfile = () => {
                     </Badge>
                 </IconButton>
 
-                {devEnv && (
-                    <Tooltip title="Vaihda roolia">
-                        <IconButton className="user-icon-button" aria-label="role" onClick={() => setRole(role === 'student' ? 'teacher' : 'student')}>
-                            <EngineeringIcon />
-                        </IconButton>
-                    </Tooltip>
-                )}
             </Box>
             <Snackbar open={showMessage} autoHideDuration={3000} onClose={handleClose} message={messageContent} />
-        </Box>
+        </Box >
     );
 };
 
