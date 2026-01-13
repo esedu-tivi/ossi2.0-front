@@ -1,19 +1,18 @@
-import { Button, Tab, Tabs, Typography } from "@mui/material"
+import { Tab, Tabs, Typography } from "@mui/material"
 import { useState } from "react";
 import Internships from "./Internships";
 import EducationPath from "./EducationPath";
 import EditStudies from "./EditStudies";
-import BackIcon from "@mui/icons-material/ArrowBack"
 import '../../css/StudentList.css';
 import StudentProjectsPath from "./StudentProjectsPath";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { GET_STUDENT } from "../../graphql/GetStudent";
 import { Student } from "../../types";
+import BackButton from "../common/BackButton";
 
 const StudentInfo = () => {
   const [tabIndex, setTabIndex] = useState(0)
-  const navigate = useNavigate()
   const { studentId } = useParams()
 
   const { data, loading, error } = useQuery(GET_STUDENT, { variables: { studentId } })
@@ -33,7 +32,7 @@ const StudentInfo = () => {
 
   return (
     <>
-      <Button variant="contained" sx={{ marginBottom: '10px' }} startIcon={<BackIcon />} onClick={() => navigate(-1)}>Palaa</Button>
+      <BackButton />
       <Tabs
         value={tabIndex}
         onChange={handleTabChange}
