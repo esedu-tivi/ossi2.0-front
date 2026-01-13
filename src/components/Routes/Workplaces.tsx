@@ -2,14 +2,13 @@ import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { Accordion as MuiAccordion, AccordionDetails, AccordionSummary as MuiAccordionSummary, Button, Stack, TableBody, TableCell, TableRow, Typography, styled, AccordionProps, AccordionSummaryProps, accordionSummaryClasses, Box } from "@mui/material"
+import { AccordionDetails, Button, Stack, TableBody, TableCell, TableRow, Typography, Box } from "@mui/material"
 
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 
 import WorkplaceForm, { WorkplaceFormData } from "../WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
@@ -28,6 +27,7 @@ import { CREATE_JOB_SUPERVISOR } from "../../graphql/CreateJobSupervisor"
 import { DELETE_JOB_SUPERVISOR } from "../../graphql/DeleteJobSupervisor"
 import { REQUEST_MAGIC_LINK } from "../../graphql/RequestMagicLink"
 import { EDIT_JOB_SUPERVISOR } from "../../graphql/EditJobSupervisor"
+import { Accordion, AccordionSummary } from "../common/Accordion"
 
 interface JobSupervisorWithFullNameAndWorkplace extends JobSupervisor {
   id: string,
@@ -74,33 +74,6 @@ const jobSupervisorsHeaderCells: readonly TableHeaderCell[] = [
   }
 ]
 
-const Accordion = styled((props: AccordionProps) => (
-  <MuiAccordion disableGutters elevation={0} square {...props} />
-))(() => ({
-  border: `1px solid grey`,
-  '&:not(:last-child)': {
-    borderBottom: 0,
-  },
-  '&::before': {
-    display: 'none',
-  },
-}));
-
-
-const AccordionSummary = styled((props: AccordionSummaryProps) => (
-  <MuiAccordionSummary
-    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
-    {...props}
-  />
-))(() => ({
-  backgroundColor: 'rgba(0, 0, 0, .03)',
-  flexDirection: 'row-reverse',
-  [`& .${accordionSummaryClasses.expandIconWrapper}.${accordionSummaryClasses.expanded}`]:
-  {
-    transform: 'rotate(90deg)',
-  },
-}));
-
 const Workplaces = () => {
   const navigate = useNavigate()
   const { loading: workplaceLoading, error: workplaceError, data: workplaceData } = useQuery(GET_WORKPLACES)
@@ -115,7 +88,7 @@ const Workplaces = () => {
   })
 
   const [deleteWorkplace] = useMutation(DELETE_WORKPLACE, {
-    refetchQueries: [{ query: GET_WORKPLACES }]
+    refetchQueries: [GET_WORKPLACES, GET_JOB_SUPERVISORS]
   })
 
   const [editJobSupervisor] = useMutation(EDIT_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS, GET_WORKPLACES] })
