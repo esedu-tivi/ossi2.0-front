@@ -264,6 +264,7 @@ const App = () => {
                 path="/workplaces"
                 element={
                     <ProtectedRoute
+                        allowedRoles={["teacher"]}
                         element={
                             <AppLayout>
                                 <Workplaces />
@@ -275,9 +276,14 @@ const App = () => {
             <Route
                 path="/workplaces/:id"
                 element={
-                    <AppLayout>
-                        <Workplace />
-                    </AppLayout>
+                    <ProtectedRoute
+                        allowedRoles={["teacher"]}
+                        element={
+                            <AppLayout>
+                                <Workplace />
+                            </AppLayout>
+                        }
+                    />
                 }
             />
         </Routes>
