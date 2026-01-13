@@ -37,12 +37,6 @@ const App = () => {
     });
 
     useEffect(() => {
-        if (isAuthenticated) {
-            refetch();
-        }
-    }, [isAuthenticated, refetch]);
-
-    useEffect(() => {
         if (!isAuthenticated) return;
 
         if (!studentLoading && studentData) {
