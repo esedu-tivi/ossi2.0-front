@@ -10,13 +10,18 @@ import { filter } from "../../utils/filter";
 
 export type TableHeaderCell =
   | {
-    type: "search";
-    searchPath: string;
+    type: "search"
+    searchPath: string
   }
   | {
-    type: "sort";
-    label: string;
-    sortPath: string;
+    type: "sort"
+    label: string
+    sortPath: string
+  }
+  | {
+    type: "group"
+    label: string
+    colSpan: number
   }
 
 export interface TableProps<T> {
@@ -56,9 +61,25 @@ const Head = ({
     });
   };
 
+  const tableGroupData = headerCells.filter(cell => cell.type === "group")
+
+  console.log(tableGroupData)
+
   return (
     <TableHead>
-      <TableRow className="table-header">
+      <TableRow key="group" className="table-header">
+        {tableGroupData.map((group, index) =>
+          <TableCell
+            align="center"
+            className="table-header-cell"
+            colSpan={group.colSpan}
+            key={index}
+          >
+            {group.label}
+          </TableCell>
+        )}
+      </TableRow>
+      <TableRow key="header" className="table-header">
         {headerCells.map((part: TableHeaderCell, index: number) => (part.type === "sort") ?
           <TableCell
             className="table-header-cell table-header-id"
