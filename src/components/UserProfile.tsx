@@ -56,7 +56,7 @@ const UserProfile = () => {
                 aria-label="Avatar image"
                 sx={{
                     borderRadius: '40px',
-                    '&:has(:focus-visible)': {
+                    '&:focus-visible': {
                         outline: '2px solid',
                         outlineOffset: '2px',
                     },
