@@ -16,6 +16,7 @@ import EditIcon from "@mui/icons-material/Edit"
 import InfoIcon from "@mui/icons-material/Info"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Dialog from "../common/Dialog";
+import { convertDateToString } from "../../utils/convertDateToString";
 
 interface InternshipData extends Internship {
   workplace: {
@@ -107,8 +108,8 @@ const Internships = ({ student }: { student: Student }) => {
     if (data && !loading) {
       const parsedInternships = data.internships?.internships.map((internship: Internship) => ({
         ...internship,
-        startDate: new Date(internship.startDate).toLocaleDateString("fi-FI"),
-        endDate: new Date(internship.endDate).toLocaleDateString("fi-FI")
+        startDate: convertDateToString(internship.startDate),
+        endDate: convertDateToString(internship.endDate)
       })) as ParsedInternships[]
       setInternships(parsedInternships)
     }
@@ -218,14 +219,11 @@ const Internships = ({ student }: { student: Student }) => {
     const internship = data.internships?.internships.find((internship: InternshipData) => internship.id === id)
 
     if (internship) {
-      const startDate = new Date(internship.startDate)
-      const endDate = new Date(internship.endDate)
-
       setSelectedWorkplaceId(internship.workplace.id)
       const parsedInternship: InternshipWithoutId = {
         info: internship.info || "",
-        startDate: convertDateForForm(startDate),
-        endDate: convertDateForForm(endDate),
+        startDate: convertDateForForm(internship.startDate),
+        endDate: convertDateForForm(internship.endDate),
         qualificationUnitId: internship.qualificationUnit?.id || '',
         workplaceId: internship.workplace.id || '',
         teacherId: internship.teacher.id,

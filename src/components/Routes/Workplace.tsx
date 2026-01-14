@@ -8,6 +8,7 @@ import Table, { TableHeaderCell } from "../common/Table"
 import { Internship, JobSupervisor, Student, Teacher } from "../../types"
 import { Accordion, AccordionSummary } from "../common/Accordion"
 import { useState } from "react"
+import { convertDateToString } from "../../utils/convertDateToString"
 
 interface JobSupervisorWithPhoneNumber extends JobSupervisor {
   phoneNumber: string
@@ -30,9 +31,11 @@ interface Workplace {
   jobSupervisors: [JobSupervisor]
 }
 
-interface ParsedInternship extends Pick<Internship, "id" | "startDate" | "endDate" | "info"> {
-  student: string,
-  teacher: string,
+interface ParsedInternship extends Pick<Internship, "id" | "info"> {
+  startDate: string
+  endDate: string
+  student: string
+  teacher: string
   jobSupervisor: string
 }
 
@@ -139,8 +142,8 @@ const Workplace = () => {
 
   const parsedInternships = workplace.internships.map(internship => ({
     id: internship.id,
-    startDate: internship.startDate,
-    endDate: internship.endDate,
+    startDate: convertDateToString(internship.startDate),
+    endDate: convertDateToString(internship.endDate),
     info: internship.info,
     student: `${internship.student.firstName} ${internship.student.lastName}`,
     teacher: `${internship.teacher.firstName} ${internship.teacher.lastName}`,
@@ -192,8 +195,8 @@ const Workplace = () => {
                 {rows.map(internship => (
                   <TableRow key={internship.id}>
                     <TableCell>{internship.id}</TableCell>
-                    <TableCell>{internship.startDate.toString()}</TableCell>
-                    <TableCell>{internship.endDate.toString()}</TableCell>
+                    <TableCell>{internship.startDate}</TableCell>
+                    <TableCell>{internship.endDate}</TableCell>
                     <TableCell>{internship.info}</TableCell>
                     <TableCell>{internship.student}</TableCell>
                     <TableCell>{internship.jobSupervisor}</TableCell>

@@ -5,7 +5,7 @@ import { useQuery } from "@apollo/client"
 import { GET_JOB_SUPERVISOR } from "../../graphql/GetJobSupervisor"
 import Table, { TableHeaderCell } from "../common/Table"
 import { Internship as InternshipData, Student } from "../../types"
-import { convertDateForForm } from "../../utils/convertDateForForm"
+import { convertDateToString } from "../../utils/convertDateToString"
 
 interface TableRowProps {
   label: string
@@ -107,8 +107,8 @@ const JobSupervisor = () => {
   const jobSupervisor = data.jobSupervisor?.jobSupervisor
   const parsedInternships: ParsedInternship[] = jobSupervisor.internships.map((internship: Internship) => ({
     ...internship,
-    startDate: internship.startDate instanceof Date ? convertDateForForm(internship.startDate) : convertDateForForm(new Date(internship.startDate)),
-    endDate: internship.endDate instanceof Date ? convertDateForForm(internship.endDate) : convertDateForForm(new Date(internship.endDate)),
+    startDate: convertDateToString(internship.startDate),
+    endDate: convertDateToString(internship.endDate),
     student: {
       ...internship.student,
       fullName: `${internship.student.firstName} ${internship.student.lastName}`,
