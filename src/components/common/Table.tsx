@@ -63,8 +63,6 @@ const Head = ({
 
   const tableGroupData = headerCells.filter(cell => cell.type === "group")
 
-  console.log(tableGroupData)
-
   return (
     <TableHead>
       <TableRow key="group" className="table-header">

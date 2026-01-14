@@ -8,6 +8,13 @@ export const GET_WORKPLACE = gql`
       workplace {
         id
         name
+        jobSupervisors {
+            id
+            firstName
+            lastName
+            email
+            phoneNumber
+        }
         internships {
           id
           startDate

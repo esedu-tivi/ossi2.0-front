@@ -27,6 +27,7 @@ interface Workplace {
   id: string
   name: string
   internships: [InternshipWithJobSupervisorAndTeacherAndStudent]
+  jobSupervisors: [JobSupervisor]
 }
 
 interface ParsedInternship extends Pick<Internship, "id" | "startDate" | "endDate" | "info"> {
@@ -125,16 +126,16 @@ const Workplace = () => {
   const workplace: Workplace = data.workplace?.workplace
 
 
-  const jobSupervisors = workplace.internships.map(internship => ({
-    id: internship.jobSupervisor.id,
-    fullName: `${internship.jobSupervisor.firstName} ${internship.jobSupervisor.lastName}`,
-    email: internship.jobSupervisor.email,
-    phoneNumber: internship.jobSupervisor.phoneNumber
+  const parsedJobSupervisors: ParsedJobSupervisor[] = workplace.jobSupervisors.map(jobSupervisor => ({
+    id: jobSupervisor.id,
+    fullName: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`,
+    email: jobSupervisor.email,
+    phoneNumber: jobSupervisor.phoneNumber ?? ""
   }))
 
-  const parsedJobSupervisors: ParsedJobSupervisor[] = jobSupervisors.filter((jobSupervisor, index, array) =>
-    array.findIndex(jobSupervisor2 => (jobSupervisor2.id === jobSupervisor.id)) === index
-  )
+  // const parsedJobSupervisors: ParsedJobSupervisor[] = jobSupervisors.filter((jobSupervisor, index, array) =>
+  //   array.findIndex(jobSupervisor2 => (jobSupervisor2.id === jobSupervisor.id)) === index
+  // )
 
   const parsedInternships = workplace.internships.map(internship => ({
     id: internship.id,
