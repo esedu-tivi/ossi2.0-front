@@ -12,26 +12,31 @@ import { Student } from '../types';
 
 const headerCells: readonly TableHeaderCell[] = [
     {
+        id: 0,
         type: "sort",
         label: "ID#",
         sortPath: "id"
     },
     {
+        id: 1,
         type: "sort",
         label: "Nimi",
         sortPath: "fullName"
     },
     {
+        id: 2,
         type: "sort",
         label: "Ryhmä",
         sortPath: "groupId"
     },
     {
+        id: 3,
         type: "sort",
         label: "Ammattinimike",
         sortPath: "studyingQualificationTitle.name"
     },
     {
+        id: 4,
         type: "search",
         searchPath: "fullName"
     }

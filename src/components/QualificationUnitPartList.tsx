@@ -18,21 +18,25 @@ import Table, { TableHeaderCell } from "./common/Table";
 
 const tableHeaderCells: readonly TableHeaderCell[] = [
   {
+    id: 0,
     type: "sort",
     label: "ID#",
     sortPath: "id"
   },
   {
+    id: 1,
     type: "sort",
     label: "Teeman aihe",
     sortPath: "name"
   },
   {
+    id: 2,
     type: "sort",
     label: "Tutkinnonosa",
     sortPath: "parentQualificationUnit.name"
   },
   {
+    id: 3,
     type: "search",
     searchPath: "name"
   }

@@ -59,31 +59,37 @@ const initFormData: InternshipWithoutId = {
 
 const headerCells: readonly TableHeaderCell[] = [
   {
+    id: 0,
     label: "#ID",
     type: "sort",
-    sortPath: "id"
+    sortPath: "id",
   },
   {
+    id: 1,
     label: "Työpaikka",
     type: "sort",
     sortPath: "workplace.name"
   },
   {
+    id: 2,
     label: "Info",
     type: "sort",
     sortPath: "info"
   },
   {
+    id: 3,
     label: "Aloitusaika",
     type: "sort",
     sortPath: "startDate"
   },
   {
+    id: 4,
     label: "Lopetusaika",
     type: "sort",
     sortPath: "endDate"
   },
   {
+    id: 5,
     type: "search",
     searchPath: "workplace.name"
   }

@@ -26,61 +26,73 @@ interface ParsedInternship extends Pick<Internship, "id" | "info" | "student" | 
 
 const headerCells: readonly TableHeaderCell[] = [
   {
+    id: 0,
     type: "group",
     label: "Harjoittelujakso",
     colSpan: 4
   },
   {
+    id: 1,
     type: "group",
     label: "Opiskelija",
     colSpan: 2
   },
   {
+    id: 2,
     type: "group",
     label: "Opettaja",
     colSpan: 2
   },
   {
+    id: 3,
     label: "#ID",
     type: "sort",
     sortPath: "id"
   },
   {
+    id: 4,
     label: "Info",
     type: "sort",
     sortPath: "info"
   },
   {
+    id: 5,
     label: "Aloitusaika",
     type: "sort",
     sortPath: "startDate"
   },
   {
+    id: 6,
     label: "Lopetusaika",
     type: "sort",
     sortPath: "endDate"
   },
   {
+    id: 7,
     label: "Nimi",
     type: "sort",
     sortPath: "student.fullName"
   },
   {
+    id: 8,
     label: "Sähköposti",
     type: "sort",
     sortPath: "student.email"
   },
   {
+    id: 9,
     label: "Nimi",
     type: "sort",
     sortPath: "teacher.fullName"
   },
   {
+    id: 10,
     label: "Sähköposti",
     type: "sort",
     sortPath: "teacher.email"
   },
   {
+    id: 11,
     type: "search",
     searchPath: "student.fullName"
   }

@@ -37,16 +37,19 @@ interface JobSupervisorWithFullNameAndWorkplace extends JobSupervisor {
 
 const headerCells: readonly TableHeaderCell[] = [
   {
+    id: 0,
     sortPath: "id",
     label: "ID#",
     type: "sort"
   },
   {
+    id: 1,
     sortPath: "name",
     label: "Työpaikan nimi",
     type: "sort"
   },
   {
+    id: 2,
     type: "search",
     searchPath: "name"
   }
@@ -54,21 +57,25 @@ const headerCells: readonly TableHeaderCell[] = [
 
 const jobSupervisorsHeaderCells: readonly TableHeaderCell[] = [
   {
+    id: 0,
     sortPath: "id",
     label: "ID#",
     type: "sort"
   },
   {
+    id: 1,
     sortPath: "fullName",
     label: "Nimi",
     type: "sort"
   },
   {
+    id: 2,
     sortPath: "workplace.name",
     label: "Työpaikan nimi",
     type: "sort"
   },
   {
+    id: 3,
     type: "search",
     searchPath: "fullName"
   }

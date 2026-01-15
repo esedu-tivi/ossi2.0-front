@@ -10,15 +10,18 @@ import { filter } from "../../utils/filter";
 
 export type TableHeaderCell =
   | {
+    id: number | string
     type: "search"
     searchPath: string
   }
   | {
+    id: number | string
     type: "sort"
     label: string
     sortPath: string
   }
   | {
+    id: number | string
     type: "group"
     label: string
     colSpan: number
@@ -65,24 +68,24 @@ const Head = ({
 
   return (
     <TableHead>
-      <TableRow key="group" className="table-header">
-        {tableGroupData.map((group, index) =>
+      <TableRow className="table-header">
+        {tableGroupData.map(group =>
           <TableCell
             align="center"
             className="table-header-cell"
             colSpan={group.colSpan}
-            key={index}
+            key={group.id}
           >
             {group.label}
           </TableCell>
         )}
       </TableRow>
-      <TableRow key="header" className="table-header">
-        {headerCells.map((part: TableHeaderCell, index: number) => (part.type === "sort") ?
+      <TableRow className="table-header">
+        {headerCells.map((part: TableHeaderCell) => (part.type === "sort") ?
           <TableCell
             className="table-header-cell table-header-id"
             onClick={() => handleSort(part.sortPath)}
-            key={index}
+            key={part.id}
           >
             <Box className="sortable-header">
               {part.label}
@@ -94,7 +97,7 @@ const Head = ({
             </Box>
           </TableCell>
           : (part.type === "search") ?
-            <TableCell className="table-header-cell" key={index}>
+            <TableCell className="table-header-cell" key={part.id}>
               <div className="search-container">
                 <SearchIcon />
                 <TextField
@@ -106,7 +109,7 @@ const Head = ({
                 />
               </div>
             </TableCell>
-            : <></>
+            : null
         )}
       </TableRow>
     </TableHead>

@@ -41,26 +41,31 @@ interface ParsedInternship extends Pick<Internship, "id" | "info"> {
 
 const jobSupervisorHeaderCells: readonly TableHeaderCell[] = [
   {
+    id: 0,
     label: "#ID",
     type: "sort",
     sortPath: "id"
   },
   {
+    id: 1,
     label: "Nimi",
     type: "sort",
     sortPath: "fullName"
   },
   {
+    id: 2,
     label: "Sähköposti",
     type: "sort",
     sortPath: "email"
   },
   {
+    id: 3,
     label: "Puhelinnumero",
     type: "sort",
     sortPath: "phoneNumber"
   },
   {
+    id: 4,
     type: "search",
     searchPath: "fullName"
   }
@@ -68,41 +73,49 @@ const jobSupervisorHeaderCells: readonly TableHeaderCell[] = [
 
 const InternshipHeaderCells: readonly TableHeaderCell[] = [
   {
+    id: 0,
     label: "#ID",
     type: "sort",
     sortPath: "id"
   },
   {
+    id: 1,
     label: "Aloitusaika",
     type: "sort",
     sortPath: "startDate"
   },
   {
+    id: 2,
     label: "Päättymisaika",
     type: "sort",
     sortPath: "endDate"
   },
   {
+    id: 3,
     label: "Info",
     type: "sort",
     sortPath: "info"
   },
   {
+    id: 4,
     label: "Opiskelija",
     type: "sort",
     sortPath: "student"
   },
   {
+    id: 5,
     label: "Työpaikkaohjaaja",
     type: "sort",
     sortPath: "jobSupervisor"
   },
   {
+    id: 6,
     label: "Opettaja",
     type: "sort",
     sortPath: "teacher"
   },
   {
+    id: 7,
     type: "search",
     searchPath: "student"
   }

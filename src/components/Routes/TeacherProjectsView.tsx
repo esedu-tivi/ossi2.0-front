@@ -18,21 +18,25 @@ import Table, { TableHeaderCell } from "../common/Table";
 
 const headerCells: readonly TableHeaderCell[] = [
   {
+    id: 0,
     type: "sort",
     label: "ID#",
     sortPath: "id"
   },
   {
+    id: 1,
     type: "sort",
     label: "Projektin nimi",
     sortPath: "name"
   },
   {
+    id: 2,
     type: "sort",
     label: "Teemat",
     sortPath: "includedInQualificationUnitParts.name"
   },
   {
+    id: 3,
     type: "search",
     searchPath: "name"
   }
