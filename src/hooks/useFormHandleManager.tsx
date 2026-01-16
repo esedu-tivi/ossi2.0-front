@@ -58,14 +58,15 @@ export const useFormHandleManager = (initialState: FormState) => {
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [currentField, setCurrentField] = useState<
     keyof Pick<
-      EditProjectFormData & { includedInParts?: Item[] },
-      'tags' | 'competenceRequirements' | 'includedInParts'
+      EditProjectFormData & { includedInParts?: Item[], groups?: Item[] },
+      'tags' | 'competenceRequirements' | 'includedInParts' | 'groups'
     >
   >('tags');
   const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
     tags: [],
     competenceRequirements: [],
     includedInParts: [],
+    groups: [],
   });
 
   const [competenceOptions, setCompetenceOptions] = useState<Item[]>([]);
@@ -205,7 +206,7 @@ export const useFormHandleManager = (initialState: FormState) => {
     setSelectorOpen(false);
   };
 
-  const handleAddItem = (field: keyof Pick<FormState, 'tags' | 'competenceRequirements' | 'includedInParts'>) => {
+  const handleAddItem = (field: keyof Pick<FormState, 'tags' | 'competenceRequirements' | 'includedInParts' | 'groups'>) => {
     if (field === 'includedInParts') {
       setCurrentField(field);
       setSelectorOpen(true);

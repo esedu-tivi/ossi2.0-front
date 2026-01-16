@@ -14,8 +14,10 @@ import '../css/UserProfile.css';
 import NotificationDrawer from './NotificationDrawer';
 import { GET_UNREAD_NOTIFICATION_COUNT } from '../graphql/GetUnreadNotificationCount';
 import { useQuery } from '@apollo/client';
+
 import { ButtonBase, Menu, MenuItem, Tooltip } from '@mui/material';
 import { useMsal } from '@azure/msal-react';
+import { useNavigate } from 'react-router-dom';
 
 
 const devEnv = import.meta.env.DEV;
@@ -24,6 +26,7 @@ const UserProfile = () => {
     const { instance } = useMsal();
     const { userEmail } = useAuth();
     const { setRole, role } = useContext(AuthContext)
+    const navigate = useNavigate();
     const [showMessage, setShowMessage] = useState(false);
     const [messageContent, setMessageContent] = useState('');
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -92,6 +95,17 @@ const UserProfile = () => {
                 {devEnv && (
                     <MenuItem aria-label="role" onClick={() => setRole(role === 'student' ? 'teacher' : 'student')} > Vaihda roolia </MenuItem>
                 )}
+                                {role === 'teacher' && (
+                                    <MenuItem
+                                        aria-label="profile-settings"
+                                        onClick={() => {
+                                            setAnchorEl(null);
+                                            navigate('/teacherdashboard/profilesettings');
+                                        }}
+                                    >
+                                        Profiiliasetukset
+                                    </MenuItem>
+                                )}
                 <MenuItem aria-label="logout" onClick={() => onLogOut()} > Kirjaudu ulos</MenuItem>
             </Menu>
             <Typography className="user-email">{userEmail}</Typography>

@@ -23,6 +23,7 @@ import Workplaces from './components/Routes/Workplaces';
 import StudentInfo from './components/Routes/StudentInfo';
 import Workplace from './components/Routes/Workplace';
 import JobSupervisor from './components/Routes/JobSupervisor';
+import TeacherProfileSettings from './components/Routes/TeacherProfileSettings';
 
 const App = () => {
     const { isAuthenticated, userEmail, role } = useAuth();
@@ -114,6 +115,19 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <TeacherDashboard />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+            <Route 
+                path="/teacherdashboard/profilesettings"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={["teacher"]}
+                        element={
+                            <AppLayout>
+                                <TeacherProfileSettings />
                             </AppLayout>
                         }
                     />
