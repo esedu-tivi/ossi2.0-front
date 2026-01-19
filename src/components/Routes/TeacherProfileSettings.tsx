@@ -5,17 +5,23 @@ import Selector from '../Selector';
 import { useFormHandleManager } from '../../hooks/useFormHandleManager';
 import { useQuery } from '@apollo/client';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
-import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnitParts';
+import { GET_QUALIFICATION_UNITS } from '../../graphql/GetQualificationUnits';
 import { GET_STUDENTS } from '../../graphql/GetStudents';
+
+type Item = { id: string; name: string };
+type Tag = Item;
+type Group = Item;
+type Part = Item;
+type Student = { groupId?: string };
 
 const TeacherProfileSettings: React.FC = () => {
 	const initialState = {
-		tags: [],
-		groups: [],
-		includedInParts: [],
+		tags: [] as Tag[],
+		groups: [] as Group[],
+		includedInParts: [] as Part[],
 		duration: 0,
 		isActive: false,
-		competenceRequirements: [],
+		competenceRequirements: [] as Item[],
 		description: '',
 		materials: '',
 	};
@@ -30,20 +36,18 @@ const TeacherProfileSettings: React.FC = () => {
 		handleAddItem,
 	} = useFormHandleManager(initialState);
 
-	// Tags
 	const { data: tagData, refetch: refetchTags } = useQuery(GET_PROJECT_TAGS);
-	const tagOptions = tagData?.projectTags?.projectTags || [];
+	const tagOptions: Tag[] = tagData?.projectTags?.projectTags || [];
 
-	// Qualification unit parts
-	const { data: partData } = useQuery(GET_QUALIFICATION_UNIT_PARTS);
-	const partOptions = partData?.parts?.parts || [];
+	const { data: unitData } = useQuery(GET_QUALIFICATION_UNITS);
+	const themeOptions: Part[] = unitData?.units?.units?.map((unit: any) => ({ id: unit.id, name: unit.name })) || [];
 
-	// Groups from students' groupIds
 	const { data: studentsData } = useQuery(GET_STUDENTS);
+	const students: Student[] = studentsData?.students?.students || [];
 	const groupIds: string[] = Array.from(
-		new Set((studentsData?.students?.students || []).map((s: any) => s.groupId).filter(Boolean))
+		new Set(students.map((s) => s.groupId).filter((id): id is string => Boolean(id)))
 	);
-	const groupOptions = groupIds.map((g) => ({ id: g, name: g }));
+	const groupOptions: Group[] = groupIds.map((g) => ({ id: g, name: g }));
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -61,7 +65,7 @@ const TeacherProfileSettings: React.FC = () => {
 			case 'groups':
 				return groupOptions;
 			case 'includedInParts':
-				return partOptions;
+				return themeOptions;
 			default:
 				return [];
 		}
