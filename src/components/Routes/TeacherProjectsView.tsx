@@ -8,6 +8,7 @@ import {
   Button,
   Box,
   IconButton,
+  Typography,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
@@ -62,7 +63,7 @@ export default function ProjectTable() {
   const { loading: projectsLoading, error: projectsError, data: projectsData } = useQuery(GET_PROJECTS);
 
   const { loading: userLoading, error: userError, data: userData } = useQuery(USER_SETUP)
-  const [fetchProjectIds, { loading: teachingProjectsLoading, data: teachingProjectsData, called: teachingProjectsCalled }] = useLazyQuery(GET_ASSIGNED_TEACHING_PROJECT_IDS)
+  const [fetchProjectIds, { loading: teachingProjectsLoading, data: teachingProjectsData, called: teachingProjectsCalled, error: teachingProjectsError }] = useLazyQuery(GET_ASSIGNED_TEACHING_PROJECT_IDS)
 
   const [assignTeachingProject] = useMutation(ASSIGN_TEACHING_PROJECT, { refetchQueries: [GET_ASSIGNED_TEACHING_PROJECT_IDS] })
   const [unassignTeachingProject] = useMutation(UNASSIGN_TEACHING_PROJECT, { refetchQueries: [GET_ASSIGNED_TEACHING_PROJECT_IDS] })
@@ -94,7 +95,7 @@ export default function ProjectTable() {
   // Extract the projects from the data object. If there are no projects, default to an empty array.
   const projects: Project[] = projectsData?.projects.projects || [];
 
-  const teachingProjectsIds = teachingProjectsCalled ? teachingProjectsData.assignedTeachingProjects?.assignedProjects.map((project: Pick<Project, "id">) => project.id) : []
+  const teachingProjectsIds = teachingProjectsCalled && teachingProjectsData ? teachingProjectsData.assignedTeachingProjects?.assignedProjects.map((project: Pick<Project, "id">) => project.id) : []
 
   return (
     <Box>
@@ -109,6 +110,7 @@ export default function ProjectTable() {
           Lisää Projekti
         </Button>
       </Box>
+      {teachingProjectsError && <Box><Typography>Teaching project error: {teachingProjectsError.message}</Typography></Box>}
       <Table<Project> headerCells={headerCells} data={projects}>
         {rows =>
           <TableBody>
@@ -122,7 +124,7 @@ export default function ProjectTable() {
                     .join(", ")}
                 </TableCell>
                 <TableCell>
-                  {teachingProjectsIds.includes(project.id)
+                  {teachingProjectsError ? <UncheckedIcon color="error" /> : teachingProjectsIds.includes(project.id)
                     ? <IconButton onClick={() => removeTeachingProjectHandler(project.id)}><CheckedIcon color="success" /></IconButton>
                     : <IconButton onClick={() => addTeachingProjectHandler(project.id)}><UncheckedIcon color="error" /></IconButton>
                   }
