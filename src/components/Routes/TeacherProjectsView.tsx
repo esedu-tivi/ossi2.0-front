@@ -7,12 +7,14 @@ import {
   TableRow,
   Button,
   Box,
+  IconButton,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
+import CheckedIcon from '@mui/icons-material/CheckCircle';
+import UncheckedIcon from '@mui/icons-material/Cancel';
 import { GET_PROJECTS } from "../../graphql/GetProjects";
 import { Project } from "../../types";
 import Table, { TableHeaderCell } from "../common/Table";
@@ -43,6 +45,11 @@ const headerCells: readonly TableHeaderCell[] = [
   },
   {
     id: 3,
+    type: "none",
+    label: "Projekti seurannassa"
+  },
+  {
+    id: 4,
     type: "search",
     searchPath: "name"
   }
@@ -115,6 +122,12 @@ export default function ProjectTable() {
                     .join(", ")}
                 </TableCell>
                 <TableCell>
+                  {teachingProjectsIds.includes(project.id)
+                    ? <IconButton onClick={() => removeTeachingProjectHandler(project.id)}><CheckedIcon color="success" /></IconButton>
+                    : <IconButton onClick={() => addTeachingProjectHandler(project.id)}><UncheckedIcon color="error" /></IconButton>
+                  }
+                </TableCell>
+                <TableCell>
                   <div className="button-group">
                     <Button
                       variant="outlined"
@@ -142,32 +155,13 @@ export default function ProjectTable() {
                     >
                       Käyttöaste
                     </Button>
-                    {teachingProjectsIds.includes(project.id)
-                      ? <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<RemoveIcon />}
-                        size="small"
-                        onClick={() => removeTeachingProjectHandler(project.id)}
-                      >
-                        Poista opetettavista projekteista
-                      </Button>
-                      : <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<AddIcon />}
-                        size="small"
-                        onClick={() => addTeachingProjectHandler(project.id)}
-                      >
-                        Lisää opetettaviin projekteihin
-                      </Button>
-                    }
+
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>}
       </Table>
-    </Box>
+    </Box >
   );
 }
