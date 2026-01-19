@@ -1,15 +1,16 @@
 FROM node:22-alpine AS base
 ENV NODE_ENV=production
-WORKDIR /app
-COPY package*.json postinstall.js ./
+WORKDIR /usr/app
+COPY ./package.json ./postinstall.js ./
 RUN npm install --omit=dev \
     && npm cache clean --force
 
 # Dev container
 FROM base AS dev
+COPY ./index.html ./
 ENV NODE_ENV=development
 RUN npm install
-CMD ["node"]
+CMD ["npm", "run", "dev", "--", "--host"]
 
 # Compile typescript sources
 FROM dev AS build
