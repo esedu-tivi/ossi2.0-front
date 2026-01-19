@@ -7,7 +7,7 @@ RUN npm install --omit=dev \
 
 # Dev container
 FROM base AS dev
-COPY ./index.html ./
+COPY ./index.html ./vite.config.ts ./authConfig.ts ./
 ENV NODE_ENV=development
 RUN npm install
 CMD ["npm", "run", "dev", "--", "--host"]

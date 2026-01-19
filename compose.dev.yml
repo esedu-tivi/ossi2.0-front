@@ -10,4 +10,4 @@ services:
     ports:
       - 5174:5174
     volumes:
-      - ./src/:/app/src
+      - ./src/:/usr/app/src
