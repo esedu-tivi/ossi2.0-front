@@ -1,10 +1,13 @@
+x-env_file: &env_file
+  - .env
+
 services:
   ossi-frontend:
     build:
-      context: ./
+      context: .
       target: dev
+    env_file: *env_file
     ports:
-      - "5174:5174"
-    command: ["npm", "run", "dev"]
+      - 5174:5174
     volumes:
-      - ./:/app/
+      - ./src/:/usr/app/src
