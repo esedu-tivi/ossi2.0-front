@@ -38,7 +38,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           handleDrawerClose={handleDrawerClose}
           handleDrawerTransitionEnd={handleDrawerTransitionEnd}
         />
-        <Box sx={{ flexGrow: 1, padding: "20px" }}>{children}</Box>
+        <Box sx={{ flexGrow: 1, p: {sm: 0, md: 1} }}>{children}</Box>
       </Box>
     </div>
   );
