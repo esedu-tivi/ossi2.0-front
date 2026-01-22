@@ -32,13 +32,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <div>
       <CustomToolbar handleDrawerToggle={handleDrawerToggle} title={title} />
-      <Box style={{ display: 'flex' }}>
-        <DrawerMenu mobileOpen={mobileOpen} handleDrawerClose={handleDrawerClose} handleDrawerTransitionEnd={handleDrawerTransitionEnd} />
-        <Box sx={{ padding: "20px" }}>
-          {children}
-        </Box>
+      <Box style={{ display: "flex" }}>
+        <DrawerMenu
+          mobileOpen={mobileOpen}
+          handleDrawerClose={handleDrawerClose}
+          handleDrawerTransitionEnd={handleDrawerTransitionEnd}
+        />
+        <Box sx={{ flexGrow: 1, padding: "20px" }}>{children}</Box>
       </Box>
-    </div >
+    </div>
   );
 };
 
