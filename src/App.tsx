@@ -10,7 +10,6 @@ import ProtectedRoute from './ProtectedRoute';
 import Login from './components/Login';
 import TeacherProjectsView from './components/Routes/TeacherProjectsView';
 import CreateProject from './components/Routes/CreateProject';
-import AppLayout from './components/AppLayout';
 import ProjectDetails from './components/Routes/ProjectDetails';
 import EditProject from './components/Routes/EditProject';
 import QualificationUnitPartList from './components/QualificationUnitPartList';
@@ -23,6 +22,7 @@ import Workplaces from './components/Routes/Workplaces';
 import StudentInfo from './components/Routes/StudentInfo';
 import Workplace from './components/Routes/Workplace';
 import JobSupervisor from './components/Routes/JobSupervisor';
+import Layout from './components/Layout';
 
 const App = () => {
     const { isAuthenticated, userEmail, role } = useAuth();
@@ -112,9 +112,9 @@ const App = () => {
                     <ProtectedRoute
                         allowedRoles={["teacher"]}
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <TeacherDashboard />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -124,9 +124,9 @@ const App = () => {
                 element={
                     <ProtectedRoute
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <StudentDashboard />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -136,9 +136,9 @@ const App = () => {
                 element={
                     <ProtectedRoute
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <TeacherProjectsView />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -149,9 +149,9 @@ const App = () => {
                     <ProtectedRoute
                         allowedRoles={["teacher"]}
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <CreateProject />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -162,9 +162,9 @@ const App = () => {
                     <ProtectedRoute
                         allowedRoles={["teacher"]}
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <EditProject />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -175,9 +175,9 @@ const App = () => {
                     <ProtectedRoute
                         allowedRoles={["teacher"]}
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <ProjectDetails />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -187,9 +187,9 @@ const App = () => {
                 element={
                     <ProtectedRoute
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <QualificationUnitPartList />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -199,9 +199,9 @@ const App = () => {
                 element={
                     <ProtectedRoute
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <QualificationUnitPartDetails />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -211,9 +211,9 @@ const App = () => {
                 element={
                     <ProtectedRoute
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <CreatePart />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -223,9 +223,9 @@ const App = () => {
                 element={
                     <ProtectedRoute
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <EditPart />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -235,9 +235,9 @@ const App = () => {
                 element={
                     <ProtectedRoute
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <ReorderParts />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -248,9 +248,9 @@ const App = () => {
                     <ProtectedRoute
                         allowedRoles={["teacher"]}
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <StudentInfo />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -261,9 +261,9 @@ const App = () => {
                     <ProtectedRoute
                         allowedRoles={["teacher"]}
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <Workplaces />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -274,9 +274,9 @@ const App = () => {
                     <ProtectedRoute
                         allowedRoles={["teacher"]}
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <Workplace />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
@@ -287,9 +287,9 @@ const App = () => {
                     <ProtectedRoute
                         allowedRoles={["teacher"]}
                         element={
-                            <AppLayout>
+                            <Layout>
                                 <JobSupervisor />
-                            </AppLayout>
+                            </Layout>
                         }
                     />
                 }
