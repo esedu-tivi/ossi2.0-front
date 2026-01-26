@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { TableBody, TableCell, TableRow, Button } from '@mui/material';
+import { TableBody, TableCell, TableRow, Button, IconButton, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import InfoIcon from '@mui/icons-material/Info';
 import ArchiveIcon from '@mui/icons-material/Archive';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { addFollowedStudent, getFollowedStudents, removeFollowedStudent, FollowedStudent } from '../utils/followedStudents';
+import { addNotifiedStudent, removeNotifiedStudent, getNotifiedStudents } from '../utils/notifiedStudents';
 import { GET_STUDENTS } from '../graphql/GetStudents';
 import '../css/StudentList.css';
 import { useNavigate } from 'react-router-dom';
@@ -47,6 +50,17 @@ interface ParsedStudent extends Student {
 }
 
 const StudentList: React.FC = () => {
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [menuStudent, setMenuStudent] = useState<ParsedStudent | null>(null);
+    const menuOpen = Boolean(anchorEl);
+    const [notifiedIds, setNotifiedIds] = useState<string[]>([]);
+    const [followedIds, setFollowedIds] = useState<string[]>([]);
+
+    useEffect(() => {
+        setNotifiedIds(getNotifiedStudents());
+        const followed = getFollowedStudents();
+        setFollowedIds(followed.map((s: FollowedStudent) => s.id));
+    }, []);
     //GraphQL query to fetch student data
     const { loading, error, data } = useQuery(GET_STUDENTS);
     const navigate = useNavigate()
@@ -93,10 +107,120 @@ const StudentList: React.FC = () => {
                                     <Button variant="outlined" size="small" startIcon={<ArchiveIcon />} onClick={() => console.log('Archive')}>
                                         Arkistoi
                                     </Button>
+                                    <IconButton
+                                        aria-label="more"
+                                        aria-controls={menuOpen ? `student-menu-${student.id}` : undefined}
+                                        aria-haspopup="true"
+                                        onClick={(event) => {
+                                            setAnchorEl(event.currentTarget);
+                                            setMenuStudent(student);
+                                        }}
+                                        size="small"
+                                    >
+                                        <MoreVertIcon />
+                                    </IconButton>
                                 </div>
                             </TableCell>
                         </TableRow>
                     ))}
+                    <Menu
+                        id={menuStudent ? `student-menu-${menuStudent.id}` : undefined}
+                        anchorEl={anchorEl}
+                        open={menuOpen}
+                        onClose={() => {
+                            setAnchorEl(null);
+                            setMenuStudent(null);
+                        }}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    >
+                        {menuStudent && followedIds.includes(menuStudent.id.toString()) ? (
+                            <MenuItem
+                                onClick={() => {
+                                    if (menuStudent) {
+                                        removeFollowedStudent(menuStudent.id.toString());
+                                        const followed = getFollowedStudents();
+                                        setFollowedIds(followed.map((s: FollowedStudent) => s.id));
+                                    }
+                                    setAnchorEl(null);
+                                    setMenuStudent(null);
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <InfoIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary="Poista seurannasta" />
+                            </MenuItem>
+                        ) : (
+                            <MenuItem
+                                onClick={() => {
+                                    if (menuStudent) {
+                                        addFollowedStudent({
+                                            id: menuStudent.id.toString(),
+                                            firstName: menuStudent.firstName,
+                                            lastName: menuStudent.lastName
+                                        });
+                                        const followed = getFollowedStudents();
+                                        setFollowedIds(followed.map((s: FollowedStudent) => s.id));
+                                    }
+                                    setAnchorEl(null);
+                                    setMenuStudent(null);
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <InfoIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary="Seuraa" />
+                            </MenuItem>
+                        )}
+                        {menuStudent && notifiedIds.includes(menuStudent.id.toString()) ? (
+                            <MenuItem
+                                onClick={() => {
+                                    if (menuStudent) {
+                                        removeNotifiedStudent(menuStudent.id.toString());
+                                        setNotifiedIds(getNotifiedStudents());
+                                    }
+                                    setAnchorEl(null);
+                                    setMenuStudent(null);
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <ArchiveIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary="Poista ilmoitukset käytöstä" />
+                            </MenuItem>
+                        ) : (
+                            <MenuItem
+                                onClick={() => {
+                                    if (menuStudent) {
+                                        addNotifiedStudent(menuStudent.id.toString());
+                                        setNotifiedIds(getNotifiedStudents());
+                                    }
+                                    setAnchorEl(null);
+                                    setMenuStudent(null);
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <ArchiveIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary="Ota ilmoitukset käyttöön" />
+                            </MenuItem>
+                        )}
+                        {menuStudent && (
+                            <MenuItem
+                                onClick={() => {
+                                    navigate(`/teacherdashboard/students/${menuStudent.id}`);
+                                    setAnchorEl(null);
+                                    setMenuStudent(null);
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <InfoIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary="Siirry käyttäjän profiiliin" />
+                            </MenuItem>
+                        )}
+                    </Menu>
                 </TableBody>}
         </Table>
     );
