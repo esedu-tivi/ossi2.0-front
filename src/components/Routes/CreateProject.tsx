@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import formStyles from '../../styles/formStyles';
 import buttonStyles from '../../styles/buttonStyles';
 import TurndownService from 'turndown';
@@ -16,6 +16,10 @@ import { GET_QUALIFICATION_UNIT_PARTS } from '../../graphql/GetQualificationUnit
 import { GET_PROJECTS } from '../../graphql/GetProjects';
 import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 import { useFormHandleManager } from '../../hooks/useFormHandleManager';
+import { ASSIGN_TEACHING_PROJECT } from '../../graphql/AssignTeachingProject';
+import { USER_SETUP } from '../../graphql/UserSetup';
+import { userInfo } from 'os';
+import { GET_ASSIGNED_TEACHING_PROJECT_IDS } from '../../graphql/GetAssignedTeachingProjectIds';
 
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
@@ -80,6 +84,10 @@ const NewProjectForm: React.FC = () => {
     // Queries for QualificationUnitParts and Tags
     const { loading: partsLoading, error: partsError, data: partsData } = useQuery(GET_QUALIFICATION_UNIT_PARTS);
     const { loading: projectTagsLoading, error: projectTagsError, data: projectTagsData, refetch } = useQuery(GET_PROJECT_TAGS);
+    const [assignTeachingProject] = useMutation(ASSIGN_TEACHING_PROJECT, { refetchQueries: [GET_ASSIGNED_TEACHING_PROJECT_IDS] })
+    const { loading: userLoading, data: userData } = useQuery(USER_SETUP)
+
+    const [projectFollowing, setProjectFollowing] = useState(true)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -118,6 +126,9 @@ const NewProjectForm: React.FC = () => {
                 variables: { project: projectInput },
             })
             console.log('GraphQL Response:', response.data);
+            if (projectFollowing) {
+                assignTeachingProject({ variables: { teacherId: userData.me.user.id, projectId: response.data.createProject.project.id } })
+            }
             navigate('/teacherprojects');
         } catch (err) {
             console.error('Submission Error:', err);
@@ -164,6 +175,8 @@ const NewProjectForm: React.FC = () => {
 
     const { title, buttonText } = getTitleAndButtonText();
     const items = getItems();
+
+    if (userLoading) return <Box><Typography>Loading user...</Typography></Box>
 
     return (
         <Box
@@ -259,6 +272,13 @@ const NewProjectForm: React.FC = () => {
                     <Switch checked={formData.isActive} onChange={handleToggleActivity} name="isActive" color="primary" />
                 </Box>
             </FormControl>
+            <Box sx={formStyles.formActivityBox}>
+                <Typography sx={{ mb: 1, textAlign: 'left' }}>Projektin seuranta</Typography>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Typography>{projectFollowing ? 'Seurannassa' : 'Ei seurannassa'}</Typography>
+                    <Switch checked={projectFollowing} onChange={() => projectFollowing ? setProjectFollowing(false) : setProjectFollowing(true)} color="primary" />
+                </Box>
+            </Box>
             <IconButton
                 type="submit"
                 sx={buttonStyles.saveButton}

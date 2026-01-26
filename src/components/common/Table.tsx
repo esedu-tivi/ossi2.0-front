@@ -8,6 +8,8 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import { sort, SortConfig } from "../../utils/sort";
 import { filter } from "../../utils/filter";
 
+import "../../css/Table.css";
+
 export type TableHeaderCell =
   | {
     id: number | string
@@ -19,6 +21,11 @@ export type TableHeaderCell =
     type: "sort"
     label: string
     sortPath: string
+  }
+  | {
+    id: number | string
+    type: "none"
+    label: string
   }
   | {
     id: number | string
@@ -83,7 +90,7 @@ const Head = ({
       <TableRow className="table-header">
         {headerCells.map((part: TableHeaderCell) => (part.type === "sort") ?
           <TableCell
-            className="table-header-cell table-header-id"
+            className={`table-header-cell ${part.sortPath === "id" && "table-header-id"}`}
             onClick={() => handleSort(part.sortPath)}
             key={part.id}
           >
@@ -109,7 +116,11 @@ const Head = ({
                 />
               </div>
             </TableCell>
-            : null
+            : (part.type === "none") ?
+              <TableCell className="table-header-cell" key={part.id}>
+                {part.label}
+              </TableCell>
+              : null
         )}
       </TableRow>
     </TableHead>

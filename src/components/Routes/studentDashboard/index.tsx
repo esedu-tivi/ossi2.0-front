@@ -53,7 +53,12 @@ const StudentDashboard: React.FC = () => {
         <Typography>Viestit</Typography>
         <Typography>tulee tähän joskus</Typography>
       </Box>
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
+      <Box
+        sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: {md: '1fr 1fr 1fr'}
+        }}
+        >
         <StudentInactiveProjectList title='Projektit' unitParts={assignedQualificationUnits.flatMap((u: QualificationUnit) => u.parts)} projects={assignedProjects} openEditProject={handleOpenAssignProject} />
         <Box>
           <StudentProjectList title='Työn alla' projects={assignedProjects.filter((p: StudentProject) => p.projectStatus === ProjectStatus.Working)} openEditProject={handleOpenEditProject} />

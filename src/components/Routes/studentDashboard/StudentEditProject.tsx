@@ -1,4 +1,4 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Menu, MenuItem, Typography } from "@mui/material";
 import { useMutation, useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import RichTextEditor from "../../common/RichTextEditor";
@@ -10,6 +10,7 @@ import { UNASSIGN_STUDENT_PROJECT } from "../../../graphql/UnassignStudentProjec
 import ProjectDescription from "./ProjectDescription";
 import { GET_ASSIGNED_PROJECT } from "../../../graphql/GetAssignedProject";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 
 interface StudentEditProjectProps {
@@ -37,19 +38,8 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     }
   });
 
-  const styles = {
-    dialog: {
-      display: 'flex',
-      justifyContent: 'center',
-      width: '100%',
-      height: '100%',
-      margin: '0px',
-      padding: '0px',
-    },
-    extrBtn: {
-
-    }
-  }
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
 
   useEffect(() => {
     if (loading || !projectId || !data) {
@@ -82,7 +72,7 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
   }
 
   const handleChange = (content: string, field: 'plan' | 'report') => {
-    let newContent = content
+    const newContent = content
     setFormData({ ...formData, [field]: newContent });
   };
 
@@ -139,32 +129,73 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
   };
 
   return (
-    <Dialog scroll="paper" fullWidth={true} maxWidth={false} style={styles.dialog} open={open} onClose={() => handleClose()}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: 'auto' }}>
-        <DialogTitle sx={{ width: '60%' }}>{data.me.user.assignedProjectSingle.project.parentProject.name}</DialogTitle>
-        <Accordion sx={{ width: '20%', margin: 0 }} disableGutters={true}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Typography color="error" onClick={() => setConfirmCancelOpen(true)}>Peruuta projekti</Typography>
-          </AccordionDetails>
-        </Accordion>
+    <Dialog scroll="paper" fullWidth={true} maxWidth={"xl"} open={open} onClose={() => handleClose()}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", m: 2 }}>
+        <DialogTitle>{data.me.user.assignedProjectSingle.project.parentProject.name}</DialogTitle>
+
+        <ButtonBase
+          component="label"
+          role={undefined}
+          onClick={(event) => setAnchorEl(event.currentTarget)}
+          aria-label="Projektin asetukset"
+          sx={{
+            borderRadius: '40px',
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineOffset: '2px',
+            },
+          }}
+        >
+          <SettingsIcon fontSize="large" />
+        </ButtonBase>
+        <Menu
+          id="menu-edit-project"
+          anchorEl={anchorEl}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          keepMounted
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+
+          open={menuOpen}
+          onClose={() => setAnchorEl(null)}
+        >
+          <MenuItem aria-label="Avaa projektin kuvaus" onClick={() => setDescriptionOpen(true)} >Projektin kuvaus</MenuItem>
+          <MenuItem aria-label="Pyydä lisää aikaa" onClick={() => { }}>Pyydä lisää aikaa</MenuItem>
+          <MenuItem aria-label="Peruuta projekti" onClick={() => setConfirmCancelOpen(true)} >
+            <Typography color="error">Peruuta projekti</Typography>
+          </MenuItem>
+        </Menu>
       </Box>
       <Box sx={{ p: 1, }}>
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-          <RichTextEditor
-            height={180}
-            label="Suunnitelma"
-            value={formData.plan}
-            onChange={(content) => handleChange(content, 'plan')}
-          />
-          <RichTextEditor
-            height={180}
-            label="Raportti"
-            value={formData.report}
-            onChange={(content) => handleChange(content, 'report')}
-          />
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          gap: 2
+        }}
+        >
+          <Box sx={{ flexGrow: 1 }}>
+            <RichTextEditor
+
+              height={300}
+              label="Suunnitelma"
+              value={formData.plan}
+              onChange={(content) => handleChange(content, 'plan')}
+            />
+          </Box>
+          <Box sx={{ flexGrow: 1 }}>
+            <RichTextEditor
+              height={300}
+              label="Raportti"
+              value={formData.report}
+              onChange={(content) => handleChange(content, 'report')}
+            />
+          </Box>
         </Box>
 
         <Box>
@@ -176,7 +207,6 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
           <Box sx={{ p: 1 }}>
             <Box sx={{ pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 'auto', marginTop: '1rem' }}>
               <Typography>Projektiin käytetty aika: {daysUsed}/{data.me.user.assignedProjectSingle.project.parentProject.duration} päivää</Typography>
-              <Button variant="contained">Pyydä lisää aikaa</Button>
             </Box>
             <LinearProgress sx={{ maxWidth: '100%' }} variant="determinate" value={100 / data.me.user.assignedProjectSingle.project.parentProject.duration * daysUsed} />
             {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
@@ -201,7 +231,7 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
           <Button variant="contained" onClick={() => setConfirmCancelOpen(false)}>Ei</Button>
         </DialogActions>
       </Dialog>
-    </Dialog>
+    </Dialog >
   );
 };
 

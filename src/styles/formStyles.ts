@@ -2,20 +2,17 @@ const formStyles = {
   formOuterBox: {
     maxWidth: '1800px',
     margin: 'auto',
-    padding: 3,
     borderRadius: 2,
     boxShadow: 3,
     backgroundColor: 'white',
     position: 'relative',
+    boxSizing: 'border-box',
   },
 
   formBannerBox: {
     backgroundColor: '#65558F',
     borderRadius: '8px 8px 0 0',
-    padding: 2,
-    width: 'calc(100% + 17px)',
-    marginLeft: '-24px',
-    marginTop: '-24px',
+    padding: {md: 1},
   },
 
   formColumnBox: {

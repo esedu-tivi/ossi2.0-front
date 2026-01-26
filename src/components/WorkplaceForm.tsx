@@ -1,9 +1,13 @@
-import { Box, FormControl, IconButton, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material"
+import { Autocomplete, Box, Chip, IconButton, SelectChangeEvent, TextField } from "@mui/material"
 import formStyles from "../styles/formStyles"
 import buttonStyles from "../styles/buttonStyles"
 import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import React from "react";
 import { JobSupervisor } from "../types";
+
+interface JobSupervisorWithId extends JobSupervisor {
+  id: string
+}
 
 export interface WorkplaceFormData {
   id: string | number | null
@@ -16,41 +20,39 @@ interface WorkplaceFormProps {
   setFormData: React.Dispatch<React.SetStateAction<WorkplaceFormData>>
   handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void
   submitButtonTitle: string
-  jobSupervisors?: JobSupervisor[]
+  jobSupervisors?: JobSupervisorWithId[]
 }
 
 interface JobSupervisorFieldProps {
   formData: WorkplaceFormData
   onChange: (event: SelectChangeEvent<string[]>) => void
-  jobSupervisors: JobSupervisor[]
+  jobSupervisors: JobSupervisorWithId[]
 }
 
 const SupervisorField = ({ formData, onChange, jobSupervisors }: JobSupervisorFieldProps) => {
   return (
     <Box textAlign={"left"}>
-      <FormControl fullWidth>
-        <InputLabel shrink={true} id="jobSupervisor-label">
-          Työpaikkaohjaajat
-        </InputLabel>
-        <Select
-          labelId="jobSupervisor-label"
-          variant="outlined"
-          name="jobSupervisorIds"
-          value={formData.jobSupervisorIds}
-          onChange={onChange}
-          fullWidth
-          multiple
-          sx={{ my: 2 }}
-        >
-          {jobSupervisors.length > 0 && jobSupervisors.map((jobSupervisor: JobSupervisor) => (
-            <MenuItem
-              key={jobSupervisor.id}
-              value={jobSupervisor.id}
-            >
-              {`${jobSupervisor.firstName} ${jobSupervisor.lastName}`}
-            </MenuItem>
-          ))}
-        </Select></FormControl>
+      <Autocomplete
+        multiple
+        options={jobSupervisors}
+        getOptionLabel={(option) => (`${option.firstName} ${option.lastName}`)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip label={`${option.firstName} ${option.lastName}`} {...getTagProps({ index })} key={option.id} />
+          ))
+        }
+        renderInput={(params) => <TextField {...params} label="Työpaikkaohjaajat" />}
+        value={jobSupervisors.filter(jobSupervisor => formData.jobSupervisorIds.includes(jobSupervisor.id))}
+        noOptionsText="Ei yhtään työpaikkaohjaajaa"
+        onChange={(_, value) => {
+          onChange({
+            target: {
+              name: "jobSupervisorIds",
+              value: value.map((jobSupervisor: JobSupervisor) => jobSupervisor.id)
+            }
+          } as SelectChangeEvent<string[]>);
+        }}
+      />
     </Box>
   )
 }
