@@ -8,7 +8,8 @@ import buttonStyles from "../styles/buttonStyles";
 import { useLazyQuery, useQuery } from "@apollo/client";
 import { GET_INTERNSHIP_DATA } from "../graphql/GetInternshipData";
 import { GET_JOB_SUPERVISORS_BY_WORKPLACE } from "../graphql/GetJobSupervisorsByWorkplace";
-import { Student } from "../types";
+import { JobSupervisor, Student, Workplace } from "../types";
+import Autocomplete, { Option } from "./common/Autocomplete";
 
 interface InternshipFormProps {
   formSubmitHandler: (event: React.FormEvent<HTMLFormElement>) => void
@@ -40,11 +41,6 @@ const InternshipForm = ({
     }));
   };
 
-  const workplaceHandleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setWorkplaceId(event.target.value)
-    handleChange(event)
-  }
-
   // Preload teacherId and studentId for formData
   useEffect(() => {
     if (!loading && !error && data) {
@@ -75,6 +71,16 @@ const InternshipForm = ({
   const qualificationUnits = data.units?.units || []
 
   const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors || []
+
+  const workplaceOptions: Option[] = workplaces.map((workplace: Workplace) => ({
+    id: workplace.id,
+    name: workplace.name
+  }))
+
+  const jobSupervisorOptions: Option[] = jobSupervisors?.map((jobSupervisor: JobSupervisor) => ({
+    id: jobSupervisor.id,
+    name: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
+  }))
 
   return (
     <Box
@@ -129,64 +135,41 @@ const InternshipForm = ({
               </MenuItem>
             ))}
           </TextField>
-          {workplaces.length ?
-            <TextField
-              value={formData.workplaceId}
-              onChange={workplaceHandleChange}
-              name="workplaceId"
-              label='Työpaikka'
-              required
-              select
-              fullWidth
-              sx={{ my: 2 }}
-              slotProps={{
-                htmlInput: {
-                  sx: {
-                    textAlign: "left",
-                  },
-                },
-              }}
-            >
 
-              {workplaces.map((workplace: { id: string; name: string }) => (
-                <MenuItem
-                  key={workplace.id}
-                  value={workplace.id}
-                >
-                  {workplace.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            : <Box><Typography color="error">Ei yhtään työpaikkaa löytynyt</Typography></Box>}
+          <Autocomplete
+            sx={{ mb: 2 }}
+            id="workplace"
+            label="Työpaikka"
+            options={workplaceOptions}
+            value={workplaceOptions.find(option => option.id === formData.workplaceId) || null}
+            onChange={(_event, newValue: Option | null) => {
+              setFormData((prevFormData: InternshipWithoutId) => ({
+                ...prevFormData,
+                workplaceId: newValue ? String(newValue.id) : "",
+              }));
+              setWorkplaceId(newValue ? String(newValue.id) : null);
+            }}
+            defaultValue={workplaceOptions.find(option => option.id === formData.workplaceId) || undefined}
+            noOptionsText="Ei löytynyt yhtään työpaikkaa"
+            required
+          />
           {formData.workplaceId &&
-            <TextField
-              value={formData.jobSupervisorId}
-              onChange={handleChange}
-              name="jobSupervisorId"
-              label='Työpaikkaohjaaja'
-              required
-              select
-              fullWidth
-              sx={{ my: 2 }}
-              slotProps={{
-                htmlInput: {
-                  sx: {
-                    textAlign: "left",
-                  },
-                },
+            <Autocomplete
+              sx={{ mb: 2 }}
+              id="jobSupervisor"
+              label="Työpaikkaohjaaja"
+              options={jobSupervisorOptions}
+              value={jobSupervisorOptions.find(option => option.id === formData.jobSupervisorId) || null}
+              onChange={(_event, newValue: Option | null) => {
+                setFormData((prevFormData: InternshipWithoutId) => ({
+                  ...prevFormData,
+                  jobSupervisorId: newValue ? String(newValue.id) : "",
+                }));
               }}
-            >
-              {jobSupervisorsData.loading
-                ? <Typography>loading...</Typography>
-                : jobSupervisors.map((jobSupervisor: { id: string; firstName: string, lastName: string, email: string }) => (
-                  <MenuItem
-                    key={jobSupervisor.id}
-                    value={jobSupervisor.id}
-                  >
-                    {`${jobSupervisor.firstName} ${jobSupervisor.lastName}`}
-                  </MenuItem>
-                ))}
-            </TextField>
+              defaultValue={jobSupervisorOptions.find(option => option.id === formData.jobSupervisorId) || undefined}
+              noOptionsText="Ei löytynyt yhtään työpaikkaohjaajaa"
+              required
+            />
           }
 
           <TextField

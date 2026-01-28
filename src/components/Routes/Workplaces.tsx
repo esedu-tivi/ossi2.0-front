@@ -29,6 +29,14 @@ import { REQUEST_MAGIC_LINK } from "../../graphql/RequestMagicLink"
 import { EDIT_JOB_SUPERVISOR } from "../../graphql/EditJobSupervisor"
 import { Accordion, AccordionSummary } from "../common/Accordion"
 
+interface JobSupervisorWithId extends JobSupervisor {
+  id: string
+}
+
+interface WorkplaceWithJobSupervisorId extends Workplace {
+  jobSupervisors: JobSupervisorWithId[]
+}
+
 interface JobSupervisorWithFullNameAndWorkplace extends JobSupervisor {
   id: string,
   fullName: string,
@@ -162,7 +170,7 @@ const Workplaces = () => {
   if (loading) return <Typography>Loading...</Typography>
   if (error) return <Typography>Error: {error.message}</Typography>
 
-  const workplaces: Workplace[] = workplaceData.workplaces?.workplaces || []
+  const workplaces: WorkplaceWithJobSupervisorId[] = workplaceData.workplaces?.workplaces || []
 
   const jobSupervisors: JobSupervisorWithFullNameAndWorkplace[] = jobSupervisorsData.jobSupervisors?.jobSupervisors.map(((jobSupervisor: JobSupervisorWithFullNameAndWorkplace) => ({
     ...jobSupervisor,
@@ -224,9 +232,9 @@ const Workplaces = () => {
   const handleEditWorkplaceFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
-    const workplace = workplaces.find((workplace: Workplace) => workplace.id === workplaceFormData.id)
+    const workplace = workplaces.find((workplace: WorkplaceWithJobSupervisorId) => workplace.id === workplaceFormData.id)
 
-    if (workplace) {
+    if (workplace && workplace.jobSupervisors) {
       const jobSupervisorIds = workplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
 
       const assignIds: string[] = workplaceFormData.jobSupervisorIds.filter(id => !jobSupervisorIds.includes(id))
@@ -327,7 +335,7 @@ const Workplaces = () => {
   }
 
   if (selectedWorkplaceId) {
-    const foundWorkplace = workplaces.find(workplace => workplace.id === selectedWorkplaceId)
+    const foundWorkplace = workplaces.find(workplace => Number(workplace.id) === selectedWorkplaceId)
     const workplace = foundWorkplace ? {
       ...foundWorkplace,
       jobSupervisorIds: foundWorkplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
@@ -394,7 +402,7 @@ const Workplaces = () => {
                           color="primary"
                           startIcon={<EditIcon />}
                           size="small"
-                          onClick={() => handleShowEditForm(workplace.id)}
+                          onClick={() => handleShowEditForm(Number(workplace.id))}
                         >
                           Muokkaa
                         </Button>
@@ -412,7 +420,7 @@ const Workplaces = () => {
                           color="primary"
                           startIcon={<DeleteIcon />}
                           size="small"
-                          onClick={() => handleDelete(workplace.id, workplace.name)}
+                          onClick={() => handleDelete(Number(workplace.id), workplace.name)}
                         >
                           Poista
                         </Button>

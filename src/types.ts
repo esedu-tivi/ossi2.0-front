@@ -69,10 +69,21 @@ export interface JobSupervisor {
   phoneNumber?: string
 }
 
+export interface JobSupervisorWithPhoneNumber extends JobSupervisor {
+  phoneNumber: string
+}
+
+export interface InternshipWithJobSupervisorAndTeacherAndStudent extends Internship {
+  jobSupervisor: JobSupervisorWithPhoneNumber
+  student: Pick<Student, "id" | "firstName" | "lastName">
+  teacher: Teacher
+}
+
 export interface Workplace {
-  id: number
+  id: string
   name: string
-  jobSupervisors: JobSupervisor & Required<Pick<JobSupervisor, "id">>[]
+  internships: InternshipWithJobSupervisorAndTeacherAndStudent[]
+  jobSupervisors: JobSupervisor[]
 }
 
 export interface Part {

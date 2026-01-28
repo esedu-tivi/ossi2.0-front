@@ -5,30 +5,14 @@ import { GET_WORKPLACE } from "../../graphql/GetWorkplace"
 import BackIcon from "@mui/icons-material/ArrowBack"
 import formStyles from "../../styles/formStyles"
 import Table, { TableHeaderCell } from "../common/Table"
-import { Internship, JobSupervisor, Student, Teacher } from "../../types"
+import { Internship, JobSupervisorWithPhoneNumber, type Workplace } from "../../types"
 import { Accordion, AccordionSummary } from "../common/Accordion"
 import { useState } from "react"
 import { convertDateToString } from "../../utils/convertDateToString"
 
-interface JobSupervisorWithPhoneNumber extends JobSupervisor {
-  phoneNumber: string
-}
 
 interface ParsedJobSupervisor extends Omit<JobSupervisorWithPhoneNumber, "firstName" | "lastName"> {
   fullName: string
-}
-
-interface InternshipWithJobSupervisorAndTeacherAndStudent extends Internship {
-  jobSupervisor: JobSupervisorWithPhoneNumber
-  student: Pick<Student, "id" | "firstName" | "lastName">
-  teacher: Teacher
-}
-
-interface Workplace {
-  id: string
-  name: string
-  internships: [InternshipWithJobSupervisorAndTeacherAndStudent]
-  jobSupervisors: [JobSupervisor]
 }
 
 interface ParsedInternship extends Pick<Internship, "id" | "info"> {
