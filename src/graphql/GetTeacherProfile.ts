@@ -17,5 +17,13 @@ export const GET_TEACHER_PROFILE = gql`
         groupId
       }
     }
+    teachingQualificationUnits(teacherId: $teacherId) {
+      status
+      success
+      qualificationUnits {
+        id
+        name
+      }
+    }
   }
 `

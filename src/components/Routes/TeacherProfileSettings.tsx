@@ -14,7 +14,7 @@ import { CREATE_PROJECT_TAGS } from '../../graphql/CreateProjectTags';
 type Item = { id: string; name: string, __isNew: boolean };
 type Tag = Item;
 type Group = Item;
-type Part = Item;
+type QualificationUnit = Item;
 type Student = { groupId?: string };
 
 interface TagData extends Tag {
@@ -24,7 +24,7 @@ interface StudentGroupData {
 	groupId: string
 }
 
-interface PartData extends Part {
+interface QualificationUnitData extends QualificationUnit {
 	__typename: string
 }
 
@@ -62,7 +62,7 @@ const TeacherProfileSettings: React.FC = () => {
 	const initialState = {
 		tags: [] as Tag[],
 		groups: [] as Group[],
-		includedInParts: [] as Part[],
+		qualificationUnits: [] as QualificationUnit[],
 	};
 
 	const [formData, setFormData] = useState(initialState)
@@ -71,7 +71,7 @@ const TeacherProfileSettings: React.FC = () => {
 	const tagOptions: Tag[] = tagData?.projectTags?.projectTags.map((tag: TagData) => ({ id: tag.id, name: tag.name })) || [];
 
 	const { data: unitData } = useQuery(GET_QUALIFICATION_UNITS);
-	const themeOptions: Part[] = unitData?.units?.units?.map((unit: PartData) => ({ id: unit.id, name: unit.name })) || [];
+	const qualificationUnitOptions: QualificationUnit[] = unitData?.units?.units?.map((unit: QualificationUnitData) => ({ id: unit.id, name: unit.name })) || [];
 
 	const { data: studentsData } = useQuery(GET_STUDENTS);
 	const students: Student[] = studentsData?.students?.students || [];
@@ -94,6 +94,11 @@ const TeacherProfileSettings: React.FC = () => {
 		name: group.groupId
 	}))
 
+	const qualificationUnits = profileData?.teachingQualificationUnits?.qualificationUnits?.map((unit: QualificationUnitData) => ({
+		id: unit.id,
+		name: unit.name
+	}))
+
 	const resolveTagIds = async (addedTags: Tag[]): Promise<string[]> => {
 		const existingTagIds = addedTags.filter(tag => !tag.__isNew).map(tag => tag.id)
 		const newTags = addedTags.filter(tag => tag.__isNew).map(tag => tag.name)
@@ -113,7 +118,7 @@ const TeacherProfileSettings: React.FC = () => {
 		console.log('Selected:', {
 			tags: formData.tags,
 			groups: formData.groups,
-			includedInParts: formData.includedInParts,
+			qualificationUnits: formData.qualificationUnits,
 		});
 
 		const { added: addedTags, removed: removedTags } = filterByKey(
@@ -128,7 +133,13 @@ const TeacherProfileSettings: React.FC = () => {
 			"id"
 		)
 
-		if (addedTags.length || removedTags.length || addedGroups.length || removedGroups.length) {
+		const { added: addedQualificationUnits, removed: removedQualificationUnits } = filterByKey(
+			qualificationUnits,
+			formData.qualificationUnits,
+			"id"
+		)
+
+		if (addedTags.length || removedTags.length || addedGroups.length || removedGroups.length || addedQualificationUnits.length || removedQualificationUnits.length) {
 			const newTagIds = await resolveTagIds(addedTags)
 
 			const response = await updateProfileSettings({
@@ -137,16 +148,18 @@ const TeacherProfileSettings: React.FC = () => {
 					assignedTagIds: newTagIds,
 					unassignedTagIds: removedTags.map(tag => tag.id),
 					assignGroupIds: addedGroups.map(group => group.id),
-					unassignGroupIds: removedGroups.map(group => group.id)
+					unassignGroupIds: removedGroups.map(group => group.id),
+					assignQualificationUnitIds: addedQualificationUnits.map(unit => unit.id),
+					unassignQualificationUnitIds: removedQualificationUnits.map(unit => unit.id)
 				}
 			})
 
-			if (!(response.data.updateTagAssigns.success || response.data.updateStudentGroupAssigns.success) || updateProfileSettingsError) {
+			if (!(response.data.updateTagAssigns.success || response.data.updateStudentGroupAssigns.success || response.data.updateTeachingQualificationUnitAssigns.success) || updateProfileSettingsError) {
 				if (updateProfileSettingsError) {
 					console.error('GraphQl error', updateProfileSettingsError)
 				}
-				if (!(response.data.updateTagAssigns.success || response.data.updateStudentGroupAssigns.success)) {
-					console.error(response.data.updateTagAssigns, response.data.updateStudentGroupAssigns)
+				if (!(response.data.updateTagAssigns.success || response.data.updateStudentGroupAssigns.success || response.data.updateTeachingQualificationUnitAssigns.success)) {
+					console.error(response.data.updateTagAssigns, response.data.updateStudentGroupAssigns, response.data.updateTeachingQualificationUnitAssigns)
 				}
 
 				return addAlert("Jotain meni pieleen", "error", true)
@@ -184,10 +197,16 @@ const TeacherProfileSettings: React.FC = () => {
 				name: group.groupId
 			}))
 
+			const qualificationUnits = profileData?.teachingQualificationUnits.qualificationUnits.map((unit: QualificationUnitData) => ({
+				id: unit.id,
+				name: unit.name
+			}))
+
 			setFormData(prev => ({
 				...prev,
 				tags: assignedTags,
-				groups: assignedGroups
+				groups: assignedGroups,
+				qualificationUnits: qualificationUnits
 			}))
 		}
 	}, [profileData, profileLoading])
@@ -249,14 +268,14 @@ const TeacherProfileSettings: React.FC = () => {
 				sx={{ mb: 2 }}
 				multiple
 				disableListWrap
-				id="includedInParts"
-				options={themeOptions}
-				value={formData.includedInParts}
+				id="qualificationUnits"
+				options={qualificationUnitOptions}
+				value={formData.qualificationUnits}
 				isOptionEqualToValue={(o, v) => o.id === v.id}
-				onChange={onChange("includedInParts", setFormData)}
+				onChange={onChange("qualificationUnits", setFormData)}
 				filterSelectedOptions
 				getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
-				defaultValue={formData.includedInParts}
+				defaultValue={formData.qualificationUnits}
 				disableClearable
 				noOptionsText="Ei tutkinnonosia valittavana"
 				renderInput={(params) => (
