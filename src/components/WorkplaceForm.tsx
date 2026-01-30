@@ -91,6 +91,7 @@ const WorkplaceForm = ({
             value={formData.name}
             onChange={handleChange}
             fullWidth
+            required
             sx={{ my: 2 }}
           />
           {(jobSupervisors && <SupervisorField jobSupervisors={jobSupervisors} formData={formData} onChange={handleChange} />)}
