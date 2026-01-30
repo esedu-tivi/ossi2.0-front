@@ -6,7 +6,8 @@ const style = {
     position: "fixed",
     top: 2,
     right: 2,
-    width: '280px'
+    width: '280px',
+    zIndex: 10000
   }
 }
 
