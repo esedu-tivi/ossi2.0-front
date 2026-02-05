@@ -5,7 +5,7 @@
 export const STATUS_OPTIONS = [
   { id: 'in_progress', name: 'Kesken', color: '#ffb300' },
   { id: 'done', name: 'Valmis', color: '#43a047' },
-  { id: 'waiting_team', name: 'Odottaa tiimiä', color: '#1976d2' },
+  { id: 'not_started', name: 'Ei aloitettu', color: '#d21938' },
 ];
 
 export const COLOR_OPTIONS = [

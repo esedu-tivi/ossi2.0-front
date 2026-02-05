@@ -20,10 +20,13 @@ import { GET_PROJECTS } from "../../graphql/GetProjects";
 import { Project } from "../../types";
 import Table, { TableHeaderCell } from "../common/Table";
 import { USER_SETUP } from "../../graphql/UserSetup";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GET_ASSIGNED_TEACHING_PROJECT_IDS } from "../../graphql/GetAssignedTeachingProjectIds";
 import { UNASSIGN_TEACHING_PROJECT } from "../../graphql/UnassignTeachingProject";
 import { ASSIGN_TEACHING_PROJECT } from "../../graphql/AssignTeachingProject";
+import TeacherProjectMenu from "../common/TeacherProjectMenu";
+import TagStudentDialog from "../common/TagStudentDialog";
+import { GET_STUDENTS } from '../../graphql/GetStudents';
 
 const headerCells: readonly TableHeaderCell[] = [
   {
@@ -53,10 +56,23 @@ const headerCells: readonly TableHeaderCell[] = [
     id: 4,
     type: "search",
     searchPath: "name"
-  }
+  },
 ]
 
+type Student = {
+  id: string;
+  firstName: string;
+  lastName: string;
+};
+
 export default function ProjectTable() {
+  const { data: studentsData } = useQuery(GET_STUDENTS);
+  const students = (studentsData?.students?.students || []).map((s: Student) => ({
+    id: s.id,
+    name: `${s.firstName} ${s.lastName}`.trim(),
+  }));
+  const [taggedStudentsByProject, setTaggedStudentsByProject] = useState<{ [projectId: number]: { id: string, name: string }[] }>({});
+  const [tagDialogOpenByProject, setTagDialogOpenByProject] = useState<{ [projectId: number]: boolean }>({});
   const navigate = useNavigate();
 
   //GraphQL query to fetch projects
@@ -114,54 +130,75 @@ export default function ProjectTable() {
       <Table<Project> headerCells={headerCells} data={projects}>
         {rows =>
           <TableBody>
-            {rows.map((project) => (
-              <TableRow key={project.id} className="table-row">
-                <TableCell>{project.id}</TableCell>
-                <TableCell>{project.name}</TableCell>
-                <TableCell>
-                  {project.includedInQualificationUnitParts
-                    .map((part) => part.name)
-                    .join(", ")}
-                </TableCell>
-                <TableCell>
-                  {teachingProjectsError ? <UncheckedIcon color="error" /> : teachingProjectsIds.includes(project.id)
-                    ? <IconButton onClick={() => removeTeachingProjectHandler(project.id)}><CheckedIcon color="success" /></IconButton>
-                    : <IconButton onClick={() => addTeachingProjectHandler(project.id)}><UncheckedIcon color="error" /></IconButton>
-                  }
-                </TableCell>
-                <TableCell>
-                  <div className="button-group">
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<EditIcon />}
-                      size="small"
-                      onClick={() => navigate(`/teacherprojects/edit/${project.id}`)}
-                    >
-                      Muokkaa
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<InfoIcon />}
-                      size="small"
-                      onClick={() => navigate(`/teacherprojects/${project.id}`)}
-                    >
-                      Tiedot
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<AssessmentIcon />}
-                      size="small"
-                    >
-                      Käyttöaste
-                    </Button>
-
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {rows.map((project) => {
+              const taggedStudents = taggedStudentsByProject[project.id] || [];
+              return (
+                <TableRow key={project.id} className="table-row">
+                  <TableCell>{project.id}</TableCell>
+                  <TableCell>{project.name}</TableCell>
+                  <TableCell>
+                    {project.includedInQualificationUnitParts
+                      .map((part) => part.name)
+                      .join(", ")}
+                  </TableCell>
+                  <TableCell>
+                    {teachingProjectsError ? <UncheckedIcon color="error" /> : teachingProjectsIds.includes(project.id)
+                      ? <IconButton onClick={() => removeTeachingProjectHandler(project.id)}><CheckedIcon color="success" /></IconButton>
+                      : <IconButton onClick={() => addTeachingProjectHandler(project.id)}><UncheckedIcon color="error" /></IconButton>
+                    }
+                  </TableCell>
+                  <TableCell>
+                    <div className="button-group">
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<EditIcon />}
+                        size="small"
+                        onClick={() => navigate(`/teacherprojects/edit/${project.id}`)}
+                      >
+                        Muokkaa
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<InfoIcon />}
+                        size="small"
+                        onClick={() => navigate(`/teacherprojects/${project.id}`)}
+                      >
+                        Tiedot
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<AssessmentIcon />}
+                        size="small"
+                      >
+                        Käyttöaste
+                      </Button>
+                      <TeacherProjectMenu
+                        isFollowed={teachingProjectsIds.includes(project.id)}
+                        onFollowToggle={() => {
+                          if (teachingProjectsIds.includes(project.id)) {
+                            removeTeachingProjectHandler(project.id);
+                          } else {
+                            addTeachingProjectHandler(project.id);
+                          }
+                        }}
+                        onEdit={() => navigate(`/teacherprojects/edit/${project.id}`)}
+                        onTagStudent={() => setTagDialogOpenByProject(prev => ({ ...prev, [project.id]: true }))}
+                      />
+                    </div>
+                  </TableCell>
+                  <TagStudentDialog
+                    open={!!tagDialogOpenByProject[project.id]}
+                    onClose={() => setTagDialogOpenByProject(prev => ({ ...prev, [project.id]: false }))}
+                    students={students}
+                    taggedStudents={taggedStudents}
+                    onTag={selectedList => setTaggedStudentsByProject(prev => ({ ...prev, [project.id]: selectedList }))}
+                  />
+                </TableRow>
+              );
+            })}
           </TableBody>}
       </Table>
     </Box >
