@@ -53,7 +53,7 @@ const studentMenu = [
   { title: "Arvosanat", icon: ChartNoAxesColumnIncreasing, route: "#" },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }) {
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,7 +68,7 @@ export function AppSidebar() {
   const unreadNotifications = unreadData?.unreadNotificationCount?.count || 0
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader />
       <SidebarContent>
         <SidebarGroup>
