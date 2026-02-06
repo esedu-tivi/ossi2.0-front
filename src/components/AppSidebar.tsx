@@ -1,10 +1,12 @@
 import {
+  Bell,
   Briefcase,
   CalendarRange,
   Calendars,
   ChartNoAxesColumnIncreasing,
   GraduationCap,
   Home,
+  Mail,
   Notebook,
   Star,
 } from "lucide-react";
@@ -24,7 +26,15 @@ import {
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/utils/auth-context";
-import UserProfile from "./UserProfile";
+import { NavUser } from "./NavUser";
+import { useQuery } from "@apollo/client";
+import { GET_ME } from "@/graphql/GetMe";
+import { QueryResult } from "./QueryResult";
+import NotificationDrawer from "./NotificationDrawer";
+import { toast } from "sonner";
+import { useState } from "react";
+import { GET_UNREAD_NOTIFICATION_COUNT } from "@/graphql/GetUnreadNotificationCount";
+import { Badge } from "./ui/badge";
 
 const teacherMenu = [
   { title: "Etusivu", icon: Home, route: "/teacherdashboard" },
@@ -43,45 +53,73 @@ const studentMenu = [
 ];
 
 export function AppSidebar() {
+
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { data: unreadData } = useQuery(GET_UNREAD_NOTIFICATION_COUNT);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const { role } = useAuth();
   const menuItems = role === "teacher" ? teacherMenu : studentMenu;
+  const { data, loading, error } = useQuery(GET_ME)
+
+  const unreadNotifications = unreadData?.unreadNotificationCount?.count || 0
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <UserProfile />
-      </SidebarHeader>
+      <SidebarHeader />
       <SidebarContent>
-        <SidebarGroup />
-        <SidebarGroupLabel>Label</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {menuItems.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname === item.route}
-                >
-                  <Link
-                    to={item.route}
-                    onClick={() => {
-                      navigate(item.route);
-                    }}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenuButton onClick={() => toast('Ei vielä mitään nähtävää', { position: "top-center" })} >
+              <Mail />
+              Viestit
+            </SidebarMenuButton>
+            <SidebarMenuButton onClick={() => setDrawerOpen(true)}>
+              <Bell />
+              Ilmoitukset
+              {unreadNotifications > 0 &&
+                <Badge>{unreadNotifications}</Badge>
+              }
+            </SidebarMenuButton>
+            <NotificationDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            Label
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === item.route}
                   >
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-        <SidebarGroup />
+                    <Link
+                      to={item.route}
+                      onClick={() => {
+                        navigate(item.route);
+                      }}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter />
-    </Sidebar>
+      <SidebarFooter>
+        <QueryResult data={data} loading={loading} error={error}>
+          <NavUser user={{ ...data?.me.user, avatar: "" }} />
+        </QueryResult>
+      </SidebarFooter >
+    </Sidebar >
   );
 }
