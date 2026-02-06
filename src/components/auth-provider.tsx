@@ -46,6 +46,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     sessionStorage.setItem("ossi.role", JSON.stringify(role))
   }, [userEmail]);
 
+  const onLogout = () => {
+    sessionStorage.clear()
+    setIsAuthenticated(false);
+    setUserEmail("");
+    setRole("unknown");
+    if (msalInstance) {
+      msalInstance.logoutRedirect();
+    }
+  };
+
   // Sends idToken to backend and checks if the returned token is valid
   const sendIdTokenToBackend = useCallback(async (idToken: string) => {
     try {
@@ -114,7 +124,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   return (
 
     // Provides isAuthenticated, userEmail, setIsAuthenticated, role, setRole and setUserEmail functions to other components through auth-context
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, role, setIsAuthenticated, setUserEmail, setRole }}>
+    <AuthContext.Provider value={{ isAuthenticated, userEmail, role, setIsAuthenticated, setUserEmail, setRole, logOut: onLogout }}>
       <MsalProvider instance={msalInstance}>
         {children}
       </MsalProvider>
