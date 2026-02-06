@@ -1,15 +1,6 @@
-import {
-  Bell,
-  Briefcase,
-  CalendarRange,
-  Calendars,
-  ChartNoAxesColumnIncreasing,
-  GraduationCap,
-  Home,
-  Mail,
-  Notebook,
-  Star,
-} from "lucide-react";
+import { useQuery } from "@apollo/client";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import {
   Sidebar,
@@ -21,20 +12,30 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
+  SidebarMenuItem
 } from "@/components/ui/sidebar";
+import {
+  Bell,
+  Briefcase,
+  CalendarRange,
+  Calendars,
+  ChartNoAxesColumnIncreasing,
+  GraduationCap,
+  Home,
+  Mail,
+  Notebook,
+  Star
+} from "lucide-react";
+import { toast } from "sonner";
+import { Badge } from "./ui/badge";
 
-import { Link, useLocation, useNavigate } from "react-router-dom";
+
+import { GET_ME } from "@/graphql/GetMe";
+import { GET_UNREAD_NOTIFICATION_COUNT } from "@/graphql/GetUnreadNotificationCount";
 import { useAuth } from "@/utils/auth-context";
 import { NavUser } from "./NavUser";
-import { useQuery } from "@apollo/client";
-import { GET_ME } from "@/graphql/GetMe";
-import { QueryResult } from "./QueryResult";
 import NotificationDrawer from "./NotificationDrawer";
-import { toast } from "sonner";
-import { useState } from "react";
-import { GET_UNREAD_NOTIFICATION_COUNT } from "@/graphql/GetUnreadNotificationCount";
-import { Badge } from "./ui/badge";
+import { QueryResult } from "./QueryResult";
 
 const teacherMenu = [
   { title: "Etusivu", icon: Home, route: "/teacherdashboard" },
