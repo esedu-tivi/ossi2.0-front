@@ -34,7 +34,7 @@ import { GET_ME } from "@/graphql/GetMe";
 import { GET_UNREAD_NOTIFICATION_COUNT } from "@/graphql/GetUnreadNotificationCount";
 import { useAuth } from "@/utils/auth-context";
 import { NavUser } from "./NavUser";
-import NotificationDrawer from "./NotificationDrawer";
+import { NotificationDrawer } from "./NotificationDrawer";
 import { QueryResult } from "./QueryResult";
 
 const teacherMenu = [
@@ -59,7 +59,6 @@ export function AppSidebar({ ...props }) {
   const location = useLocation();
 
   const { data: unreadData } = useQuery(GET_UNREAD_NOTIFICATION_COUNT);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { role } = useAuth();
   const menuItems = role === "teacher" ? teacherMenu : studentMenu;
@@ -77,14 +76,16 @@ export function AppSidebar({ ...props }) {
               <Mail />
               Viestit
             </SidebarMenuButton>
-            <SidebarMenuButton onClick={() => setDrawerOpen(true)}>
-              <Bell />
-              Ilmoitukset
-              {unreadNotifications > 0 &&
-                <Badge>{unreadNotifications}</Badge>
-              }
-            </SidebarMenuButton>
-            <NotificationDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+            <NotificationDrawer>
+              <SidebarMenuButton >
+                <Bell />
+                Ilmoitukset
+                {unreadNotifications > 0 &&
+                  <Badge>{unreadNotifications}</Badge>
+                }
+              </SidebarMenuButton>
+            </NotificationDrawer>
+            <NotificationDrawer />
           </SidebarGroupContent>
         </SidebarGroup>
 

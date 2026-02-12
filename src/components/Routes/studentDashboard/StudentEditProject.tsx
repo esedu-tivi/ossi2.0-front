@@ -203,21 +203,21 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
           <Typography sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>{formData.message}</Typography>
         </Box>
         <TimeTrackingTable project={data.me.user.assignedProjectSingle.project} studentId={studentId} />
+        <Button variant="contained" onClick={() => reactivateProject()}>Peruuta palautus</Button>
         {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
           <Box sx={{ p: 1 }}>
             <Box sx={{ pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 'auto', marginTop: '1rem' }}>
               <Typography>Projektiin käytetty aika: {daysUsed}/{data.me.user.assignedProjectSingle.project.parentProject.duration} päivää</Typography>
             </Box>
             <LinearProgress sx={{ maxWidth: '100%' }} variant="determinate" value={100 / data.me.user.assignedProjectSingle.project.parentProject.duration * daysUsed} />
-            {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: 'auto', marginTop: '1rem' }}>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {recentlySaved && <Typography>Tallennettu</Typography>}
-                  <Button variant="contained" onClick={() => saveProject()}>Tallenna muutokset</Button>
-                </Box>
-                <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
+
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: 'auto', marginTop: '1rem' }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {recentlySaved && <Typography>Tallennettu</Typography>}
+                <Button variant="contained" onClick={() => saveProject()}>Tallenna muutokset</Button>
               </Box>
-            }
+              <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
+            </Box>
           </Box>}
       </Box>
       <ProjectDescription project={data.me.user.assignedProjectSingle.project.parentProject} descriptionOpen={descriptionOpen} onClose={() => setDescriptionOpen(false)} />
