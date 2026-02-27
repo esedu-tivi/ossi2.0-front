@@ -1,14 +1,18 @@
 import { useQuery } from "@apollo/client"
-import { AccordionDetails, Box, Button, TableBody, TableCell, TableRow, Typography } from "@mui/material"
-import { useNavigate, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import { GET_WORKPLACE } from "../../graphql/GetWorkplace"
-import BackIcon from "@mui/icons-material/ArrowBack"
-import formStyles from "../../styles/formStyles"
-import Table, { TableHeaderCell } from "../common/Table"
+import BackButton from "@/components/common/back-button"
+import DataTable, { type TableHeaderCell } from "@/components/common/data-table"
 import { Internship, JobSupervisorWithPhoneNumber, type Workplace } from "../../types"
-import { Accordion, AccordionSummary } from "../common/Accordion"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/common/app-accordion"
 import { useState } from "react"
 import { convertDateToString } from "../../utils/convertDateToString"
+import { TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 
 interface ParsedJobSupervisor extends Omit<JobSupervisorWithPhoneNumber, "firstName" | "lastName"> {
@@ -105,21 +109,16 @@ const InternshipHeaderCells: readonly TableHeaderCell[] = [
   }
 ]
 
-const Workplace = () => {
-  const navigate = useNavigate()
+const WorkplacePage = () => {
   const { id } = useParams()
   const { data, loading, error } = useQuery(GET_WORKPLACE, { variables: { workplaceId: id } })
-  const [expandedAccordion, setExpandedAccordion] = useState<"jobSupervisors" | "internships" | false>("internships")
+  const [expandedAccordion, setExpandedAccordion] = useState<string>("internships")
 
   if (loading) {
-    return <Box><Typography>Loading</Typography></Box>
+    return <p className="p-4">Loading</p>
   }
   if (error) {
-    return <Box><Typography>Error: {error.message}</Typography></Box>
-  }
-
-  const handleAccordionChange = (panel: "jobSupervisors" | "internships") => (_event: React.SyntheticEvent, newExpanded: boolean) => {
-    setExpandedAccordion(newExpanded ? panel : false)
+    return <p className="p-4">Error: {error.message}</p>
   }
 
   console.log(data)
@@ -133,10 +132,6 @@ const Workplace = () => {
     phoneNumber: jobSupervisor.phoneNumber ?? ""
   }))
 
-  // const parsedJobSupervisors: ParsedJobSupervisor[] = jobSupervisors.filter((jobSupervisor, index, array) =>
-  //   array.findIndex(jobSupervisor2 => (jobSupervisor2.id === jobSupervisor.id)) === index
-  // )
-
   const parsedInternships = workplace.internships.map(internship => ({
     id: internship.id,
     startDate: convertDateToString(internship.startDate),
@@ -148,66 +143,64 @@ const Workplace = () => {
   }))
 
   return (
-    <>
-      <Button variant="contained" sx={{ marginBottom: '10px' }} startIcon={<BackIcon />} onClick={() => navigate(-1)}>Palaa</Button>
-      <Box sx={{ backgroundColor: formStyles.formBannerBox.backgroundColor, textAlign: 'center', py: 2 }}>
-        <Typography variant="h5" color="white" fontWeight="bold">{workplace.name}</Typography>
-      </Box>
-      <Accordion expanded={expandedAccordion === 'jobSupervisors'} onChange={handleAccordionChange('jobSupervisors')}>
-        <AccordionSummary
-          aria-controls="jobSupervisors-accordion-content"
-          id="jobSupervisors-accordion-header"
-        >
-          <Typography sx={{ fontWeight: 600 }} component="span">Työpaikkaohjaajat</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Table<ParsedJobSupervisor> data={parsedJobSupervisors} headerCells={jobSupervisorHeaderCells}>
-            {rows =>
-              <TableBody>
-                {rows.map(jobSupervisor => (
-                  <TableRow key={jobSupervisor.id}>
-                    <TableCell>{jobSupervisor.id}</TableCell>
-                    <TableCell>{jobSupervisor.fullName}</TableCell>
-                    <TableCell>{jobSupervisor.email}</TableCell>
-                    <TableCell>{jobSupervisor.phoneNumber}</TableCell>
-                  </TableRow>
-                ))
-                }
-              </TableBody>
-            }
-          </Table>
-        </AccordionDetails>
+    <div className="space-y-4">
+      <BackButton />
+      <div className="rounded-lg bg-primary py-3 text-center">
+        <h2 className="text-xl font-bold text-primary-foreground">{workplace.name}</h2>
+      </div>
+
+      <Accordion type="single" collapsible value={expandedAccordion} onValueChange={setExpandedAccordion}>
+        <AccordionItem value="jobSupervisors">
+          <AccordionTrigger className="px-4 text-base font-semibold">
+            Työpaikkaohjaajat
+          </AccordionTrigger>
+          <AccordionContent className="px-4">
+            <DataTable<ParsedJobSupervisor> data={parsedJobSupervisors} headerCells={jobSupervisorHeaderCells}>
+              {rows =>
+                <TableBody>
+                  {rows.map(jobSupervisor => (
+                    <TableRow key={jobSupervisor.id}>
+                      <TableCell>{jobSupervisor.id}</TableCell>
+                      <TableCell>{jobSupervisor.fullName}</TableCell>
+                      <TableCell>{jobSupervisor.email}</TableCell>
+                      <TableCell>{jobSupervisor.phoneNumber}</TableCell>
+                    </TableRow>
+                  ))
+                  }
+                </TableBody>
+              }
+            </DataTable>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="internships">
+          <AccordionTrigger className="px-4 text-base font-semibold">
+            Harjoittelujaksot
+          </AccordionTrigger>
+          <AccordionContent className="px-4">
+            <DataTable<ParsedInternship> data={parsedInternships} headerCells={InternshipHeaderCells}>
+              {rows =>
+                <TableBody>
+                  {rows.map(internship => (
+                    <TableRow key={internship.id}>
+                      <TableCell>{internship.id}</TableCell>
+                      <TableCell>{internship.startDate}</TableCell>
+                      <TableCell>{internship.endDate}</TableCell>
+                      <TableCell>{internship.info}</TableCell>
+                      <TableCell>{internship.student}</TableCell>
+                      <TableCell>{internship.jobSupervisor}</TableCell>
+                      <TableCell>{internship.teacher}</TableCell>
+                    </TableRow>
+                  ))
+                  }
+                </TableBody>
+              }
+            </DataTable>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
-      <Accordion expanded={expandedAccordion === 'internships'} onChange={handleAccordionChange('internships')}>
-        <AccordionSummary
-          aria-controls="internships-accordion-content"
-          id="internships-accordion-header"
-        >
-          <Typography sx={{ fontWeight: 600 }} component="span">Harjoittelujaksot</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Table<ParsedInternship> data={parsedInternships} headerCells={InternshipHeaderCells}>
-            {rows =>
-              <TableBody>
-                {rows.map(internship => (
-                  <TableRow key={internship.id}>
-                    <TableCell>{internship.id}</TableCell>
-                    <TableCell>{internship.startDate}</TableCell>
-                    <TableCell>{internship.endDate}</TableCell>
-                    <TableCell>{internship.info}</TableCell>
-                    <TableCell>{internship.student}</TableCell>
-                    <TableCell>{internship.jobSupervisor}</TableCell>
-                    <TableCell>{internship.teacher}</TableCell>
-                  </TableRow>
-                ))
-                }
-              </TableBody>
-            }
-          </Table>
-        </AccordionDetails>
-      </Accordion>
-    </>
+    </div>
   )
 }
 
-export default Workplace
+export default WorkplacePage

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import AddIcon from '@mui/icons-material/Add';
-import SaveSharpIcon from '@mui/icons-material/SaveSharp';
-import formStyles from '../../styles/formStyles';
-import buttonStyles from '../../styles/buttonStyles';
-import Selector from '../Selector';
-import RichTextEditor from '../common/RichTextEditor';
-import ArrowBackIosSharpIcon from '@mui/icons-material/ArrowBackIosSharp';
+import { Plus, Save, ArrowLeft } from 'lucide-react';
+import ItemSelectorDialog from '@/components/common/item-selector-dialog';
+import PlateEditor from '@/components/common/plate-editor';
 import TurndownService from 'turndown';
 
-import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, List, ListItem, ListItemText, Paper } from '@mui/material';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { CreatePartFormData, Item } from '../../FormData';
@@ -31,7 +30,7 @@ const CreatePart: React.FC = () => {
         parentQualificationUnit: [],
     });
 
-    // Handles data changes on TinyMCE editor input fields
+    // Handles data changes on editor input fields
     const handleEditorChange = (content: string, field: 'description' | 'materials') => {
         setFormData((prevFormData) => ({
         ...prevFormData,
@@ -71,7 +70,7 @@ const CreatePart: React.FC = () => {
 
     const handleAdd = (items: Item[]) => {
         if (!currentField) return;
-    
+
         setFormData((prevFormData) => ({
             ...prevFormData,
             [currentField]: items,
@@ -85,16 +84,16 @@ const CreatePart: React.FC = () => {
 
     const handleDragEnd = (result: any) => {
         if (!result.destination) return;
-    
+
         const reorderedProjects = Array.from(formData.projectsInOrder);
         const [movedProject] = reorderedProjects.splice(result.source.index, 1);
         reorderedProjects.splice(result.destination.index, 0, movedProject);
-    
+
         setFormData((prevFormData) => ({
             ...prevFormData,
             projectsInOrder: reorderedProjects,
         }));
-    };   
+    };
 
     // Handle opening the Selector component for a specific field
     const handleAddItem = (field: keyof Pick<CreatePartFormData, 'projectsInOrder' | 'parentQualificationUnit'>) => {
@@ -197,107 +196,129 @@ const CreatePart: React.FC = () => {
     const items = getItems();
 
     return (
-        <Box component="form" onSubmit={handleSubmit} textAlign={'center'} sx={formStyles.formOuterBox}>
-            <Box sx={{ ...formStyles.formBannerBox, textAlign: "center", marginBottom: 3, position: 'relative', }}>
-                <IconButton
+        <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-6">
+            {/* Banner */}
+            <div className="relative rounded-lg bg-primary px-6 py-4 text-center">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => navigate("/qualificationunitparts")}
-                    sx={{
-                        position: 'absolute',
-                        left: '16px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        color: 'white',
-                    }}
-                    >
-                    <ArrowBackIosSharpIcon sx={{ fontSize: 36 }} />
-                </IconButton>
-                <Typography variant="h4" align="center" color="white">
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground"
+                >
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+                <h2 className="text-2xl font-bold text-primary-foreground">
                     Luo Teema
-                </Typography>
-            </Box>
-            <Box sx={formStyles.formColumnBox}>
-                <Box sx={{ flex: 1 }}>
-                    <TextField label="Teeman nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
+                </h2>
+            </div>
 
-                    <RichTextEditor
+            {/* Form columns */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Left column */}
+                <div className="space-y-4">
+                    <div>
+                        <Label htmlFor="name">Teeman nimi</Label>
+                        <Input
+                            id="name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="mt-1"
+                        />
+                    </div>
+
+                    <PlateEditor
                         label="Projektin kuvaus"
                         value={formData.description}
                         onChange={(content) => handleEditorChange(content, 'description')}
                     />
 
-                    <RichTextEditor
+                    <PlateEditor
                         label="Materiaalit"
                         value={formData.materials}
                         onChange={(content) => handleEditorChange(content, 'materials')}
                     />
-                </Box>
+                </div>
 
-                <Box sx={{ flex: 1 }}>
-                    <FormControl fullWidth>
-                        <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tutkinnon osa</InputLabel>
-                        <Box sx={formStyles.formModalInputBox}>
+                {/* Right column */}
+                <div className="space-y-4">
+                    {/* Parent qualification unit */}
+                    <div>
+                        <Label className="mb-2 block">Tutkinnon osa</Label>
+                        <div className="flex flex-wrap items-center gap-2 rounded-md border p-3">
                             {formData.parentQualificationUnit.map((unit, index) => (
-                                <Chip
+                                <Badge
                                     key={unit.id}
-                                    label={unit.name}
-                                    onDelete={() => handleRemoveItem('parentQualificationUnit', index)}
-                                    sx={{ backgroundColor: '#E0E0E0' }}
-                                />
+                                    variant="secondary"
+                                    className="cursor-pointer"
+                                    onClick={() => handleRemoveItem('parentQualificationUnit', index)}
+                                >
+                                    {unit.name} x
+                                </Badge>
                             ))}
-                            <IconButton onClick={() => handleAddItem('parentQualificationUnit')} color="primary" sx={buttonStyles.openModalButton}>
-                                <AddIcon />
-                            </IconButton>
-                        </Box>
-                    </FormControl>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon-sm"
+                                onClick={() => handleAddItem('parentQualificationUnit')}
+                                className="rounded-full"
+                            >
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
 
-                    <FormControl fullWidth>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                            <InputLabel sx={{ position: "relative", pb: 4 }}>Projektit</InputLabel>
-                            <Box sx={{ border: "1px solid #ccc", borderRadius: "5px", padding: "2px", ml: 2 }}>
-                                <IconButton onClick={() => handleAddItem("projectsInOrder")} color="primary" size="small">
-                                    <AddIcon fontSize="small" />
-                                </IconButton>
-                            </Box>
-                        </Box>
+                    {/* Projects with drag & drop */}
+                    <div>
+                        <div className="mb-2 flex items-center gap-2">
+                            <Label>Projektit</Label>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon-sm"
+                                onClick={() => handleAddItem("projectsInOrder")}
+                                className="rounded-full"
+                            >
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
                         <DragDropContext onDragEnd={handleDragEnd}>
                             <Droppable droppableId="parts-list">
                             {(provided) => (
-                                <List ref={provided.innerRef} {...provided.droppableProps} component={Paper} sx={{ p: 2 }}>
+                                <div ref={provided.innerRef} {...provided.droppableProps} className="rounded-md border p-2">
                                 {formData.projectsInOrder.map((project, index) => (
                                     <Draggable key={String(project.id)} draggableId={String(project.id)} index={index}>
                                     {(provided) => (
-                                        <ListItem
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        sx={{ border: "1px solid #ccc", mb: 1, cursor: "grab" }}
+                                        <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            className="mb-1 cursor-grab rounded border bg-white p-3"
                                         >
-                                        <ListItemText primary={project.name} />
-                                        </ListItem>
+                                            {project.name}
+                                        </div>
                                     )}
                                     </Draggable>
                                 ))}
                                 {provided.placeholder}
-                                </List>
+                                </div>
                             )}
                             </Droppable>
                         </DragDropContext>
-                    </FormControl>
-                </Box>
-            </Box>
+                    </div>
+                </div>
+            </div>
 
-            <Box textAlign={'center'} sx={{ mt: 2 }}>
-                <IconButton sx={buttonStyles.saveButton} type="submit">
-                    <SaveSharpIcon
-                        sx={{
-                            mr: 1,
-                        }}
-                    />
+            {/* Submit */}
+            <div className="flex justify-center">
+                <Button type="submit" size="lg">
+                    <Save className="mr-2 h-4 w-4" />
                     Luo Teema
-                </IconButton>
-            </Box>
+                </Button>
+            </div>
 
-            <Selector
+            <ItemSelectorDialog
                 items={items}
                 title={title}
                 buttonText={buttonText}
@@ -308,7 +329,7 @@ const CreatePart: React.FC = () => {
                 currentField={currentField ?? ''}
                 updateProjectTags={() => {}}
             />
-        </Box>
+        </form>
     );
 };
 

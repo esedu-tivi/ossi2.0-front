@@ -1,6 +1,6 @@
 // Controls user authentication and provides it to other components in the program
 
-import { ReactNode, useEffect, useState, useCallback } from "react";
+import { ReactNode, useEffect, useState, useCallback, useRef } from "react";
 import { MsalProvider } from "@azure/msal-react";
 import { msalInstance, handleMsalEventCallback } from "../utils/auth-utils";
 import AuthContext from "../utils/auth-context";
@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loginMutation] = useMutation(LOGIN_MUTATION);
 
   const [role, setRole] = useState<Role>("unknown");
+  const roleOverrideRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -35,16 +36,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   useEffect(() => {
-    let role: Role = "unknown";
+    if (roleOverrideRef.current) return;
+
+    let derivedRole: Role = "unknown";
     if (userEmail.endsWith('@esedulainen.fi')) {
-      role = "student";
+      derivedRole = "student";
     } else if (userEmail.endsWith('@esedu.fi')) {
-      role = "teacher";
+      derivedRole = "teacher";
     }
 
-    setRole(role)
-    sessionStorage.setItem("ossi.role", JSON.stringify(role))
+    setRole(derivedRole)
+    sessionStorage.setItem("ossi.role", JSON.stringify(derivedRole))
   }, [userEmail]);
+
+  const switchRole = useCallback((newRole: 'teacher' | 'student') => {
+    roleOverrideRef.current = true;
+    setRole(newRole);
+  }, []);
+
+  // Persist role changes (including manual dev toggle) to sessionStorage
+  useEffect(() => {
+    if (role !== 'unknown') {
+      sessionStorage.setItem("ossi.role", JSON.stringify(role));
+    }
+  }, [role]);
 
   // Sends idToken to backend and checks if the returned token is valid
   const sendIdTokenToBackend = useCallback(async (idToken: string) => {
@@ -114,7 +129,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   return (
 
     // Provides isAuthenticated, userEmail, setIsAuthenticated, role, setRole and setUserEmail functions to other components through auth-context
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, role, setIsAuthenticated, setUserEmail, setRole }}>
+    <AuthContext.Provider value={{ isAuthenticated, userEmail, role, setIsAuthenticated, setUserEmail, setRole, switchRole }}>
       <MsalProvider instance={msalInstance}>
         {children}
       </MsalProvider>

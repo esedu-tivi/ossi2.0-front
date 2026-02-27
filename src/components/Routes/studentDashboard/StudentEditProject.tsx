@@ -1,17 +1,22 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Menu, MenuItem, Typography } from "@mui/material";
-import { useMutation, useQuery } from "@apollo/client";
-import React, { useEffect, useState } from "react";
-import RichTextEditor from "../../common/RichTextEditor";
-import { ProjectStatus } from "../../../types";
-import TimeTrackingTable from "./TimeTrackingTable";
-import { UPDATE_STUDENT_PROJECT } from "../../../graphql/UpdateStudentProject";
-import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
-import { UNASSIGN_STUDENT_PROJECT } from "../../../graphql/UnassignStudentProject";
-import ProjectDescription from "./ProjectDescription";
-import { GET_ASSIGNED_PROJECT } from "../../../graphql/GetAssignedProject";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SettingsIcon from '@mui/icons-material/Settings';
-
+import React, { useEffect, useState } from 'react';
+import { useMutation, useQuery } from '@apollo/client';
+import { Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import PlateEditor from '@/components/common/plate-editor';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { ProjectStatus } from '../../../types';
+import TimeTrackingTable from './TimeTrackingTable';
+import { UPDATE_STUDENT_PROJECT } from '../../../graphql/UpdateStudentProject';
+import { GET_STUDENT_PROJECTS } from '../../../graphql/GetStudentProjects';
+import { UNASSIGN_STUDENT_PROJECT } from '../../../graphql/UnassignStudentProject';
+import ProjectDescription from './ProjectDescription';
+import { GET_ASSIGNED_PROJECT } from '../../../graphql/GetAssignedProject';
 
 interface StudentEditProjectProps {
   open: boolean;
@@ -19,14 +24,16 @@ interface StudentEditProjectProps {
   studentId: number;
   projectId: number | null;
   setProjectId: (id: number | null) => void;
-};
+}
 
 const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, studentId, projectId, setProjectId }) => {
   const [formData, setFormData] = useState({ plan: '', report: '', message: '' });
   const [daysUsed, setDaysUsed] = useState(0);
   const [recentlySaved, setRecentlySaved] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
-  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const { confirm, ConfirmDialog } = useConfirmDialog();
 
   const { data, loading } = useQuery(GET_ASSIGNED_PROJECT, { variables: { projectId }, skip: projectId === null });
 
@@ -38,13 +45,10 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     }
   });
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const menuOpen = Boolean(anchorEl);
-
   useEffect(() => {
     if (loading || !projectId || !data) {
       return;
-    };
+    }
     if (data.me.user.assignedProjectSingle.project.teacherComment === '') {
       setFormData({
         ...formData, plan: data.me.user.assignedProjectSingle.project.projectPlan,
@@ -59,20 +63,20 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
       });
     }
 
-    console.log(formData)
+    console.log(formData);
     let timeDifference = 0;
     if (data.me.user.assignedProjectSingle.project.deadline && data.me.user.assignedProjectSingle.project.startDate) {
       timeDifference = (data.me.user.assignedProjectSingle.project.deadline?.valueOf() - data.me.user.assignedProjectSingle.project.startDate?.valueOf()) - (data.me.user.assignedProjectSingle.project.deadline?.valueOf() - new Date().valueOf());
-    };
+    }
     setDaysUsed(Math.floor(timeDifference / 1000 / 60 / 60 / 24));
   }, [data]);
 
   if (loading || !projectId || !data) {
-    return;
+    return null;
   }
 
   const handleChange = (content: string, field: 'plan' | 'report') => {
-    const newContent = content
+    const newContent = content;
     setFormData({ ...formData, [field]: newContent });
   };
 
@@ -80,11 +84,11 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     if (!data.me.user.assignedProjectSingle.project) {
       console.log('project is undefined');
       return;
-    };
+    }
 
     if (data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working) {
       await saveProject();
-    };
+    }
 
     onClose();
   };
@@ -93,7 +97,7 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     if (!data.me.user.assignedProjectSingle.project) {
       console.log('project is undefined');
       return;
-    };
+    }
 
     setProjectId(null);
     await unassignProject({ variables: { studentId, projectId: data.me.user.assignedProjectSingle.project.parentProject.id } });
@@ -107,17 +111,11 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     onClose();
   };
 
-  const reactivateProject = async () => {
-    await saveProject(ProjectStatus.Working);
-
-    onClose();
-  };
-
   const saveProject = async (setStatus = data.me.user.assignedProjectSingle.project?.projectStatus) => {
     if (!data.me.user.assignedProjectSingle.project) {
       console.log('project is undefinded');
       return;
-    };
+    }
     if (String(formData.plan).includes('<p>') || String(formData.plan).includes('&nbsp;')) {
       formData.plan = formData.plan.replace(/<\/?p>/g, '').replace(/&nbsp;/g, '');
     }
@@ -128,110 +126,124 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     await updateProject({ variables: { studentId, projectId: data.me.user.assignedProjectSingle.project.parentProject.id, update: projectUpdate } });
   };
 
+  const handleCancelProject = async () => {
+    setMenuOpen(false);
+    const confirmed = await confirm({
+      title: 'Peruuta projekti',
+      description: 'Haluatko varmasti peruuttaa projektin?',
+      confirmText: 'Kyllä',
+      cancelText: 'Ei',
+    });
+    if (confirmed) {
+      await cancelProject();
+    }
+  };
+
+  const progressPercent = data.me.user.assignedProjectSingle.project.parentProject.duration > 0
+    ? Math.min(100, (100 / data.me.user.assignedProjectSingle.project.parentProject.duration) * daysUsed)
+    : 0;
+
   return (
-    <Dialog scroll="paper" fullWidth={true} maxWidth={"xl"} open={open} onClose={() => handleClose()}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", m: 2 }}>
-        <DialogTitle>{data.me.user.assignedProjectSingle.project.parentProject.name}</DialogTitle>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <DialogTitle>{data.me.user.assignedProjectSingle.project.parentProject.name}</DialogTitle>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Projektin asetukset"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+            {menuOpen && (
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-md border bg-popover p-1 shadow-md">
+                <button
+                  className="w-full rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent"
+                  onClick={() => { setDescriptionOpen(true); setMenuOpen(false); }}
+                  aria-label="Avaa projektin kuvaus"
+                >
+                  Projektin kuvaus
+                </button>
+                <button
+                  className="w-full rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent"
+                  onClick={() => { setMenuOpen(false); }}
+                  aria-label="Pyydä lisää aikaa"
+                >
+                  Pyydä lisää aikaa
+                </button>
+                <button
+                  className="w-full rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
+                  onClick={handleCancelProject}
+                  aria-label="Peruuta projekti"
+                >
+                  Peruuta projekti
+                </button>
+              </div>
+            )}
+          </div>
+        </DialogHeader>
 
-        <ButtonBase
-          component="label"
-          role={undefined}
-          onClick={(event) => setAnchorEl(event.currentTarget)}
-          aria-label="Projektin asetukset"
-          sx={{
-            borderRadius: '40px',
-            '&:focus-visible': {
-              outline: '2px solid',
-              outlineOffset: '2px',
-            },
-          }}
-        >
-          <SettingsIcon fontSize="large" />
-        </ButtonBase>
-        <Menu
-          id="menu-edit-project"
-          anchorEl={anchorEl}
-          anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          keepMounted
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
+        <div className="space-y-4">
+          <div className="flex flex-col gap-4 md:flex-row">
+            <div className="flex-1">
+              <PlateEditor
+                height={300}
+                label="Suunnitelma"
+                value={formData.plan}
+                onChange={(content) => handleChange(content, 'plan')}
+              />
+            </div>
+            <div className="flex-1">
+              <PlateEditor
+                height={300}
+                label="Raportti"
+                value={formData.report}
+                onChange={(content) => handleChange(content, 'report')}
+              />
+            </div>
+          </div>
 
-          open={menuOpen}
-          onClose={() => setAnchorEl(null)}
-        >
-          <MenuItem aria-label="Avaa projektin kuvaus" onClick={() => setDescriptionOpen(true)} >Projektin kuvaus</MenuItem>
-          <MenuItem aria-label="Pyydä lisää aikaa" onClick={() => { }}>Pyydä lisää aikaa</MenuItem>
-          <MenuItem aria-label="Peruuta projekti" onClick={() => setConfirmCancelOpen(true)} >
-            <Typography color="error">Peruuta projekti</Typography>
-          </MenuItem>
-        </Menu>
-      </Box>
-      <Box sx={{ p: 1, }}>
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          gap: 2
-        }}
-        >
-          <Box sx={{ flexGrow: 1 }}>
-            <RichTextEditor
+          <div>
+            <h3 className="px-1 text-lg font-semibold text-muted-foreground">Feedback</h3>
+            <p className="px-1">{formData.message}</p>
+          </div>
 
-              height={300}
-              label="Suunnitelma"
-              value={formData.plan}
-              onChange={(content) => handleChange(content, 'plan')}
-            />
-          </Box>
-          <Box sx={{ flexGrow: 1 }}>
-            <RichTextEditor
-              height={300}
-              label="Raportti"
-              value={formData.report}
-              onChange={(content) => handleChange(content, 'report')}
-            />
-          </Box>
-        </Box>
+          <TimeTrackingTable project={data.me.user.assignedProjectSingle.project} studentId={studentId} />
 
-        <Box>
-          <Typography variant="h6" sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: "rgba(0, 0, 0, 0.6)" }}>Feedback</Typography>
-          <Typography sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>{formData.message}</Typography>
-        </Box>
-        <TimeTrackingTable project={data.me.user.assignedProjectSingle.project} studentId={studentId} />
-        {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
-          <Box sx={{ p: 1 }}>
-            <Box sx={{ pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 'auto', marginTop: '1rem' }}>
-              <Typography>Projektiin käytetty aika: {daysUsed}/{data.me.user.assignedProjectSingle.project.parentProject.duration} päivää</Typography>
-            </Box>
-            <LinearProgress sx={{ maxWidth: '100%' }} variant="determinate" value={100 / data.me.user.assignedProjectSingle.project.parentProject.duration * daysUsed} />
-            {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working &&
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: 'auto', marginTop: '1rem' }}>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {recentlySaved && <Typography>Tallennettu</Typography>}
-                  <Button variant="contained" onClick={() => saveProject()}>Tallenna muutokset</Button>
-                </Box>
-                <Button variant="contained" onClick={() => returnProject()}>Palauta projekti</Button>
-              </Box>
-            }
-          </Box>}
-      </Box>
-      <ProjectDescription project={data.me.user.assignedProjectSingle.project.parentProject} descriptionOpen={descriptionOpen} onClose={() => setDescriptionOpen(false)} />
-      <Dialog open={confirmCancelOpen} onClose={() => setConfirmCancelOpen(false)}>
-        <DialogTitle>Peruuta projekti</DialogTitle>
-        <DialogContent>
-          <Typography>Haluatko varmasti peruuttaa projektin?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={() => { cancelProject(); setConfirmCancelOpen(false); }}>Kyllä</Button>
-          <Button variant="contained" onClick={() => setConfirmCancelOpen(false)}>Ei</Button>
-        </DialogActions>
-      </Dialog>
-    </Dialog >
+          {data.me.user.assignedProjectSingle.project.projectStatus === ProjectStatus.Working && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm">
+                  Projektiin käytetty aika: {daysUsed}/{data.me.user.assignedProjectSingle.project.parentProject.duration} päivää
+                </p>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex flex-col gap-2">
+                  {recentlySaved && <p className="text-sm text-muted-foreground">Tallennettu</p>}
+                  <Button onClick={() => saveProject()}>Tallenna muutokset</Button>
+                </div>
+                <Button onClick={() => returnProject()}>Palauta projekti</Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+
+      <ProjectDescription
+        project={data.me.user.assignedProjectSingle.project.parentProject}
+        descriptionOpen={descriptionOpen}
+        onClose={() => setDescriptionOpen(false)}
+      />
+      <ConfirmDialog />
+    </Dialog>
   );
 };
 

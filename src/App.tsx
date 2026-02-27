@@ -10,7 +10,7 @@ import ProtectedRoute from './ProtectedRoute';
 import Login from './components/Login';
 import TeacherProjectsView from './components/Routes/TeacherProjectsView';
 import CreateProject from './components/Routes/CreateProject';
-import AppLayout from './components/AppLayout';
+import AppLayout from './components/layout/app-layout';
 import ProjectDetails from './components/Routes/ProjectDetails';
 import EditProject from './components/Routes/EditProject';
 import QualificationUnitPartList from './components/QualificationUnitPartList';
@@ -64,7 +64,9 @@ const App = () => {
             isTeacher &&
             !location.pathname.startsWith('/teacherdashboard') &&
             !location.pathname.startsWith('/teacherprojects') &&
-            !location.pathname.startsWith('/qualificationunitparts')
+            !location.pathname.startsWith('/qualificationunitparts') &&
+            !location.pathname.startsWith('/workplaces') &&
+            !location.pathname.startsWith('/jobsupervisors')
         ) {
             console.log('Redirecting to /teacherdashboard');
             navigate('/teacherdashboard');
@@ -82,13 +84,13 @@ const App = () => {
     if (isAuthenticated && (studentLoading || !studentData || postLoginLoading)) {
         refetch()
         return (
-            <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+            <div className="flex h-screen items-center justify-center flex-col">
                 <div className="bounce-spinner">
                     <div></div>
                     <div></div>
                     <div></div>
                 </div>
-                <p style={{ marginTop: '1rem' }}>Ladataan käyttäjän tietoja...</p>
+                <p className="mt-4 text-muted-foreground">Ladataan käyttäjän tietoja...</p>
             </div>
         );
     }

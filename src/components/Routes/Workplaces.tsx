@@ -2,32 +2,32 @@ import { useEffect, useState } from "react"
 import { useMutation, useQuery } from "@apollo/client"
 import { useNavigate } from "react-router-dom"
 import { GET_WORKPLACES } from "../../graphql/GetWorkplaces"
-import { AccordionDetails, Button, Stack, TableBody, TableCell, TableRow, Typography, Box } from "@mui/material"
-
-import AddIcon from "@mui/icons-material/Add"
-import EditIcon from "@mui/icons-material/Edit"
-import InfoIcon from "@mui/icons-material/Info"
-import DeleteIcon from "@mui/icons-material/Delete"
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { Plus, Pencil, Info, Trash2, UserPlus } from "lucide-react"
 
 import WorkplaceForm, { WorkplaceFormData } from "../WorkplaceForm"
 import { CREATE_WORKPLACE } from "../../graphql/CreateWorkplace"
 import { EDIT_WORKPLACE } from "../../graphql/EditWorkpalce"
 import { DELETE_WORKPLACE } from "../../graphql/DeleteWorkplace"
-import { useConfirm } from "material-ui-confirm"
-import Table, { TableHeaderCell } from "../common/Table"
+import { useConfirmDialog } from "@/hooks/useConfirmDialog"
+import DataTable, { type TableHeaderCell } from "@/components/common/data-table"
 import { GET_JOB_SUPERVISORS } from "../../graphql/GetJobSupervisors"
 import { UPDATE_JOB_SUPERVISOR_ASSIGNS } from "../../graphql/UpdateJobSupervisorAssigns"
-import Dialog from "../common/Dialog"
+import AppDialog from "@/components/common/app-dialog"
 import { useAlerts } from "../../context/AlertContext"
 import { JobSupervisor, Workplace } from "../../types"
 import JobSupervisorForm from "../JobSupervisorForm"
-import buttonStyles from "../../styles/buttonStyles"
 import { CREATE_JOB_SUPERVISOR } from "../../graphql/CreateJobSupervisor"
 import { DELETE_JOB_SUPERVISOR } from "../../graphql/DeleteJobSupervisor"
 import { REQUEST_MAGIC_LINK } from "../../graphql/RequestMagicLink"
 import { EDIT_JOB_SUPERVISOR } from "../../graphql/EditJobSupervisor"
-import { Accordion, AccordionSummary } from "../common/Accordion"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/common/app-accordion"
+import { Button } from "@/components/ui/button"
+import { TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 interface JobSupervisorWithId extends JobSupervisor {
   id: string
@@ -116,6 +116,7 @@ const Workplaces = () => {
   const [requestMagicLink] = useMutation(REQUEST_MAGIC_LINK)
 
   const { addAlert } = useAlerts()
+  const { confirm, ConfirmDialog } = useConfirmDialog()
 
   const [showNewWorkplaceForm, setShowNewForm] = useState(false)
   const [showEditWorkplaceForm, setShowEditForm] = useState(false)
@@ -127,7 +128,7 @@ const Workplaces = () => {
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<number | null>(null)
   const [selectedJobSupervisorId, setSelectedJobSupervisorId] = useState<string | null>(null)
 
-  const [expandedAccordion, setExpandedAccordion] = useState<"workplaces" | "jobSupervisors" | false>(false)
+  const [expandedAccordion, setExpandedAccordion] = useState<string>("")
 
   const initWorkplaceFormData = {
     id: null,
@@ -144,8 +145,6 @@ const Workplaces = () => {
 
   const [workplaceFormData, setWorkplaceFormData] = useState<WorkplaceFormData>(initWorkplaceFormData);
   const [jobSupervisorFormData, setJobSupervisorFormData] = useState<JobSupervisor>(initJobSupervisorFormData)
-
-  const confirm = useConfirm()
 
   useEffect(() => {
     if (!dialogOpen) {
@@ -167,8 +166,8 @@ const Workplaces = () => {
   const loading = workplaceLoading || jobSupervisorsLoading
   const error = workplaceError || jobSupervisorsError
 
-  if (loading) return <Typography>Loading...</Typography>
-  if (error) return <Typography>Error: {error.message}</Typography>
+  if (loading) return <p className="p-4">Loading...</p>
+  if (error) return <p className="p-4">Error: {error.message}</p>
 
   const workplaces: WorkplaceWithJobSupervisorId[] = workplaceData.workplaces?.workplaces || []
 
@@ -181,7 +180,7 @@ const Workplaces = () => {
 
   const handleDelete = async (id: number, name: string) => {
     console.log(id);
-    const { confirmed } = await confirm({
+    const confirmed = await confirm({
       title: "Poisto",
       description: `Oletko aivan varma, että haluat poistaa '${name}' työpaikan?`
     })
@@ -198,7 +197,7 @@ const Workplaces = () => {
 
   const handleJobSupervisorDelete = async (id: string, fullName: string) => {
     console.log(id);
-    const { confirmed } = await confirm({
+    const confirmed = await confirm({
       title: "Poisto",
       description: `Oletko aivan varma, että haluat poistaa '${fullName}' työpaikkaohjaajan?`
     })
@@ -214,7 +213,7 @@ const Workplaces = () => {
 
   const handleNewWorkplaceFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    const { confirmed } = await confirm({
+    const confirmed = await confirm({
       title: 'Lisäys',
       description: `Oletko aivan varma, että haluat lisätä '${workplaceFormData.name}' työpaikan?`
     })
@@ -265,7 +264,7 @@ const Workplaces = () => {
     event.preventDefault()
     console.log(jobSupervisorFormData)
 
-    const { confirmed } = await confirm({
+    const confirmed = await confirm({
       title: "Luonti",
       description: `Oletko aivan varma, että haluat luoda työpaikkaohjaajan nimellä '${jobSupervisorFormData.firstName} ${jobSupervisorFormData.lastName}' ja sähköpostiosoitteella '${jobSupervisorFormData.email}'?`
     })
@@ -289,7 +288,7 @@ const Workplaces = () => {
 
   const handleEditJobSupervisorFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    const { confirmed } = await confirm({
+    const confirmed = await confirm({
       title: "Muokkaus",
       description: `Oletko aivan varma, että haluat muokata työpaikkaohjaajaa?`
     })
@@ -307,8 +306,6 @@ const Workplaces = () => {
       addAlert("Työpaikkaohjaajan muokkauksessa tapahtui virhe", "error", true)
     }
   }
-
-  const handleDialogClose = () => setDialogOpen(false)
 
   const handleShowNewWorkplaceForm = () => {
     setWorkplaceFormData(initWorkplaceFormData)
@@ -328,10 +325,6 @@ const Workplaces = () => {
   const handleShowEditJobSupervisorForm = (id: string) => {
     setSelectedJobSupervisorId(id)
     setShowEditJobSupervisorForm(true)
-  }
-
-  const handleAccordionChange = (panel: "workplaces" | "jobSupervisors") => (_event: React.SyntheticEvent, newExpanded: boolean) => {
-    setExpandedAccordion(newExpanded ? panel : false)
   }
 
   if (selectedWorkplaceId) {
@@ -361,131 +354,115 @@ const Workplaces = () => {
 
   return (
     <>
-      <Stack className="button-container" sx={{ mx: 2 }} direction="row" spacing={2} useFlexGap={true}>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleShowNewWorkplaceForm}
-          sx={buttonStyles.showButton}
-        >
+      <div className="mx-2 mb-4 flex flex-wrap gap-2">
+        <Button onClick={handleShowNewWorkplaceForm}>
+          <Plus className="mr-2 h-4 w-4" />
           Lisää työpaikka
         </Button>
-        <Button
-          variant="contained"
-          startIcon={<PersonAddIcon />}
-          onClick={handleShowNewJobSupervisorForm}
-          sx={buttonStyles.showButton}
-        >
+        <Button onClick={handleShowNewJobSupervisorForm}>
+          <UserPlus className="mr-2 h-4 w-4" />
           Lisää uusi työpaikkaohjaaja
         </Button>
-      </Stack>
+      </div>
 
-      <Accordion expanded={expandedAccordion === 'workplaces'} onChange={handleAccordionChange('workplaces')}>
-        <AccordionSummary
-          aria-controls="workplaces-accordion-content"
-          id="workplaces-accordion-header"
-        >
-          <Typography sx={{ fontWeight: 600 }} component="span">Työpaikat</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Table<Workplace> headerCells={headerCells} data={workplaces}>
-            {rows =>
-              <TableBody>
-                {rows.map((workplace) => (
-                  <TableRow key={workplace.id} className="table-row">
-                    <TableCell>{workplace.id}</TableCell>
-                    <TableCell>{workplace.name}</TableCell>
-                    <TableCell>
-                      <Box className="button-group">
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<EditIcon />}
-                          size="small"
-                          onClick={() => handleShowEditForm(Number(workplace.id))}
-                        >
-                          Muokkaa
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<InfoIcon />}
-                          size="small"
-                          onClick={() => navigate(`/workplaces/${workplace.id}`)}
-                        >
-                          Tiedot
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<DeleteIcon />}
-                          size="small"
-                          onClick={() => handleDelete(Number(workplace.id), workplace.name)}
-                        >
-                          Poista
-                        </Button>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>}
-          </Table>
-        </AccordionDetails>
+      <Accordion type="single" collapsible value={expandedAccordion} onValueChange={setExpandedAccordion}>
+        <AccordionItem value="workplaces">
+          <AccordionTrigger className="px-4 text-base font-semibold">
+            Työpaikat
+          </AccordionTrigger>
+          <AccordionContent className="px-4">
+            <DataTable<Workplace> headerCells={headerCells} data={workplaces}>
+              {rows =>
+                <TableBody>
+                  {rows.map((workplace) => (
+                    <TableRow key={workplace.id}>
+                      <TableCell>{workplace.id}</TableCell>
+                      <TableCell>{workplace.name}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleShowEditForm(Number(workplace.id))}
+                          >
+                            <Pencil className="mr-1 h-3 w-3" />
+                            Muokkaa
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/workplaces/${workplace.id}`)}
+                          >
+                            <Info className="mr-1 h-3 w-3" />
+                            Tiedot
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(Number(workplace.id), workplace.name)}
+                          >
+                            <Trash2 className="mr-1 h-3 w-3" />
+                            Poista
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>}
+            </DataTable>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="jobSupervisors">
+          <AccordionTrigger className="px-4 text-base font-semibold">
+            Työpaikkaohjaajat
+          </AccordionTrigger>
+          <AccordionContent className="px-4">
+            <DataTable<JobSupervisorWithFullNameAndWorkplace> headerCells={jobSupervisorsHeaderCells} data={jobSupervisors}>
+              {rows =>
+                <TableBody>
+                  {rows.map((jobSupervisor) => (
+                    <TableRow key={jobSupervisor.id}>
+                      <TableCell>{jobSupervisor.id}</TableCell>
+                      <TableCell>{jobSupervisor.fullName}</TableCell>
+                      <TableCell>{jobSupervisor.workplace?.name || ""}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleShowEditJobSupervisorForm(jobSupervisor.id)}
+                          >
+                            <Pencil className="mr-1 h-3 w-3" />
+                            Muokkaa
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/jobsupervisors/${jobSupervisor.id}`)}
+                          >
+                            <Info className="mr-1 h-3 w-3" />
+                            Tiedot
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleJobSupervisorDelete(jobSupervisor.id, jobSupervisor.fullName)}
+                          >
+                            <Trash2 className="mr-1 h-3 w-3" />
+                            Poista
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>}
+            </DataTable>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
-      <Accordion expanded={expandedAccordion === 'jobSupervisors'} onChange={handleAccordionChange('jobSupervisors')}>
-        <AccordionSummary
-          aria-controls="jobSupervisors-accordion-content"
-          id="jobSupervisors-accordion-header"
-        >
-          <Typography sx={{ fontWeight: 600 }} component="span">Työpaikkaohjaajat</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Table<JobSupervisorWithFullNameAndWorkplace> headerCells={jobSupervisorsHeaderCells} data={jobSupervisors}>
-            {rows =>
-              <TableBody>
-                {rows.map((jobSupervisor) => (
-                  <TableRow key={jobSupervisor.id} className="table-row">
-                    <TableCell>{jobSupervisor.id}</TableCell>
-                    <TableCell>{jobSupervisor.fullName}</TableCell>
-                    <TableCell>{jobSupervisor.workplace?.name || ""}</TableCell>
-                    <TableCell>
-                      <Box className="button-group">
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<EditIcon />}
-                          size="small"
-                          onClick={() => handleShowEditJobSupervisorForm(jobSupervisor.id)}
-                        >
-                          Muokkaa
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<InfoIcon />}
-                          size="small"
-                          onClick={() => navigate(`/jobsupervisors/${jobSupervisor.id}`)}
-                        >
-                          Tiedot
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<DeleteIcon />}
-                          size="small"
-                          onClick={() => handleJobSupervisorDelete(jobSupervisor.id, jobSupervisor.fullName)}
-                        >
-                          Poista
-                        </Button>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>}
-          </Table>
-        </AccordionDetails>
-      </Accordion>
-      <Dialog
+
+      <AppDialog
         title={
           showNewWorkplaceForm
             ? 'Lisää uusi työpaikka'
@@ -498,7 +475,7 @@ const Workplaces = () => {
                   ""
         }
         open={dialogOpen}
-        onClose={handleDialogClose}
+        onClose={setDialogOpen}
       >
         {showNewWorkplaceForm ? (
           <WorkplaceForm
@@ -533,7 +510,8 @@ const Workplaces = () => {
             submitButtonTitle="Muokkaa työpaikkaohjaaja"
           />
         ) : null}
-      </Dialog>
+      </AppDialog>
+      <ConfirmDialog />
     </>
   )
 }

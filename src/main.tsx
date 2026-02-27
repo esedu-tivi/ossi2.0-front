@@ -5,9 +5,9 @@ import { AuthProvider } from './components/auth-provider';
 import { client } from './graphql/apolloClient';
 import { ApolloProvider } from '@apollo/client';
 import { BrowserRouter } from 'react-router-dom';
-import { ConfirmProvider } from "material-ui-confirm"
-import AlertContainer from './components/AlertContainer';
 import AlertContextProvider from './context/AlertContext';
+import { Toaster } from '@/components/ui/sonner';
+import './app.css';
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -15,19 +15,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ApolloProvider client={client}>
       <AuthProvider>
         <BrowserRouter>
-          <ConfirmProvider defaultOptions={{
-            confirmationText: "Ok",
-            cancellationText: "Peruuta"
-          }}>
-            <AlertContextProvider>
-              <AlertContainer />
-              <App />
-            </AlertContextProvider>
-          </ConfirmProvider>
-        </BrowserRouter >
+          <AlertContextProvider>
+            <Toaster />
+            <App />
+          </AlertContextProvider>
+        </BrowserRouter>
       </AuthProvider>
     </ApolloProvider>
   </React.StrictMode>
 );
-
-

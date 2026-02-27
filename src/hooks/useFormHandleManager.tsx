@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { EditProjectFormData } from '../FormData';
 import { useLazyQuery } from '@apollo/client';
 import { GET_COMPETENCE_REQUIREMENTS } from '../graphql/GetCompetenceRequirements';
 
@@ -53,15 +52,12 @@ interface CompetenceRequirementsData {
   };
 }
 
+type SelectorField = 'tags' | 'competenceRequirements' | 'includedInParts';
+
 export const useFormHandleManager = (initialState: FormState) => {
   const [formData, setFormData] = useState<FormState>(initialState);
   const [selectorOpen, setSelectorOpen] = useState(false);
-  const [currentField, setCurrentField] = useState<
-    keyof Pick<
-      EditProjectFormData & { includedInParts?: Item[] },
-      'tags' | 'competenceRequirements' | 'includedInParts'
-    >
-  >('tags');
+  const [currentField, setCurrentField] = useState<SelectorField>('tags');
   const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
     tags: [],
     competenceRequirements: [],
@@ -72,19 +68,15 @@ export const useFormHandleManager = (initialState: FormState) => {
   const [fetchCompetenceRequirements] = useLazyQuery<CompetenceRequirementsData>(GET_COMPETENCE_REQUIREMENTS, {
     fetchPolicy: "network-only",
     onCompleted: (data) => {
-      console.log('Competence Requirements Data:', data);
       const realPart = data?.part?.part;
       if (realPart?.parentQualificationUnit?.competenceRequirementGroups) {
         const newCompetences = realPart.parentQualificationUnit.competenceRequirementGroups.flatMap(group =>
           group.requirements.map(req => ({ id: req.id, name: req.description }))
         );
-        console.log("New Competence Options:", newCompetences);
         setCompetenceOptions([...newCompetences]);
       }
     },
   });
-
-
 
   const handleChangeTeema = (newTeema: Item[]) => {
     setFormData((prevFormData) => {
@@ -92,9 +84,7 @@ export const useFormHandleManager = (initialState: FormState) => {
       const isTeemaChanged = JSON.stringify(prevFormData.includedInParts) !== JSON.stringify(updatedTeema);
 
       if (isTeemaChanged) {
-        console.log("Teema changed, clearing previous Osaamiset & fetching new competence requirements");
         const selectedTeemaIds = updatedTeema.map(teema => teema.id);
-        console.log("Selected Teema IDs in handleChangeTeema:", selectedTeemaIds);
 
         setFormData((prev) => ({
           ...prev,
@@ -119,13 +109,10 @@ export const useFormHandleManager = (initialState: FormState) => {
   };
 
   const fetchCompetenceRequirementsForMultipleParts = useCallback((teemaIds: string[]) => {
-    console.log("Fetching competence requirements for Teema IDs:", teemaIds);
-
     setCompetenceOptions([]);
 
     Promise.all(
       teemaIds.map((teemaId) => {
-        console.log(`Querying for Teema ID: ${teemaId}`);
         return fetchCompetenceRequirements({ variables: { partId: teemaId } });
       })
     )
@@ -152,8 +139,6 @@ export const useFormHandleManager = (initialState: FormState) => {
           new Map(allCompetenceRequirements.map((item) => [item.id, item])).values()
         );
 
-        //  Update competence options with the new list
-        console.log("Final Combined Competence Requirements:", uniqueCompetenceRequirements);
         setCompetenceOptions(uniqueCompetenceRequirements);
       })
       .catch((error) => {
@@ -161,7 +146,7 @@ export const useFormHandleManager = (initialState: FormState) => {
       });
   }, [fetchCompetenceRequirements]);
 
-  // Handles data changes on non-TinyMCE input fields
+  // Handles data changes on standard input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prevFormData) => ({
@@ -170,7 +155,7 @@ export const useFormHandleManager = (initialState: FormState) => {
     }));
   };
 
-  // Handles data changes on TinyMCE editor input fields
+  // Handles data changes on rich text editor fields
   const handleEditorChange = (content: string, field: 'description' | 'materials') => {
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -217,10 +202,6 @@ export const useFormHandleManager = (initialState: FormState) => {
       return;
     }
 
-    if (field === 'competenceRequirements') {
-      console.log("Using competenceOptions for modal:", competenceOptions);
-    }
-
     setCurrentField(field);
     setSelectorOpen(true);
   };
@@ -238,7 +219,6 @@ export const useFormHandleManager = (initialState: FormState) => {
     const selectedTeemaIds = formData.includedInParts.map(teema => teema.id);
 
     if (selectedTeemaIds.length > 0) {
-      console.log("Fetching competence requirements for multiple Teema IDs:", selectedTeemaIds);
       fetchCompetenceRequirementsForMultipleParts(selectedTeemaIds);
     }
   }, [formData.includedInParts, fetchCompetenceRequirementsForMultipleParts]);

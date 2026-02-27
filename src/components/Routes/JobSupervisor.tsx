@@ -1,16 +1,11 @@
-import { Box, Table as MuiTable, TableBody, TableCell, TableRow as MuiTableRow, Typography } from "@mui/material"
 import { useParams } from "react-router-dom"
-import BackButton from "../common/BackButton"
+import BackButton from "@/components/common/back-button"
 import { useQuery } from "@apollo/client"
 import { GET_JOB_SUPERVISOR } from "../../graphql/GetJobSupervisor"
-import Table, { TableHeaderCell } from "../common/Table"
+import DataTable, { type TableHeaderCell } from "@/components/common/data-table"
 import { Internship as InternshipData, Student } from "../../types"
 import { convertDateToString } from "../../utils/convertDateToString"
-
-interface TableRowProps {
-  label: string
-  value: string
-}
+import { TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 type Person = { fullName: string, email: string, phoneNumber?: string } & Pick<Student, "id" | "firstName" | "lastName">
 
@@ -98,11 +93,16 @@ const headerCells: readonly TableHeaderCell[] = [
   }
 ]
 
-const TableRow = ({ label, value }: TableRowProps) => (
-  <MuiTableRow>
-    <TableCell align="right">{label}</TableCell>
-    <TableCell>{value}</TableCell>
-  </MuiTableRow>
+interface InfoRowProps {
+  label: string
+  value: string
+}
+
+const InfoRow = ({ label, value }: InfoRowProps) => (
+  <div className="flex border-b py-2 last:border-b-0">
+    <span className="w-40 text-right text-sm font-medium text-muted-foreground pr-4">{label}</span>
+    <span className="text-sm">{value}</span>
+  </div>
 )
 
 const JobSupervisor = () => {
@@ -110,10 +110,10 @@ const JobSupervisor = () => {
   const { data, loading, error } = useQuery(GET_JOB_SUPERVISOR, { variables: { jobSupervisorId: id } })
 
   if (loading) {
-    return <Box><Typography>Loading...</Typography></Box>
+    return <p className="p-4">Loading...</p>
   }
   if (error) {
-    return <Box><Typography>Error: {error.message}</Typography></Box>
+    return <p className="p-4">Error: {error.message}</p>
   }
   console.log(data)
   const jobSupervisor = data.jobSupervisor?.jobSupervisor
@@ -132,44 +132,42 @@ const JobSupervisor = () => {
   }))
 
   return (
-    <Box>
+    <div className="space-y-6">
       <BackButton />
-      <Box sx={{ maxWidth: 20 }}>
-        <Typography variant="h5">Työpaikkaohjaaja</Typography>
-        <MuiTable>
-          <TableBody>
-            <TableRow label="Nimi" value={`${jobSupervisor.firstName} ${jobSupervisor.lastName}`} />
-            <TableRow label="Sähköposti" value={jobSupervisor.email} />
-            <TableRow label="Puhelinnumero" value={jobSupervisor.phoneNumber} />
-            <TableRow label="Työpaikka" value={jobSupervisor.workplace?.name}></TableRow>
-          </TableBody>
-        </MuiTable>
-      </Box>
-      <Box>
-        <Typography sx={{ my: 2 }} variant="h5">Harjoittelujaksot</Typography>
-        <Table<ParsedInternship>
+      <div>
+        <h2 className="mb-3 text-xl font-semibold">Työpaikkaohjaaja</h2>
+        <div className="max-w-md rounded-md border p-4">
+          <InfoRow label="Nimi" value={`${jobSupervisor.firstName} ${jobSupervisor.lastName}`} />
+          <InfoRow label="Sähköposti" value={jobSupervisor.email} />
+          <InfoRow label="Puhelinnumero" value={jobSupervisor.phoneNumber} />
+          <InfoRow label="Työpaikka" value={jobSupervisor.workplace?.name} />
+        </div>
+      </div>
+      <div>
+        <h2 className="mb-3 text-xl font-semibold">Harjoittelujaksot</h2>
+        <DataTable<ParsedInternship>
           headerCells={headerCells}
           data={parsedInternships}
         >
           {rows => (
             <TableBody>
               {rows.map(internship => (
-                <MuiTableRow key={internship.id} className="table-row">
+                <TableRow key={internship.id}>
                   <TableCell>{internship.id}</TableCell>
                   <TableCell>{internship.info}</TableCell>
                   <TableCell>{internship.startDate}</TableCell>
                   <TableCell>{internship.endDate}</TableCell>
-                  <TableCell sx={{ textWrap: "noWrap" }}>{internship.student.fullName}</TableCell>
+                  <TableCell className="whitespace-nowrap">{internship.student.fullName}</TableCell>
                   <TableCell>{internship.student.email}</TableCell>
-                  <TableCell sx={{ textWrap: "noWrap" }}>{internship.teacher.fullName}</TableCell>
+                  <TableCell className="whitespace-nowrap">{internship.teacher.fullName}</TableCell>
                   <TableCell>{internship.teacher.email}</TableCell>
-                </MuiTableRow>
+                </TableRow>
               ))}
             </TableBody>
           )}
-        </Table>
-      </Box>
-    </Box>
+        </DataTable>
+      </div>
+    </div>
   )
 }
 

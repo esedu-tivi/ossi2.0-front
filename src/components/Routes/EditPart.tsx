@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import AddIcon from '@mui/icons-material/Add';
-import SaveAsSharpIcon from '@mui/icons-material/SaveAsSharp';
-import UndoSharpIcon from '@mui/icons-material/UndoSharp';
-import DriveFolderUploadSharpIcon from '@mui/icons-material/DriveFolderUploadSharp';
-import formStyles from '../../styles/formStyles';
-import buttonStyles from '../../styles/buttonStyles';
-import Selector from '../Selector';
-import RichTextEditor from '../common/RichTextEditor';
+import { Plus, Save, Undo2, Archive } from 'lucide-react';
+import ItemSelectorDialog from '@/components/common/item-selector-dialog';
+import PlateEditor from '@/components/common/plate-editor';
 import TurndownService from 'turndown';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 
-import { TextField, Box, IconButton, Typography, FormControl, InputLabel, Chip, Switch, List, ListItem, ListItemText, Paper } from '@mui/material';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
@@ -60,13 +60,13 @@ const EditPart: React.FC = () => {
     const { loading, error, data } = useQuery(GET_QUALIFICATION_UNIT_PART_BY_ID, {
         variables: { partId: numericPartId },
         fetchPolicy: "no-cache",
-    });    
+    });
 
     useEffect(() => {
         console.log('GraphQL Response:', data);
     }, [data]);
 
-    // Reverts Markdown back to HTML for TinyMCE editor fields
+    // Reverts Markdown back to HTML for editor fields
     const md = new MarkdownIt({
         html: true,
     });
@@ -75,11 +75,11 @@ const EditPart: React.FC = () => {
     const sanitizeHtml = (html: string) =>
         DOMPurify.sanitize(html, {
         ALLOWED_TAGS: [
-            'iframe', 'p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'li', 'ol', 
+            'iframe', 'p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'li', 'ol',
             'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'span', 'div'
         ],
         ALLOWED_ATTR: [
-            'src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen', 
+            'src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen',
             'href', 'alt', 'target', 'rel', 'style', 'class'
         ],
     });
@@ -106,7 +106,7 @@ const EditPart: React.FC = () => {
                     notifyStudents: false,
                     notifyStudentsText: '',
                 });
-    
+
                 setSelectedItems({
                     projectsInOrder: part.projects ?? [],
                     parentQualificationUnit: part.parentQualificationUnit
@@ -117,7 +117,7 @@ const EditPart: React.FC = () => {
                 console.error("No part found in response:", data);
             }
         }
-    }, [data, loading]); 
+    }, [data, loading]);
 
     // Mutation for updating the Part
     const [updatePart] = useMutation(UPDATE_PART, {
@@ -154,16 +154,16 @@ const EditPart: React.FC = () => {
 
     const handleDragEnd = (result: any) => {
         if (!result.destination) return;
-    
+
         const reorderedProjects = Array.from(formData.projectsInOrder);
         const [movedProject] = reorderedProjects.splice(result.source.index, 1);
         reorderedProjects.splice(result.destination.index, 0, movedProject);
-    
+
         setFormData((prevFormData) => ({
             ...prevFormData,
             projectsInOrder: reorderedProjects,
         }));
-    }; 
+    };
 
     const handleAddItem = (field: 'projectsInOrder' | 'parentQualificationUnit') => {
         if (!field) {
@@ -212,9 +212,9 @@ const EditPart: React.FC = () => {
             projectsInOrder: formData.projectsInOrder.map(project => project.id),
             parentQualificationUnit: formData.parentQualificationUnit[0]?.id
         };
-    
+
         console.log("Updated Part Data before submission:", updatedPartData);
-    
+
         try {
             const response = await updatePart({
                 variables: {
@@ -244,9 +244,9 @@ const EditPart: React.FC = () => {
     const getItems = () => {
         if (projectsLoading || qualificationLoading) return [];
         if (projectsError || qualificationError) return [];
-    
+
         if (!projectsData || !qualificationData) return [];
-    
+
         return currentField === 'projectsInOrder'
             ? projectsData?.projects?.projects ?? []
             : currentField === 'parentQualificationUnit'
@@ -257,126 +257,161 @@ const EditPart: React.FC = () => {
     const { title, buttonText } = getTitleAndButtonText();
     const items = getItems();
 
-    if (!partId) return <Typography>Loading...</Typography>;
-    if (loading) return <Typography>Loading part details...</Typography>;
-    if (error) return <Typography color="error">Error loading part: {error.message}</Typography>;
+    if (!partId) return <p className="p-4">Loading...</p>;
+    if (loading) return <p className="p-4">Loading part details...</p>;
+    if (error) return <p className="p-4 text-destructive">Error loading part: {error.message}</p>;
 
     return (
-        <Box textAlign={'right'} sx={formStyles.formEditOuterBox}>
-            <IconButton onClick={() => navigate('/qualificationunitparts')} sx={buttonStyles.cancelButton}>
-                <UndoSharpIcon sx={{ mr: 1 }} />
-                Hylkää muutokset
-            </IconButton>
+        <div className="mx-auto max-w-5xl space-y-6">
+            {/* Top action buttons */}
+            <div className="flex justify-end gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/qualificationunitparts')}
+                >
+                    <Undo2 className="mr-2 h-4 w-4" />
+                    Hylkää muutokset
+                </Button>
+                <Button type="button" variant="secondary">
+                    <Archive className="mr-2 h-4 w-4" />
+                    Arkistoi
+                </Button>
+            </div>
 
-            <IconButton sx={buttonStyles.archiveButton}>
-                <DriveFolderUploadSharpIcon sx={{ mr: 1 }} />
-                Arkistoi
-            </IconButton>
-
-            <Box component="form" onSubmit={handleSubmit} textAlign={'center'} sx={formStyles.formOuterBox}>
-                <Box sx={formStyles.formBannerBox}>
-                    <Typography variant="h4" align="center" color="white">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Banner */}
+                <div className="rounded-lg bg-primary px-6 py-4 text-center">
+                    <h2 className="text-2xl font-bold text-primary-foreground">
                         Muokkaa teemaa #{partId} {formData.name}
-                    </Typography>
-                </Box>
-                <Box sx={formStyles.formColumnBox}>
-                    <Box sx={{ flex: 1 }}>
-                        <TextField label="Teeman nimi" variant="outlined" name="name" value={formData.name} onChange={handleChange} fullWidth sx={{ my: 2 }} />
-                        
-                        <RichTextEditor
-                          label="Projektin kuvaus"
-                          value={formData.description}
-                          onChange={(content) => handleEditorChange(content, 'description')}
+                    </h2>
+                </div>
+
+                {/* Form columns */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {/* Left column */}
+                    <div className="space-y-4">
+                        <div>
+                            <Label htmlFor="name">Teeman nimi</Label>
+                            <Input
+                                id="name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className="mt-1"
+                            />
+                        </div>
+
+                        <PlateEditor
+                            label="Projektin kuvaus"
+                            value={formData.description}
+                            onChange={(content) => handleEditorChange(content, 'description')}
                         />
 
-                        <RichTextEditor
+                        <PlateEditor
                             label="Materiaalit"
                             value={formData.materials}
                             onChange={(content) => handleEditorChange(content, 'materials')}
                         />
 
                         {formData.notifyStudents && (
-                            <TextField
-                                label="Muutosilmoitus"
-                                variant="outlined"
-                                name="notifyStudentsText"
-                                value={formData.notifyStudentsText}
-                                onChange={handleChange}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                sx={{ my: 2 }}
-                            />
+                            <div>
+                                <Label htmlFor="notifyStudentsText">Muutosilmoitus</Label>
+                                <Textarea
+                                    id="notifyStudentsText"
+                                    name="notifyStudentsText"
+                                    value={formData.notifyStudentsText}
+                                    onChange={handleChange}
+                                    rows={4}
+                                    className="mt-1"
+                                />
+                            </div>
                         )}
-                    </Box>
+                    </div>
 
-                    <Box sx={{ flex: 1 }}>
-                        <FormControl fullWidth>
-                            <InputLabel sx={{ display: 'flex', position: 'relative', paddingBottom: 3 }}>Tutkinnon osa</InputLabel>
-                            <Box sx={formStyles.formModalInputBox}>
+                    {/* Right column */}
+                    <div className="space-y-4">
+                        {/* Parent qualification unit */}
+                        <div>
+                            <Label className="mb-2 block">Tutkinnon osa</Label>
+                            <div className="flex flex-wrap items-center gap-2 rounded-md border p-3">
                                 {formData.parentQualificationUnit.map((unit) => (
-                                    <Chip
-                                        key={unit.id}
-                                        label={unit.name}
-                                        sx={{ backgroundColor: '#E0E0E0' }}
-                                    />
+                                    <Badge key={unit.id} variant="secondary">
+                                        {unit.name}
+                                    </Badge>
                                 ))}
-                                <IconButton onClick={() => handleAddItem('parentQualificationUnit')} color="primary" sx={buttonStyles.openModalButton}>
-                                    <AddIcon />
-                                </IconButton>
-                            </Box>
-                        </FormControl>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon-sm"
+                                    onClick={() => handleAddItem('parentQualificationUnit')}
+                                    className="rounded-full"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
 
-                        <FormControl fullWidth>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                                <InputLabel sx={{ position: "relative", pb: 4 }}>Projektit</InputLabel>
-                                <Box sx={{ border: "1px solid #ccc", borderRadius: "5px", padding: "2px", ml: 2 }}>
-                                    <IconButton onClick={() => handleAddItem("projectsInOrder")} color="primary" size="small">
-                                        <AddIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            </Box>
+                        {/* Projects with drag & drop */}
+                        <div>
+                            <div className="mb-2 flex items-center gap-2">
+                                <Label>Projektit</Label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon-sm"
+                                    onClick={() => handleAddItem("projectsInOrder")}
+                                    className="rounded-full"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
                             <DragDropContext onDragEnd={handleDragEnd}>
                                 <Droppable droppableId="parts-list">
                                 {(provided) => (
-                                    <List ref={provided.innerRef} {...provided.droppableProps} component={Paper} sx={{ p: 2 }}>
+                                    <div ref={provided.innerRef} {...provided.droppableProps} className="rounded-md border p-2">
                                     {formData.projectsInOrder.map((project, index) => (
                                         <Draggable key={String(project.id)} draggableId={String(project.id)} index={index}>
                                         {(provided) => (
-                                            <ListItem
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
-                                            sx={{ border: "1px solid #ccc", mb: 1, cursor: "grab" }}
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                className="mb-1 cursor-grab rounded border bg-white p-3"
                                             >
-                                            <ListItemText primary={project.name} />
-                                            </ListItem>
+                                                {project.name}
+                                            </div>
                                         )}
                                         </Draggable>
                                     ))}
                                     {provided.placeholder}
-                                    </List>
+                                    </div>
                                 )}
                                 </Droppable>
                             </DragDropContext>
-                        </FormControl>
-                        <FormControl sx={formStyles.formNotificationBox}>
-                            <Typography sx={{ mb: 1, textAlign: 'left' }}>Muutosilmoitus</Typography>
-                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                <Typography>{formData.notifyStudents ? 'Ilmoitetaan opiskelijoille' : 'Ei ilmoiteta'}</Typography>
-                                <Switch checked={formData.notifyStudents} onChange={handleNotifyStudents} name="notifyStudents" color="primary" />
-                            </Box>
-                        </FormControl>
-                    </Box>
-                </Box>
+                        </div>
 
-                <IconButton sx={buttonStyles.saveButton} type="submit">
-                    <SaveAsSharpIcon sx={{ mr: 1 }} />
-                    Tallenna muutokset
-                </IconButton>
-            </Box>
+                        {/* Notification toggle */}
+                        <div className="rounded-md border p-4">
+                            <p className="mb-2 text-sm font-medium">Muutosilmoitus</p>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm">{formData.notifyStudents ? 'Ilmoitetaan opiskelijoille' : 'Ei ilmoiteta'}</span>
+                                <Switch checked={formData.notifyStudents} onCheckedChange={(checked) => handleNotifyStudents({ target: { checked } } as React.ChangeEvent<HTMLInputElement>)} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <Selector
+                {/* Submit */}
+                <div className="flex justify-center">
+                    <Button type="submit" size="lg">
+                        <Save className="mr-2 h-4 w-4" />
+                        Tallenna muutokset
+                    </Button>
+                </div>
+            </form>
+
+            <ItemSelectorDialog
                 items={items}
                 title={title}
                 buttonText={buttonText}
@@ -387,7 +422,7 @@ const EditPart: React.FC = () => {
                 currentField={currentField ?? ''}
                 updateProjectTags={() => {}}
             />
-        </Box>
+        </div>
     );
 };
 

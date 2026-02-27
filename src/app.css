@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Ossi 2.0 Design Token System — Warm & Friendly
+ *
+ * Replaces the old MUI purple (#65558F) theme with a warm forest green + amber palette.
+ * Uses oklch for perceptual uniformity.
+ */
+
+@theme {
+  /* Primary — Gentle forest green */
+  --color-primary: oklch(0.55 0.12 155);
+  --color-primary-foreground: oklch(0.98 0.005 155);
+
+  /* Accent — Warm amber/orange */
+  --color-accent: oklch(0.75 0.15 65);
+  --color-accent-foreground: oklch(0.25 0.05 65);
+
+  /* Background & Surface */
+  --color-background: oklch(0.98 0.005 80);
+  --color-foreground: oklch(0.15 0.02 60);
+
+  /* Card */
+  --color-card: oklch(0.99 0.003 80);
+  --color-card-foreground: oklch(0.15 0.02 60);
+
+  /* Popover */
+  --color-popover: oklch(0.99 0.003 80);
+  --color-popover-foreground: oklch(0.15 0.02 60);
+
+  /* Muted */
+  --color-muted: oklch(0.94 0.01 80);
+  --color-muted-foreground: oklch(0.45 0.03 60);
+
+  /* Secondary */
+  --color-secondary: oklch(0.93 0.015 155);
+  --color-secondary-foreground: oklch(0.30 0.08 155);
+
+  /* Destructive — Soft red */
+  --color-destructive: oklch(0.55 0.18 25);
+  --color-destructive-foreground: oklch(0.98 0.01 25);
+
+  /* Border & Input & Ring */
+  --color-border: oklch(0.88 0.02 80);
+  --color-input: oklch(0.88 0.02 80);
+  --color-ring: oklch(0.55 0.12 155);
+
+  /* Sidebar */
+  --color-sidebar: oklch(0.96 0.01 155);
+  --color-sidebar-foreground: oklch(0.20 0.04 60);
+  --color-sidebar-accent: oklch(0.90 0.04 155);
+  --color-sidebar-accent-foreground: oklch(0.25 0.08 155);
+  --color-sidebar-border: oklch(0.90 0.02 80);
+  --color-sidebar-ring: oklch(0.55 0.12 155);
+  --color-sidebar-primary: oklch(0.55 0.12 155);
+  --color-sidebar-primary-foreground: oklch(0.98 0.005 155);
+
+  /* Chart colors */
+  --color-chart-1: oklch(0.55 0.12 155);
+  --color-chart-2: oklch(0.75 0.15 65);
+  --color-chart-3: oklch(0.65 0.12 220);
+  --color-chart-4: oklch(0.60 0.15 330);
+  --color-chart-5: oklch(0.70 0.10 110);
+
+  /* Border radius — rounded for friendly feel */
+  --radius: 0.625rem;
+
+  /* Font */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Base styles */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Loading spinner animation (migrated from old CSS) */
+.bounce-spinner {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.bounce-spinner > div {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background-color: oklch(0.55 0.12 155);
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.bounce-spinner > div:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.bounce-spinner > div:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Plate editor styles */
+[data-slate-editor] {
+  outline: none;
+}
+
+[data-slate-editor] [data-slate-placeholder] {
+  color: var(--color-muted-foreground);
+  opacity: 1;
+}
+
+/* Plate editor content typography */
+.plate-editor-content h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 2.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.plate-editor-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 2rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.plate-editor-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.75rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.plate-editor-content blockquote {
+  border-left: 3px solid var(--color-border);
+  padding-left: 1rem;
+  font-style: italic;
+  color: var(--color-muted-foreground);
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.plate-editor-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.plate-editor-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.plate-editor-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}

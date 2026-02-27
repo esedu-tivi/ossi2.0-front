@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Accordion, AccordionDetails, AccordionSummary, Box, List, Typography } from '@mui/material';
-import formStyles from '../../../styles/formStyles';
+import { ChevronDown } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BaseProject, UnitPart } from '../../../types';
 import StudentProjectListItem from './StudentProjectListItem';
 
@@ -11,7 +11,7 @@ interface StudentInactiveProjectListProps {
     projectId: number;
   }[];
   openEditProject: (project: BaseProject) => void;
-};
+}
 
 interface UnitPartAccordionProps {
   unitPart: UnitPart;
@@ -19,7 +19,7 @@ interface UnitPartAccordionProps {
   expanded: number | false;
   handleChange: (id: number) => void;
   openEditProject: (project: BaseProject) => void;
-};
+}
 
 const UnitPartAccordion: React.FC<UnitPartAccordionProps> = ({ unitPart, activeProjectIds, expanded, handleChange, openEditProject }) => {
   const [inactiveProjects, setInactiveProjects] = useState<BaseProject[]>([]);
@@ -28,17 +28,31 @@ const UnitPartAccordion: React.FC<UnitPartAccordionProps> = ({ unitPart, activeP
     setInactiveProjects(unitPart.projects.filter((project) => !activeProjectIds.includes(project.id)));
   }, [activeProjectIds, unitPart]);
 
+  const isExpanded = expanded === unitPart.id;
+
   return (
-    <Accordion expanded={expanded === unitPart.id} onChange={() => handleChange(unitPart.id)}>
-      <AccordionSummary>
-        <Typography>{unitPart.name}</Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <List sx={{ overflow: 'auto', position: 'relative' }}>
-          {inactiveProjects.map((project) => <StudentProjectListItem key={project.id} project={project} openEditProject={() => openEditProject(project)} />)}
-        </List>
-      </AccordionDetails>
-    </Accordion>
+    <div className="border-b last:border-b-0">
+      <button
+        onClick={() => handleChange(unitPart.id)}
+        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-accent"
+      >
+        <span>{unitPart.name}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+      </button>
+      {isExpanded && (
+        <div className="px-4 pb-3">
+          <div className="flex flex-col gap-1">
+            {inactiveProjects.map((project) => (
+              <StudentProjectListItem
+                key={project.id}
+                project={project}
+                openEditProject={() => openEditProject(project)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -59,12 +73,23 @@ const StudentInactiveProjectList: React.FC<StudentInactiveProjectListProps> = ({
   };
 
   return (
-    <Box sx={{ ...formStyles.formOuterBox, m: 1, minHeight: 240 }}>
-      <Box sx={{ ...formStyles.formBannerBox }}>
-        <Typography variant='h6' align='center' color='white'>{title}</Typography>
-      </Box>
-      {unitParts.map((part) => <UnitPartAccordion key={part.id} unitPart={part} activeProjectIds={activeProjectIds} expanded={expanded} handleChange={handleChange} openEditProject={handleOpenEditProject} />)}
-    </Box>
+    <Card className="min-h-[240px]">
+      <CardHeader className="bg-primary rounded-t-xl px-6 py-3">
+        <CardTitle className="text-center text-primary-foreground">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        {unitParts.map((part) => (
+          <UnitPartAccordion
+            key={part.id}
+            unitPart={part}
+            activeProjectIds={activeProjectIds}
+            expanded={expanded}
+            handleChange={handleChange}
+            openEditProject={handleOpenEditProject}
+          />
+        ))}
+      </CardContent>
+    </Card>
   );
 };
 

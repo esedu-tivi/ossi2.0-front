@@ -1,15 +1,18 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Dialog, DialogTitle, Typography } from "@mui/material"
-import RichTextEditor from "../common/RichTextEditor"
+import PlateEditor from "@/components/common/plate-editor"
+import { Button } from "@/components/ui/button"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/common/app-accordion"
 import { useMutation } from "@apollo/client";
 import { GET_ASSIGNED_PROJECT } from "../../graphql/GetAssignedProject";
 import { GET_STUDENT_PROJECTS } from "../../graphql/GetStudentProjects";
 import { UPDATE_STUDENT_PROJECT } from "../../graphql/UpdateStudentProject";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useEffect, useState } from "react";
-//import formStyles from "../../styles/formStyles";
+import { useState } from "react";
 
-
-const EvaluateProject=({ project, studentId, })=>{
+const EvaluateProject=({ project, studentId }: { project: any, studentId: any })=>{
     const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_ASSIGNED_PROJECT, GET_STUDENT_PROJECTS]})
       const [feedback, setFeedback]= useState('')
       const addFeedback = async () =>{
@@ -18,88 +21,70 @@ const EvaluateProject=({ project, studentId, })=>{
             newFeedback = feedback.replace(/<\/?p>/g, '').replace(/&nbsp;/g, '');
         }
          const projectUpdate = { projectStatus: "ACCEPTED", teacherComment: newFeedback };
-        await updateProject({ variables: { studentId, projectId: project.projectId,projectPlan: project.projectPlan, 
+        await updateProject({ variables: { studentId, projectId: project.projectId,projectPlan: project.projectPlan,
             projectReport: project.projectPlan, update: projectUpdate }});
         setFeedback('')
       }
-      const handleFeedback = (content) =>{//function formats feedback so there are no html components and no null present
-        let newContent = content;
+      const handleFeedback = (content: string) =>{
+        const newContent = content;
         setFeedback(newContent)
       }
 
-      const styles = {
-        text:{
-            display:'flex',
-            allignItems:'center',
-            px: 1,
-        },
-        box:{
-            dispaly:'flex',
-            flexDirection:'column',
-            backGroundColor:'#95a5a6'
-        }
-      }
       if(project.projectStatus==='WORKING'){
         console.log(project)
         return(
-            <Accordion disableGutters={true} sx={{ border: '1px solid #f3f3f3', backgroundColor:'#f3f3f3', width:'100%' }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography style={styles.text}>{project.parentProject.name}</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Typography style={styles.text}>Plan</Typography>
-                    <Typography style={styles.text}>{project.projectPlan}</Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                    <Typography style={styles.text}>Raport</Typography>
-                    <Typography style={styles.text}>{project.projectReport}</Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                    <Typography style={styles.text}>Feedback</Typography>
-                    <Typography style={styles.text}>{project.teacherComment}</Typography>
-                </AccordionDetails>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item" className="border rounded bg-muted/30">
+                <AccordionTrigger className="px-3">
+                    <span className="flex items-center px-1">{project.parentProject.name}</span>
+                </AccordionTrigger>
+                <AccordionContent className="px-3 space-y-2">
+                    <p className="flex items-center px-1 font-medium">Plan</p>
+                    <p className="flex items-center px-1">{project.projectPlan}</p>
+                    <p className="flex items-center px-1 font-medium">Raport</p>
+                    <p className="flex items-center px-1">{project.projectReport}</p>
+                    <p className="flex items-center px-1 font-medium">Feedback</p>
+                    <p className="flex items-center px-1">{project.teacherComment}</p>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
         )
       }
       if(project.projectStatus==='RETURNED'){
         return(
-            <Accordion disableGutters={true} sx={{ border: '1px solid #f3f3f3', backgroundColor: '#f3f3f3',width:'100%' }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>{project.parentProject.name}</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Typography>Plan</Typography>
-                    <Typography>{project.projectPlan}</Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                    <Typography style={styles.text}>Raport</Typography>
-                    <Typography style={styles.text}>{project.projectReport}</Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                    <RichTextEditor height={180} label="Feedback" value={feedback} onChange={(content) => handleFeedback(content)}/>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item" className="border rounded bg-muted/30">
+                <AccordionTrigger className="px-3">
+                    {project.parentProject.name}
+                </AccordionTrigger>
+                <AccordionContent className="px-3 space-y-2">
+                    <p className="font-medium">Plan</p>
+                    <p>{project.projectPlan}</p>
+                    <p className="font-medium">Raport</p>
+                    <p className="flex items-center px-1">{project.projectReport}</p>
+                    <PlateEditor height={180} label="Feedback" value={feedback} onChange={(content) => handleFeedback(content)}/>
                     <Button onClick={addFeedback}>Accept Assignment</Button>
-                </AccordionDetails>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
     )
       }
     if(project.projectStatus==='ACCEPTED'){
         return(
-            <Accordion disableGutters={true} sx={{ border: '1px solid #f3f3f3', backgroundColor:'#94FF7C', width:'100%' }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography style={styles.text}>{project.parentProject.name}</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Typography style={styles.text}>Plan</Typography>
-                    {project.projectPlan}
-                </AccordionDetails>
-                <AccordionDetails>
-                    <Typography style={styles.text}>Raport</Typography>
-                    <Typography style={styles.text}>{project.projectReport}</Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                    <Typography style={styles.text}>Feedback</Typography>
-                    <Typography style={styles.text}>{project.teacherComment}</Typography>
-                </AccordionDetails>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item" className="border rounded bg-green-100">
+                <AccordionTrigger className="px-3">
+                    <span className="flex items-center px-1">{project.parentProject.name}</span>
+                </AccordionTrigger>
+                <AccordionContent className="px-3 space-y-2">
+                    <p className="flex items-center px-1 font-medium">Plan</p>
+                    <p>{project.projectPlan}</p>
+                    <p className="flex items-center px-1 font-medium">Raport</p>
+                    <p className="flex items-center px-1">{project.projectReport}</p>
+                    <p className="flex items-center px-1 font-medium">Feedback</p>
+                    <p className="flex items-center px-1">{project.teacherComment}</p>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
         )
       }

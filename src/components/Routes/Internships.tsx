@@ -1,22 +1,20 @@
-import { Box, Button, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import { useEffect, useState } from "react"
 import InternshipForm from "../InternshipForm";
 import { useMutation, useQuery } from "@apollo/client";
-import { useConfirm } from "material-ui-confirm";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { CREATE_INTERNSHIP } from "../../graphql/CreateInternship";
 import { GET_STUDENT_INTERNSHIPS } from "../../graphql/GetStudentInternships";
 import { DELETE_INTERNSHIP } from "../../graphql/DeleteInternship";
-import Table, { TableHeaderCell } from "../common/Table";
+import DataTable, { type TableHeaderCell } from "@/components/common/data-table";
 import { convertDateForForm } from "../../utils/convertDateForForm";
 import { Internship, Student } from "../../types";
 import { EDIT_INTERNSHIP } from "../../graphql/EditInternship";
 import { useAlerts } from "../../context/AlertContext";
-import AddIcon from "@mui/icons-material/Add"
-import EditIcon from "@mui/icons-material/Edit"
-import InfoIcon from "@mui/icons-material/Info"
-import DeleteIcon from "@mui/icons-material/Delete"
-import Dialog from "../common/Dialog";
+import { Plus, Pencil, Info, Trash2 } from "lucide-react";
+import AppDialog from "@/components/common/app-dialog";
 import { convertDateToString } from "../../utils/convertDateToString";
+import { Button } from "@/components/ui/button";
+import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 interface InternshipData extends Internship {
   workplace: {
@@ -105,7 +103,7 @@ const Internships = ({ student }: { student: Student }) => {
   const [editInternship, { data: editData, error: editError, loading: editLoading }] = useMutation(EDIT_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
   const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
   const [internships, setInternships] = useState<ParsedInternships[]>([])
-  const confirm = useConfirm()
+  const { confirm, ConfirmDialog } = useConfirmDialog()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<string | null>(null)
   const { addAlert } = useAlerts()
@@ -169,13 +167,13 @@ const Internships = ({ student }: { student: Student }) => {
 
 
   if (loading) {
-    return <Box><Typography>Loading...</Typography></Box>
+    return <p className="p-4">Loading...</p>
   }
 
   const handleNewFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
-    const { confirmed } = await confirm({
+    const confirmed = await confirm({
       title: "Lisäys",
       description: "Oletko aivan varma, että haluat lisätä harjoittelu jakson?"
     })
@@ -187,7 +185,7 @@ const Internships = ({ student }: { student: Student }) => {
 
   const handleDelete = async (id: string | number) => {
     console.log(id)
-    const { confirmed } = await confirm({
+    const confirmed = await confirm({
       title: "Poisto",
       description: "Oletko aivan varma, että haluat poistaa harjoittelu jakson?"
     })
@@ -203,7 +201,7 @@ const Internships = ({ student }: { student: Student }) => {
   const handleEditFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
-    const { confirmed } = await confirm({
+    const confirmed = await confirm({
       title: "Muokkaus",
       description: "Oletko aivan varma, että haluat muokata harjoittelu jaksoa?"
     })
@@ -212,8 +210,6 @@ const Internships = ({ student }: { student: Student }) => {
       setDialogOpen(false)
     }
   }
-
-  const handleDialogClose = () => setDialogOpen(false)
 
   const handleShowAddForm = () => {
     setShowAddInternship(true)
@@ -244,70 +240,62 @@ const Internships = ({ student }: { student: Student }) => {
 
   return (
     <>
-      <Box className="button-container" sx={{ mt: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          className="add-internship-button"
-          startIcon={<AddIcon />}
-          onClick={handleShowAddForm}
-        >
+      <div className="mt-2 mb-4">
+        <Button onClick={handleShowAddForm}>
+          <Plus className="mr-2 h-4 w-4" />
           Lisää harjoittelujakso
         </Button>
-      </Box>
-      <Table<ParsedInternships>
+      </div>
+      <DataTable<ParsedInternships>
         headerCells={headerCells}
         data={internships}
       >
         {rows => (
           <TableBody>
             {rows.map(internship => (
-              <TableRow key={internship.id} className="table-row">
+              <TableRow key={internship.id}>
                 <TableCell>{internship.id}</TableCell>
                 <TableCell>{internship.workplace?.name}</TableCell>
                 <TableCell>{internship.info}</TableCell>
                 <TableCell>{internship.startDate}</TableCell>
                 <TableCell>{internship.endDate}</TableCell>
                 <TableCell>
-                  <Box className="button-group">
+                  <div className="flex flex-wrap gap-1">
                     <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<EditIcon />}
-                      size="small"
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleShowEditForm(internship.id)}
                     >
+                      <Pencil className="mr-1 h-3 w-3" />
                       Muokkaa
                     </Button>
                     <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<InfoIcon />}
-                      size="small"
+                      variant="outline"
+                      size="sm"
                       onClick={() => console.log("Info")}
                     >
+                      <Info className="mr-1 h-3 w-3" />
                       Tiedot
                     </Button>
                     <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<DeleteIcon />}
-                      size="small"
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleDelete(internship.id)}
                     >
+                      <Trash2 className="mr-1 h-3 w-3" />
                       Poista
                     </Button>
-                  </Box>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         )}
-      </Table>
-      <Dialog
+      </DataTable>
+      <AppDialog
         title={showAddInternship ? 'Lisää harjoittelu' : showEditInternship ? 'Muokkaa harjoittelujaksoa' : ''}
         open={dialogOpen}
-        onClose={handleDialogClose}
+        onClose={setDialogOpen}
       >
         {showAddInternship ? (
           <InternshipForm
@@ -329,7 +317,8 @@ const Internships = ({ student }: { student: Student }) => {
             workplaceId={selectedWorkplaceId}
           />
         ) : null}
-      </Dialog>
+      </AppDialog>
+      <ConfirmDialog />
     </>
   )
 }

@@ -10,6 +10,7 @@ interface AuthContextProps {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   setUserEmail: (email: string) => void;
   setRole: (role: 'teacher' | 'student' | 'unknown') => void;
+  switchRole: (role: 'teacher' | 'student') => void;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextProps>({
   setIsAuthenticated: () => {},
   setUserEmail: () => {},
   setRole: () => {},
+  switchRole: () => {},
 });
 
 // Wraps useContext(AuthContext) hook so it can be used easily on other components

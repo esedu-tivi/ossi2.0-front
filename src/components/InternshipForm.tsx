@@ -1,15 +1,22 @@
-import { Box, IconButton, MenuItem, TextField, Typography } from "@mui/material"
 import { InternshipWithoutId } from "./Routes/Internships"
-import formStyles from "../styles/formStyles"
 import { Dispatch, SetStateAction, useEffect } from "react"
-
-import SaveSharpIcon from '@mui/icons-material/SaveSharp';
-import buttonStyles from "../styles/buttonStyles";
-import { useLazyQuery, useQuery } from "@apollo/client";
-import { GET_INTERNSHIP_DATA } from "../graphql/GetInternshipData";
-import { GET_JOB_SUPERVISORS_BY_WORKPLACE } from "../graphql/GetJobSupervisorsByWorkplace";
-import { JobSupervisor, Student, Workplace } from "../types";
-import Autocomplete, { Option } from "./common/Autocomplete";
+import { Save } from "lucide-react"
+import { useLazyQuery, useQuery } from "@apollo/client"
+import { GET_INTERNSHIP_DATA } from "../graphql/GetInternshipData"
+import { GET_JOB_SUPERVISORS_BY_WORKPLACE } from "../graphql/GetJobSupervisorsByWorkplace"
+import { JobSupervisor, Student, Workplace } from "../types"
+import Combobox, { type Option } from "@/components/common/combobox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface InternshipFormProps {
   formSubmitHandler: (event: React.FormEvent<HTMLFormElement>) => void
@@ -59,11 +66,11 @@ const InternshipForm = ({
   }, [workplaceId, loadSupervisors])
 
   if (loading) {
-    return <Box><Typography>Loading...</Typography></Box>
+    return <div><p>Loading...</p></div>
   }
 
   if (error) {
-    return <Box><Typography>Error: {error.message}</Typography></Box>
+    return <div><p>Error: {error.message}</p></div>
   }
 
   const teacher = data.me?.user || null
@@ -83,65 +90,59 @@ const InternshipForm = ({
   }))
 
   return (
-    <Box
-      component="form"
+    <form
       onSubmit={formSubmitHandler}
-      textAlign={'center'}
+      className="text-center"
     >
-      <Box
-        sx={formStyles.formColumnBox}
-      >
-        <Box sx={{ flex: 1 }}>
-          <TextField
-            label="Opettaja"
-            variant="outlined"
-            value={`${teacher.firstName} ${teacher.lastName}`}
-            fullWidth
-            disabled
-            sx={{ my: 2 }}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
-          <TextField
-            label="Opiskelija"
-            variant="outlined"
-            value={`${student.firstName} ${student.lastName}`}
-            fullWidth
-            disabled
-            sx={{ my: 2 }}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
-          <TextField
-            value={formData.qualificationUnitId}
-            onChange={handleChange}
-            name="qualificationUnitId"
-            label='Tutkinnonosa'
-            select
-            fullWidth
-            sx={{ my: 2 }}
-            slotProps={{
-              htmlInput: {
-                sx: {
-                  textAlign: "left",
-                },
-              },
-            }}
-          >
-            {qualificationUnits.map((unit: { id: string; name: string }) => (
-              <MenuItem
-                key={unit.id}
-                value={unit.id}
-              >
-                {unit.name}
-              </MenuItem>
-            ))}
-          </TextField>
+      <div className="flex flex-col md:flex-row gap-4 mt-4">
+        <div className="flex-1 space-y-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="teacher">Opettaja</Label>
+            <Input
+              id="teacher"
+              value={`${teacher.firstName} ${teacher.lastName}`}
+              disabled
+            />
+          </div>
 
-          <Autocomplete
-            sx={{ mb: 2 }}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="student">Opiskelija</Label>
+            <Input
+              id="student"
+              value={`${student.firstName} ${student.lastName}`}
+              disabled
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="qualificationUnitId">Tutkinnonosa</Label>
+            <Select
+              value={formData.qualificationUnitId}
+              onValueChange={(value) => {
+                setFormData((prevFormData: InternshipWithoutId) => ({
+                  ...prevFormData,
+                  qualificationUnitId: value
+                }));
+              }}
+            >
+              <SelectTrigger id="qualificationUnitId" className="w-full text-left">
+                <SelectValue placeholder="Valitse tutkinnonosa..." />
+              </SelectTrigger>
+              <SelectContent>
+                {qualificationUnits.map((unit: { id: string; name: string }) => (
+                  <SelectItem key={unit.id} value={unit.id}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Combobox
             id="workplace"
             label="Työpaikka"
             options={workplaceOptions}
-            value={workplaceOptions.find(option => option.id === formData.workplaceId) || null}
+            value={workplaceOptions.find((option: Option) => option.id === formData.workplaceId) || null}
             onChange={(_event, newValue: Option | null) => {
               setFormData((prevFormData: InternshipWithoutId) => ({
                 ...prevFormData,
@@ -149,79 +150,75 @@ const InternshipForm = ({
               }));
               setWorkplaceId(newValue ? String(newValue.id) : null);
             }}
-            defaultValue={workplaceOptions.find(option => option.id === formData.workplaceId) || undefined}
             noOptionsText="Ei löytynyt yhtään työpaikkaa"
             required
           />
+
           {formData.workplaceId &&
-            <Autocomplete
-              sx={{ mb: 2 }}
+            <Combobox
               id="jobSupervisor"
               label="Työpaikkaohjaaja"
               options={jobSupervisorOptions}
-              value={jobSupervisorOptions.find(option => option.id === formData.jobSupervisorId) || null}
+              value={jobSupervisorOptions.find((option: Option) => option.id === formData.jobSupervisorId) || null}
               onChange={(_event, newValue: Option | null) => {
                 setFormData((prevFormData: InternshipWithoutId) => ({
                   ...prevFormData,
                   jobSupervisorId: newValue ? String(newValue.id) : "",
                 }));
               }}
-              defaultValue={jobSupervisorOptions.find(option => option.id === formData.jobSupervisorId) || undefined}
               noOptionsText="Ei löytynyt yhtään työpaikkaohjaajaa"
               required
             />
           }
 
-          <TextField
-            type="date"
-            label="Milloin alkaa"
-            variant="outlined"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleChange}
-            fullWidth
-            required
-            sx={{ my: 2 }}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
-          <TextField
-            type="date"
-            label="Milloin loppuu"
-            variant="outlined"
-            name="endDate"
-            value={formData.endDate}
-            onChange={handleChange}
-            fullWidth
-            required
-            sx={{ my: 2 }}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
-          <TextField
-            label="Lisätietoja"
-            variant="outlined"
-            name="info"
-            value={formData.info}
-            onChange={handleChange}
-            fullWidth
-            multiline
-            rows={4}
-            sx={{ my: 2 }}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
-          <IconButton
-            type="submit"
-            sx={{ ...buttonStyles.saveButton, px: 10 }}
-          >
-            <SaveSharpIcon
-              sx={{
-                mr: 1,
-              }}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="startDate">
+              Milloin alkaa
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Input
+              type="date"
+              id="startDate"
+              name="startDate"
+              value={formData.startDate as string}
+              onChange={handleChange}
+              required
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="endDate">
+              Milloin loppuu
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Input
+              type="date"
+              id="endDate"
+              name="endDate"
+              value={formData.endDate as string}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="info">Lisätietoja</Label>
+            <Textarea
+              id="info"
+              name="info"
+              value={formData.info}
+              onChange={handleChange}
+              rows={4}
+            />
+          </div>
+
+          <Button type="submit" className="mt-4 px-10">
+            <Save className="mr-1 h-4 w-4" />
             Tallenna
-          </IconButton>
-        </Box>
-      </Box>
-    </Box>
+          </Button>
+        </div>
+      </div>
+    </form>
   )
 }
 

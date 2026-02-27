@@ -1,59 +1,71 @@
-import { useQuery } from "@apollo/client";
-import { Box, List, ListItem, Typography } from '@mui/material';
-import { AssignedProject, ProjectStatus, Student } from "../../types";
-import EvaluateProject from "./evaluateProject";
-import formStyles from "../../styles/formStyles";
-import { GET_STUDENT_PROJECTS_BY_STUDENT_ID } from "../../graphql/GetStudentProjectsByStudentId";
-import { useParams } from "react-router-dom";
+import { useQuery } from '@apollo/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AssignedProject, ProjectStatus, Student } from '../../types';
+import EvaluateProject from './evaluateProject';
+import { GET_STUDENT_PROJECTS_BY_STUDENT_ID } from '../../graphql/GetStudentProjectsByStudentId';
+import { useParams } from 'react-router-dom';
 
 const StudentProjectsPath = ({ student }: { student: Student }) => {
-  const { studentId } = useParams()
+  const { studentId } = useParams();
 
   const { loading, data, startPolling, stopPolling } = useQuery(GET_STUDENT_PROJECTS_BY_STUDENT_ID, { variables: { studentId } });
   if (loading || !data) {
     startPolling(500); // making sure data has loaded
     return (
-      <Typography>loading</Typography>
+      <p className="p-4 text-muted-foreground">loading</p>
     );
-  };
+  }
   stopPolling();
 
   const assignedProjects: AssignedProject[] = data.assignedStudentProjects?.assignedProjects || [];
-  console.log(assignedProjects)
+  console.log(assignedProjects);
   const startedProjects = assignedProjects.filter((p) => p.projectStatus === ProjectStatus.Working);
   const returnedProjects = assignedProjects.filter((p) => p.projectStatus === ProjectStatus.Returned);
   const acceptedProjects = assignedProjects.filter((p) => p.projectStatus === ProjectStatus.Accepted);
 
   return (
-    <Box sx={formStyles.formOuterBox}>
-      <Box sx={{ ...formStyles.formBannerBox, textAlign: 'center', marginBottom: 3, position: 'relative', borderTopLeftRadius: '0px' }}>
-        <Typography variant="h5" color="white" fontWeight="bold">{student.firstName} {student.lastName}:n Projektit</Typography>
-      </Box>
-      <Typography variant='h6' align='center' color='black'>Työn ala</Typography>
-      <List sx={{ overflow: 'auto', position: 'relative' }}>
-        {startedProjects.map((project) => (
-          <ListItem key={project.projectId}>
-            <EvaluateProject project={project} studentId={student.id} />
-          </ListItem>
-        ))}
-      </List>
-      <Typography variant='h6' align='center' color='black'>Palautetut</Typography>
-      <List sx={{ overflow: 'auto', position: 'relative' }}>
-        {returnedProjects.map((project) => (
-          <ListItem key={project.projectId}>
-            <EvaluateProject project={project} studentId={student.id} />
-          </ListItem>
-        ))}
-      </List>
-      <Typography variant='h6' align='center' color='black'>Valmiit</Typography>
-      <List sx={{ overflow: 'auto', position: 'relative' }}>
-        {acceptedProjects.map((project) => (
-          <ListItem key={project.projectId}>
-            <EvaluateProject project={project} studentId={student.id} />
-          </ListItem>
-        ))}
-      </List>
-    </Box>
-  )
-}
+    <Card>
+      <CardHeader className="bg-primary rounded-t-xl text-center">
+        <CardTitle className="text-lg font-bold text-primary-foreground">
+          {student.firstName} {student.lastName}:n Projektit
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <h3 className="mb-2 text-center text-lg font-semibold">Työn ala</h3>
+          <div className="space-y-2">
+            {startedProjects.map((project) => (
+              <div key={project.projectId}>
+                <EvaluateProject project={project} studentId={student.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-center text-lg font-semibold">Palautetut</h3>
+          <div className="space-y-2">
+            {returnedProjects.map((project) => (
+              <div key={project.projectId}>
+                <EvaluateProject project={project} studentId={student.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-center text-lg font-semibold">Valmiit</h3>
+          <div className="space-y-2">
+            {acceptedProjects.map((project) => (
+              <div key={project.projectId}>
+                <EvaluateProject project={project} studentId={student.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default StudentProjectsPath;

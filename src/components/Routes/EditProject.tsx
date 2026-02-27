@@ -1,18 +1,18 @@
 import React, { useEffect } from 'react';
-import DriveFolderUploadSharpIcon from '@mui/icons-material/DriveFolderUploadSharp';
-import UndoSharpIcon from '@mui/icons-material/UndoSharp';
-import SaveAsSharpIcon from '@mui/icons-material/SaveAsSharp';
-import Selector from '../Selector';
-import formStyles from '../../styles/formStyles';
-import buttonStyles from '../../styles/buttonStyles';
+import { Archive, Undo2, Save } from 'lucide-react';
+import ItemSelectorDialog from '@/components/common/item-selector-dialog';
 import TurndownService from 'turndown';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
-import RichTextEditor from '../common/RichTextEditor';
-import ChipSelector from '../common/ChipSelector';
+import PlateEditor from '@/components/common/plate-editor';
+import ChipSelector from '@/components/common/chip-selector';
 
 import { useParams, useNavigate } from 'react-router-dom';
-import { TextField, Box, Switch, IconButton, Typography, FormControl } from '@mui/material';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_PROJECT_BY_ID } from '../../graphql/GetProjectById';
 import { GET_PROJECTS } from '../../graphql/GetProjects';
@@ -209,103 +209,90 @@ const EditProject: React.FC = () => {
     const { title, buttonText } = getTitleAndButtonText();
     const items = getItems();
 
-    if (loading) return <Typography>Loading project details...</Typography>;
-    if (error) return <Typography color="error">Error loading project: {error.message}</Typography>;
+    if (loading) return <p className="p-4">Loading project details...</p>;
+    if (error) return <p className="p-4 text-destructive">Error loading project: {error.message}</p>;
 
     return (
-        <Box
-            textAlign={'right'}
-            sx={formStyles.formEditOuterBox}
-        >
-            <IconButton
-                onClick={() => navigate('/teacherprojects')}
-                sx={buttonStyles.cancelButton}
-            >
-                <UndoSharpIcon
-                    sx={{
-                        mr: 1,
-                    }}
-                />
-                Hylkää muutokset
-            </IconButton>
-
-            <IconButton
-                sx={buttonStyles.archiveButton}
-            >
-                <DriveFolderUploadSharpIcon
-                    sx={{
-                        mr: 1,
-                    }}
-                />
-                Arkistoi
-            </IconButton>
-
-            <Box
-                component="form"
-                onSubmit={handleSubmit}
-                textAlign={'center'}
-                sx={formStyles.formOuterBox}
-            >
-                <Box
-                    sx={formStyles.formBannerBox}
+        <div className="mx-auto max-w-5xl space-y-6">
+            {/* Top action buttons */}
+            <div className="flex justify-end gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/teacherprojects')}
                 >
-                    <Typography variant="h4" align="center" color="white">
+                    <Undo2 className="mr-2 h-4 w-4" />
+                    Hylkää muutokset
+                </Button>
+                <Button type="button" variant="secondary">
+                    <Archive className="mr-2 h-4 w-4" />
+                    Arkistoi
+                </Button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Banner */}
+                <div className="rounded-lg bg-primary px-6 py-4 text-center">
+                    <h2 className="text-2xl font-bold text-primary-foreground">
                         Muokkaa projektia #{project.id} {project.name}
-                    </Typography>
-                </Box>
+                    </h2>
+                </div>
 
-                <Box
-                    sx={formStyles.formColumnBox}
-                >
-                    <Box sx={{ flex: 1 }}>
-                        <TextField
-                            label="Projektin nimi"
-                            variant="outlined"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            fullWidth
-                            sx={{ my: 2 }}
-                        />
+                {/* Form columns */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {/* Left column */}
+                    <div className="space-y-4">
+                        <div>
+                            <Label htmlFor="name">Projektin nimi</Label>
+                            <Input
+                                id="name"
+                                name="name"
+                                value={String(formData.name ?? '')}
+                                onChange={handleChange}
+                                className="mt-1"
+                            />
+                        </div>
 
-                        <RichTextEditor
+                        <PlateEditor
                             label="Projektin kuvaus"
                             value={formData.description}
                             onChange={(content) => handleEditorChange(content, 'description')}
                         />
 
-                        <RichTextEditor
+                        <PlateEditor
                             label="Materiaalit"
                             value={formData.materials}
                             onChange={(content) => handleEditorChange(content, 'materials')}
                         />
 
                         {formData.notifyStudents && (
-                            <TextField
-                                label="Muutosilmoitus"
-                                variant="outlined"
-                                name="notifyStudentsText"
-                                value={formData.notifyStudentsText}
-                                onChange={handleChange}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                sx={{ my: 2 }}
-                            />
+                            <div>
+                                <Label htmlFor="notifyStudentsText">Muutosilmoitus</Label>
+                                <Textarea
+                                    id="notifyStudentsText"
+                                    name="notifyStudentsText"
+                                    value={String(formData.notifyStudentsText ?? '')}
+                                    onChange={handleChange}
+                                    rows={4}
+                                    className="mt-1"
+                                />
+                            </div>
                         )}
-                    </Box>
+                    </div>
 
-                    <Box sx={{ flex: 1 }}>
-                        <TextField
-                            label="Ajankäyttö"
-                            variant="outlined"
-                            name="duration"
-                            type="number"
-                            value={formData.duration}
-                            onChange={handleChange}
-                            fullWidth
-                            sx={{ my: 2 }}
-                        />
+                    {/* Right column */}
+                    <div className="space-y-4">
+                        <div>
+                            <Label htmlFor="duration">Ajankäyttö</Label>
+                            <Input
+                                id="duration"
+                                name="duration"
+                                type="number"
+                                value={formData.duration}
+                                onChange={handleChange}
+                                className="mt-1"
+                            />
+                        </div>
 
                         <ChipSelector
                             label="Teemat"
@@ -328,42 +315,36 @@ const EditProject: React.FC = () => {
                             currentField="tags"
                         />
 
-                        <FormControl
-                            sx={formStyles.formActivityBox}
-                        >
-                            <Typography sx={{ mb: 1, textAlign: 'left' }}>Projektin tila</Typography>
-                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                <Typography>{formData.isActive ? 'Aktiivinen' : 'Ei aktiivinen'}</Typography>
-                                <Switch checked={formData.isActive} onChange={handleToggleActivity} name="isActive" color="primary" />
-                            </Box>
-                        </FormControl>
+                        {/* Activity toggle */}
+                        <div className="rounded-md border p-4">
+                            <p className="mb-2 text-sm font-medium">Projektin tila</p>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm">{formData.isActive ? 'Aktiivinen' : 'Ei aktiivinen'}</span>
+                                <Switch checked={formData.isActive} onCheckedChange={(checked) => handleToggleActivity({ target: { checked } } as React.ChangeEvent<HTMLInputElement>)} />
+                            </div>
+                        </div>
 
-                        <FormControl
-                            sx={formStyles.formNotificationBox}
-                        >
-                            <Typography sx={{ mb: 1, textAlign: 'left' }}>Muutosilmoitus</Typography>
-                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                <Typography>{formData.notifyStudents ? 'Ilmoitetaan opiskelijoille' : 'Ei ilmoiteta'}</Typography>
-                                <Switch checked={Boolean(formData.notifyStudents)} onChange={handleNotifyStudents} name="notifyStudents" color="primary" />
-                            </Box>
-                        </FormControl>
-                    </Box>
-                </Box>
+                        {/* Notification toggle */}
+                        <div className="rounded-md border p-4">
+                            <p className="mb-2 text-sm font-medium">Muutosilmoitus</p>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm">{formData.notifyStudents ? 'Ilmoitetaan opiskelijoille' : 'Ei ilmoiteta'}</span>
+                                <Switch checked={Boolean(formData.notifyStudents)} onCheckedChange={(checked) => handleNotifyStudents({ target: { checked } } as React.ChangeEvent<HTMLInputElement>)} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                <IconButton
-                    type="submit"
-                    sx={buttonStyles.saveButton}
-                >
-                    <SaveAsSharpIcon
-                        sx={{
-                            mr: 1,
-                        }}
-                    />
-                    Tallenna muutokset
-                </IconButton>
-            </Box>
+                {/* Submit */}
+                <div className="flex justify-center">
+                    <Button type="submit" size="lg">
+                        <Save className="mr-2 h-4 w-4" />
+                        Tallenna muutokset
+                    </Button>
+                </div>
+            </form>
 
-            <Selector
+            <ItemSelectorDialog
                 items={items}
                 title={title}
                 buttonText={buttonText}
@@ -374,7 +355,7 @@ const EditProject: React.FC = () => {
                 currentField={currentField}
                 updateProjectTags={updateProjectTags}
             />
-        </Box>
+        </div>
     );
 };
 

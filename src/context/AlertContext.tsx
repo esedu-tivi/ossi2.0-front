@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useState } from "react"
+import { createContext, useCallback, useContext } from "react"
+import { toast } from "sonner"
 
 export type AlertId = string
 type AlertSeverity = "info" | "success" | "warning" | "error"
@@ -24,31 +25,33 @@ interface AlertContextType {
 const AlertContext = createContext<AlertContextType | undefined>(undefined)
 
 const AlertContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const [alerts, setAlerts] = useState<Alert[]>([])
+  // alerts and removeAlert kept for backwards compatibility but are no-ops
+  // since Sonner manages its own toast state
+  const alerts: Alert[] = []
 
-  const removeAlert = useCallback((id: AlertId) => {
-    setAlerts((prev) => prev.filter(alert => alert.id !== id))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const removeAlert = useCallback((_id: AlertId) => {
+    // No-op: Sonner manages its own dismissal
   }, [])
 
-
   const addAlert: AddAlert = useCallback((message, severity = "success", permanent = false) => {
-    const id: AlertId = Math.random().toString(36).slice(2, 9) + new Date().getTime().toString(36)
-    setAlerts((prev: Alert[]) => [
-      ...prev,
-      {
-        id,
-        message,
-        severity,
-        permanent
-      }
-    ])
+    const options = permanent ? { duration: Infinity } : {}
 
-    if (!permanent) {
-      setTimeout(() => removeAlert(id), 5000)
+    switch (severity) {
+      case "success":
+        toast.success(message, options)
+        break
+      case "error":
+        toast.error(message, options)
+        break
+      case "warning":
+        toast.warning(message, options)
+        break
+      case "info":
+        toast.info(message, options)
+        break
     }
-
-  }, [removeAlert])
-
+  }, [])
 
   return (
     <AlertContext.Provider value={{ alerts, addAlert, removeAlert }}>

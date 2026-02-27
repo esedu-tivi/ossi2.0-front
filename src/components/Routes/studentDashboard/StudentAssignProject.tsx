@@ -1,18 +1,24 @@
-import { Box, Button, Dialog, DialogTitle } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import RichTextEditor from "../../common/RichTextEditor";
-import { BaseProject } from "../../../types";
-import { useMutation } from "@apollo/client";
-import { ASSIGN_STUDENT_PROJECT } from "../../../graphql/AssignStudentProject";
-import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
-import ProjectDescription from "./ProjectDescription";
+import React, { useEffect, useState } from 'react';
+import { useMutation } from '@apollo/client';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import PlateEditor from '@/components/common/plate-editor';
+import { BaseProject } from '../../../types';
+import { ASSIGN_STUDENT_PROJECT } from '../../../graphql/AssignStudentProject';
+import { GET_STUDENT_PROJECTS } from '../../../graphql/GetStudentProjects';
+import ProjectDescription from './ProjectDescription';
 
 interface StudentAssignProjectProps {
   open: boolean;
   onClose: () => void;
   studentId: number;
   project: BaseProject | null;
-};
+}
 
 const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClose, studentId, project }) => {
   const [formData, setFormData] = useState({ plan: '', report: '' });
@@ -20,16 +26,12 @@ const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClo
   const [assignProject] = useMutation(ASSIGN_STUDENT_PROJECT, { refetchQueries: [GET_STUDENT_PROJECTS] });
 
   useEffect(() => {
-    if (!project) {
-      console.log('project is undefined');
-      return;
-    };
-
+    if (!project) return;
     setFormData({ plan: '', report: '' });
   }, [open]);
 
   if (!project) {
-    return;
+    return null;
   }
 
   const handleChange = (content: string, field: 'plan' | 'report') => {
@@ -44,8 +46,8 @@ const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClo
   const startProject = async () => {
     if (!project?.duration) {
       console.log('duration is undefined');
-      return
-    };
+      return;
+    }
 
     await assignProject({ variables: { studentId, projectId: project.id } });
 
@@ -54,28 +56,32 @@ const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClo
   };
 
   return (
-    <Dialog maxWidth="md" open={open} onClose={() => handleClose()}>
-      <Box sx={{ px: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <DialogTitle sx={{ width: '60%' }}>{project.name}</DialogTitle>
-        <Button variant="contained" onClick={() => setDescriptionOpen(true)}>Projektin kuvaus</Button>
-      </Box>
-      <Box sx={{ p: 1 }}>
-        <RichTextEditor
-          height={180}
-          label="Suunnitelma"
-          value={formData.plan}
-          onChange={(content) => handleChange(content, 'plan')}
-        />
-        <RichTextEditor
-          height={180}
-          label="Raportti"
-          value={formData.report}
-          onChange={(content) => handleChange(content, 'report')}
-        />
-        <Box sx={{ mt: 2 }}>
-          <Button variant="contained" onClick={() => startProject()}>Aloita projekti</Button>
-        </Box>
-      </Box>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <DialogTitle className="flex-1">{project.name}</DialogTitle>
+          <Button variant="outline" onClick={() => setDescriptionOpen(true)}>
+            Projektin kuvaus
+          </Button>
+        </DialogHeader>
+        <div className="space-y-4">
+          <PlateEditor
+            height={180}
+            label="Suunnitelma"
+            value={formData.plan}
+            onChange={(content) => handleChange(content, 'plan')}
+          />
+          <PlateEditor
+            height={180}
+            label="Raportti"
+            value={formData.report}
+            onChange={(content) => handleChange(content, 'report')}
+          />
+          <div>
+            <Button onClick={() => startProject()}>Aloita projekti</Button>
+          </div>
+        </div>
+      </DialogContent>
       <ProjectDescription project={project} descriptionOpen={descriptionOpen} onClose={() => setDescriptionOpen(false)} />
     </Dialog>
   );

@@ -1,29 +1,19 @@
 // TODO uses hardcoded data. Needs to be changed to use backend data when possible
 
 import React, { useState } from 'react';
+import { ChevronDown, CheckSquare, PlusCircle, Save } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  Box,
-  Divider,
-  IconButton,
-  Button,
-  Modal,
-  Checkbox,
-  FormControlLabel,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import buttonStyles from '../../styles/buttonStyles';
-import formStyles from '../../styles/formStyles';
-import modalStyles from '../../styles/modalStyles';
-import SaveSharpIcon from '@mui/icons-material/SaveSharp';
-import CheckBoxSharpIcon from '@mui/icons-material/CheckBoxSharp';
-import AddCircleOutlineSharpIcon from '@mui/icons-material/AddCircleOutlineSharp';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { mandatoryModules, choiceModules, optionalModulesList } from '../../data/EducationPathData';
 import { Student } from '../../types';
-//import StudentTabs from '../common/StudentTabs';
 
 interface ModulePart {
   id: number;
@@ -40,6 +30,75 @@ interface Module {
   parts: ModulePart[];
   completed: boolean;
 }
+
+const ModuleAccordion: React.FC<{ module: Module }> = ({ module }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div
+      className={`mb-2 rounded-lg border ${module.completed ? 'bg-green-100' : 'bg-muted/50'}`}
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between p-4 text-left"
+      >
+        <div className="flex items-center gap-2">
+          {module.completed && <CheckSquare className="h-5 w-5" />}
+          <span className="font-bold">{module.title}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm">{module.points} osp</span>
+          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+
+      {isOpen && module.parts.length > 0 && (
+        <div className="px-4 pb-4">
+          {module.parts.map((part) => (
+            <PartAccordion key={part.id} part={part} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PartAccordion: React.FC<{ part: ModulePart }> = ({ part }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div
+      className={`mb-1 rounded border p-1 ${part.completed ? 'bg-green-200' : 'bg-white'}`}
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between p-2 text-left"
+      >
+        <span className="text-sm font-bold">
+          {part.title} ({part.points} osp)
+        </span>
+        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="px-4 pb-2">
+          {part.osaamiset && part.osaamiset.length > 0 ? (
+            <div>
+              <p className="text-sm font-bold">Osaamiset:</p>
+              <ul className="list-inside list-disc">
+                {part.osaamiset.map((osaaminen, index) => (
+                  <li key={index} className="text-sm">{osaaminen}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Ei määriteltyjä osaamisia</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const EducationPath: React.FC<{ student: Student }> = ({ student }) => {
   const [modules] = useState<Module[]>(mandatoryModules);
@@ -70,309 +129,94 @@ const EducationPath: React.FC<{ student: Student }> = ({ student }) => {
   };
 
   return (
-    <>
-      <Box>
-        <Box sx={formStyles.formOuterBox}>
-          <Box sx={{ ...formStyles.formBannerBox, textAlign: 'center', marginBottom: 3, position: 'relative', borderTopLeftRadius: '0px' }}>
-            <Typography variant="h5" color="white" fontWeight="bold">
-              Opintosuunnitelma
-            </Typography>
-            {student ? (
-              <Typography variant="h4" color="white">
-                {student.firstName} {student.lastName} (Ohjelmistokehittäjä)
-              </Typography>
-            ) : (
-              <Typography variant="h4" color="white">
-                Opiskelija (Ohjelmistokehittäjä)
-              </Typography>
-            )}
-          </Box>
+    <Card>
+      <CardHeader className="bg-primary rounded-t-xl text-center">
+        <CardTitle className="text-primary-foreground">
+          <p className="text-lg font-bold">Opintosuunnitelma</p>
+          {student ? (
+            <p className="text-2xl">
+              {student.firstName} {student.lastName} (Ohjelmistokehittäjä)
+            </p>
+          ) : (
+            <p className="text-2xl">Opiskelija (Ohjelmistokehittäjä)</p>
+          )}
+        </CardTitle>
+      </CardHeader>
 
-          <Typography variant="h6" gutterBottom>
-            Pakolliset tutkinnon osat
-          </Typography>
+      <CardContent className="space-y-6">
+        <div>
+          <h2 className="mb-3 text-lg font-semibold">Pakolliset tutkinnon osat</h2>
           {modules.map((module) => (
-            <Accordion
-              key={module.id}
-              sx={{
-                marginBottom: 2,
-                backgroundColor: module.completed ? '#afe3b2' : '#f3f3f3',
-                border: '1px solid #ccc',
-                borderRadius: 2,
-                position: 'relative',
-                '&:hover .hover-button': { visibility: 'visible' },
-              }}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {module.completed && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px' }}>
-                        <CheckBoxSharpIcon sx={{ color: 'black', fontSize: '2rem' }} />
-                      </Box>
-                    )}
-                    <Typography fontWeight="bold">{module.title}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography>{module.points} osp</Typography>
-                  </Box>
-                </Box>
-              </AccordionSummary>
-
-              {module.parts.length > 0 && (
-                <AccordionDetails>
-                  {module.parts.map((part) => (
-                    <Box
-                      key={part.id}
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        padding: 1,
-                        backgroundColor: part.completed ? '#93cf96' : '#fff',
-                        borderRadius: 1,
-                        marginBottom: 1,
-                        border: 1,
-                      }}
-                    >
-                      <Accordion sx={{ boxShadow: 'none', backgroundColor: 'transparent' }}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                          <Typography variant="subtitle1" fontWeight="bold">
-                            {part.title} ({part.points} osp)
-                          </Typography>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ pl: 2 }}>
-                          {part.osaamiset && part.osaamiset.length > 0 ? (
-                            <Box>
-                              <Typography variant="body2" fontWeight="bold">
-                                Osaamiset:
-                              </Typography>
-                              <ul>
-                                {part.osaamiset.map((osaaminen, index) => (
-                                  <li key={index}>
-                                    <Typography variant="body2">{osaaminen}</Typography>
-                                  </li>
-                                ))}
-                              </ul>
-                            </Box>
-                          ) : (
-                            <Typography variant="body2" color="textSecondary">
-                              Ei määriteltyjä osaamisia
-                            </Typography>
-                          )}
-                        </AccordionDetails>
-                      </Accordion>
-                    </Box>
-                  ))}
-                </AccordionDetails>
-              )}
-            </Accordion>
+            <ModuleAccordion key={module.id} module={module} />
           ))}
+        </div>
 
-          <Typography variant="h6" gutterBottom mt={5}>
-            Valinnaiset opinnot
-          </Typography>
+        <div>
+          <h2 className="mb-3 text-lg font-semibold">Valinnaiset opinnot</h2>
           {optionalModules.map((module) => (
-            <Accordion
-              key={module.id}
-              sx={{
-                marginBottom: 2,
-                backgroundColor: module.completed ? '#afe3b2' : '#f3f3f3',
-                border: '1px solid #ccc',
-                borderRadius: 2,
-                position: 'relative',
-                '&:hover .hover-button': { visibility: 'visible' },
-              }}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {module.completed && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px' }}>
-                        <CheckBoxSharpIcon sx={{ color: 'black', fontSize: '2rem' }} />
-                      </Box>
-                    )}
-                    <Typography fontWeight="bold">{module.title}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography>{module.points} osp</Typography>
-                  </Box>
-                </Box>
-              </AccordionSummary>
-
-              {module.parts.length > 0 && (
-                <AccordionDetails>
-                  {module.parts.map((part) => (
-                    <Box
-                      key={part.id}
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        padding: 1,
-                        backgroundColor: part.completed ? '#93cf96' : '#fff',
-                        borderRadius: 1,
-                        marginBottom: 1,
-                        border: 1,
-                      }}
-                    >
-                      <Accordion sx={{ boxShadow: 'none', backgroundColor: 'transparent' }}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                          <Typography variant="subtitle1" fontWeight="bold">
-                            {part.title} ({part.points} osp)
-                          </Typography>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ pl: 2 }}>
-                          {part.osaamiset && part.osaamiset.length > 0 ? (
-                            <Box>
-                              <Typography variant="body2" fontWeight="bold">
-                                Osaamiset:
-                              </Typography>
-                              <ul>
-                                {part.osaamiset.map((osaaminen, index) => (
-                                  <li key={index}>
-                                    <Typography variant="body2">{osaaminen}</Typography>
-                                  </li>
-                                ))}
-                              </ul>
-                            </Box>
-                          ) : (
-                            <Typography variant="body2" color="textSecondary">
-                              Ei määriteltyjä osaamisia
-                            </Typography>
-                          )}
-                        </AccordionDetails>
-                      </Accordion>
-                    </Box>
-                  ))}
-                </AccordionDetails>
-              )}
-            </Accordion>
+            <ModuleAccordion key={module.id} module={module} />
           ))}
 
-          <IconButton sx={buttonStyles.saveButton} onClick={handleAddModalOpen}>
-            <AddCircleOutlineSharpIcon
-              sx={{
-                mr: 1,
-              }}
-            />
+          <Button variant="outline" onClick={handleAddModalOpen} className="mt-2">
+            <PlusCircle className="mr-2 h-4 w-4" />
             Lisää valinnaisia opintoja
-          </IconButton>
+          </Button>
+        </div>
 
-          <Modal open={isAddModalOpen} onClose={handleAddModalClose}>
-            <Box sx={{ ...modalStyles.outerBox, maxWidth: '600px' }}>
-              <Box sx={modalStyles.header}>
-                <Typography sx={modalStyles.title}>Lisää valinnaisia opintoja</Typography>
-              </Box>
-              <Box
-                sx={{
-                  ...modalStyles.content,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                  marginLeft: '80px',
-                }}
-              >
-                {optionalModulesList.map((module) => (
-                  <FormControlLabel
-                    key={module.id}
-                    control={<Checkbox checked={selectedOptionalModules.includes(module.id)} onChange={() => handleCheckboxChange(module.id)} />}
-                    label={module.title}
+        <Dialog open={isAddModalOpen} onOpenChange={(open) => { if (!open) handleAddModalClose(); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Lisää valinnaisia opintoja</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-2 py-4">
+              {optionalModulesList.map((module) => (
+                <label key={module.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedOptionalModules.includes(module.id)}
+                    onChange={() => handleCheckboxChange(module.id)}
+                    className="h-4 w-4 rounded border-input"
                   />
-                ))}
-              </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  paddingTop: 2,
-                  borderTop: 2,
-                  backgroundColor: '#ebe9e6',
-                }}
-              >
-                <Button sx={{ ...buttonStyles.cancelButton, minWidth: '250px' }} onClick={addSelectedModules}>
-                  Lisää valitut
-                </Button>
-                <Button
-                  sx={{
-                    ...buttonStyles.cancelButton,
-                    width: '120px',
-                    marginLeft: '16px',
-                  }}
-                  onClick={handleAddModalClose}
-                >
-                  Sulje
-                </Button>
-              </Box>
-            </Box>
-          </Modal>
+                  <span className="text-sm">{module.title}</span>
+                </label>
+              ))}
+            </div>
+            <DialogFooter>
+              <Button onClick={addSelectedModules}>Lisää valitut</Button>
+              <Button variant="outline" onClick={handleAddModalClose}>Sulje</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          <Typography variant="h6" gutterBottom mt={5}>
-            Aikaisemmat opinnot
-          </Typography>
-          <Box sx={{ ...formStyles.formNotificationBox, backgroundColor: '#afe3b2' }}>
-            <Typography>Hyväksytty aikaisempi koulutus</Typography>
-            <Typography>{previousEducation} osp</Typography>
-          </Box>
+        <div>
+          <h2 className="mb-3 text-lg font-semibold">Aikaisemmat opinnot</h2>
+          <div className="flex max-w-xs flex-col rounded border bg-green-100 p-3">
+            <p className="text-sm">Hyväksytty aikaisempi koulutus</p>
+            <p className="text-sm">{previousEducation} osp</p>
+          </div>
+        </div>
 
-          <Divider sx={{ marginY: 3 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <IconButton type="submit" sx={buttonStyles.saveButton}>
-              <SaveSharpIcon
-                sx={{
-                  mr: 1,
-                }}
-              />
-              Tallenna Opintosuunnitelma
-            </IconButton>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Box>
-                <Typography
-                  sx={{
-                    border: 2,
-                    borderRadius: 1,
-                    margin: 1,
-                    padding: 1,
-                    fontWeight: 'bold',
-                    backgroundColor: '#ebe9e6',
-                  }}
-                >
-                  Osp suoritettu: {completedPoints}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    border: 2,
-                    borderRadius: 1,
-                    margin: 1,
-                    padding: 1,
-                    fontWeight: 'bold',
-                    backgroundColor: '#ebe9e6',
-                  }}
-                >
-                  Osp valittu: {totalPoints}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    border: 2,
-                    borderRadius: 1,
-                    margin: 1,
-                    padding: 1,
-                    fontWeight: 'bold',
-                    backgroundColor: '#ebe9e6',
-                  }}
-                >
-                  Tutkintoon vaadittu osp: 145
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </>
+        <Separator />
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Button variant="outline">
+            <Save className="mr-2 h-4 w-4" />
+            Tallenna Opintosuunnitelma
+          </Button>
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded border-2 bg-muted px-3 py-2 text-sm font-bold">
+              Osp suoritettu: {completedPoints}
+            </span>
+            <span className="rounded border-2 bg-muted px-3 py-2 text-sm font-bold">
+              Osp valittu: {totalPoints}
+            </span>
+            <span className="rounded border-2 bg-muted px-3 py-2 text-sm font-bold">
+              Tutkintoon vaadittu osp: 145
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

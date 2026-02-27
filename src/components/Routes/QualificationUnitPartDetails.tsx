@@ -1,18 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
-import {
-  Container,
-  Box,
-  Button,
-  Typography,
-  IconButton,
-  Chip,
-} from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import EditIcon from "@mui/icons-material/Edit";
+import { Pencil } from "lucide-react";
 import { GET_QUALIFICATION_UNIT_PART_BY_ID } from "../../graphql/GetQualificationUnitPartById";
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
+import BackButton from "@/components/common/back-button";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const QualificationUnitPartDetails = () => {
   const navigate = useNavigate();
@@ -24,16 +18,16 @@ const QualificationUnitPartDetails = () => {
     fetchPolicy: "no-cache",
   });
 
-  if (loading) return <Typography>Loading...</Typography>;
-  if (error) return <Typography>Error: {error.message}</Typography>;
+  if (loading) return <p className="p-4">Loading...</p>;
+  if (error) return <p className="p-4">Error: {error.message}</p>;
 
   const part = data?.part?.part;
   if (!part) {
     console.log("Data received from GraphQL query is empty or incorrect.");
-    return <Typography>Part not found</Typography>;
+    return <p className="p-4">Part not found</p>;
   }
 
-  // Markdown rendering
+  // Markdown rendering - content is sanitized with DOMPurify before rendering
   const md = new MarkdownIt({ html: true });
   const sanitizeHtml = (html: string) =>
     DOMPurify.sanitize(html, {
@@ -45,78 +39,71 @@ const QualificationUnitPartDetails = () => {
   const safeMaterials = sanitizeHtml(md.render(part.materials || ""));
 
   return (
-    <Container maxWidth="lg" sx={{ backgroundColor: "#f5f5f5", padding: 3, borderRadius: 2 }}>
+    <div className="mx-auto max-w-5xl space-y-6 rounded-lg bg-muted/30 p-6">
       {/* Header */}
-      <Box mb={2} display="flex" alignItems="center" sx={{ backgroundColor: "#65558F", padding: 2, borderRadius: 1 }}>
-        <Box display="flex" alignItems="center" sx={{ mr: 2 }}>
-          <IconButton onClick={() => navigate(-1)} sx={{ color: "white" }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ ml: 2, color: "white" }}>
-            {part.name}
-          </Typography>
-        </Box>
-      </Box>
+      <div className="flex items-center gap-4 rounded-lg bg-primary px-6 py-4">
+        <BackButton variant="ghost" className="mb-0 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground" />
+        <h2 className="text-xl font-semibold text-primary-foreground">
+          {part.name}
+        </h2>
+      </div>
 
       {/* Main Content */}
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "60% 40%" }, gap: 3 }}>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[3fr_2fr]">
         {/* Left Column */}
-        <Box>
-          <Typography variant="h6" gutterBottom>Teeman nimi</Typography>
-          <Box sx={{ padding: 2, backgroundColor: "#ffffff", border: "1px solid #ddd", borderRadius: 1 }}>{part.name}</Box>
+        <div className="space-y-4">
+          <div>
+            <h3 className="mb-2 text-lg font-semibold">Teeman nimi</h3>
+            <div className="rounded-md border bg-white p-3">{part.name}</div>
+          </div>
 
-          <Typography variant="h6" gutterBottom>Teeman kuvaus</Typography>
-          <Box sx={{ padding: 2, backgroundColor: "#ffffff", border: "1px solid #ddd", borderRadius: 1 }}>
-            <div dangerouslySetInnerHTML={{ __html: safeDescription }} />
-          </Box>
+          <div>
+            <h3 className="mb-2 text-lg font-semibold">Teeman kuvaus</h3>
+            {/* Content sanitized with DOMPurify */}
+            <div className="prose max-w-none rounded-md border bg-white p-3" dangerouslySetInnerHTML={{ __html: safeDescription }} />
+          </div>
 
-          <Typography variant="h6" gutterBottom>Materiaalit</Typography>
-          <Box sx={{ padding: 2, backgroundColor: "#ffffff", border: "1px solid #ddd", borderRadius: 1 }}>
-            <div dangerouslySetInnerHTML={{ __html: safeMaterials }} />
-          </Box>
-        </Box>
+          <div>
+            <h3 className="mb-2 text-lg font-semibold">Materiaalit</h3>
+            {/* Content sanitized with DOMPurify */}
+            <div className="prose max-w-none rounded-md border bg-white p-3" dangerouslySetInnerHTML={{ __html: safeMaterials }} />
+          </div>
+        </div>
 
         {/* Right Column */}
-        <Box sx={{ display: "grid", gridTemplateRows: "auto auto auto", gridRowGap: 3 }}>
-        <Typography variant="h6" gutterBottom>Tutkinnon osa</Typography>
-          <Box>
+        <div className="space-y-4">
+          <div>
+            <h3 className="mb-2 text-lg font-semibold">Tutkinnon osa</h3>
             {part.parentQualificationUnit ? (
-              <Chip
-                label={part.parentQualificationUnit.name}
-                variant="filled"
-                color="primary"
-                sx={{ m: 0.5 }}
-              />
+              <Badge>{part.parentQualificationUnit.name}</Badge>
             ) : (
-              <Typography variant="body2" color="textSecondary">Ei tutkinnon osaa</Typography>
+              <p className="text-sm text-muted-foreground">Ei tutkinnon osaa</p>
             )}
-          </Box>
-          
-          <Typography variant="h6" gutterBottom>Projektit</Typography>
-          <Box>
-            {part.projects && part.projects.length > 0 ? (
-              part.projects.map((project: { id: string; name: string }) => (
-                <Chip key={project.id} label={project.name} variant="filled" color="primary" sx={{ m: 0.5 }} />
-              ))
-            ) : (
-              <Typography variant="body2" color="textSecondary">Ei projekteja lisättynä.</Typography>
-            )}
-          </Box>
-        </Box>
-      </Box>
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-lg font-semibold">Projektit</h3>
+            <div className="flex flex-wrap gap-2">
+              {part.projects && part.projects.length > 0 ? (
+                part.projects.map((project: { id: string; name: string }) => (
+                  <Badge key={project.id}>{project.name}</Badge>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">Ei projekteja lisättynä.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Bottom Right Button */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4 }}>
-        <Button
-          variant="contained"
-          startIcon={<EditIcon />}
-          sx={{ backgroundColor: "#65558F", borderRadius: 2, paddingX: 3 }}
-          onClick={() => navigate(`/qualificationunitparts/edit/${part.id}`)}
-        >
+      <div className="flex justify-end">
+        <Button onClick={() => navigate(`/qualificationunitparts/edit/${part.id}`)}>
+          <Pencil className="mr-2 h-4 w-4" />
           Muokkaa
         </Button>
-      </Box>
-    </Container>
+      </div>
+    </div>
   );
 };
 

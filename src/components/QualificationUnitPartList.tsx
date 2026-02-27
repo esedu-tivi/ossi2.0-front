@@ -1,20 +1,11 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
-import {
-  TableBody,
-  TableCell,
-  TableRow,
-  Button,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import InfoIcon from "@mui/icons-material/Info";
-import AddIcon from "@mui/icons-material/Add";
-import "../css/QualificationUnitPartsList.css";
-import { GET_QUALIFICATION_UNIT_PARTS } from "../graphql/GetQualificationUnitParts";
-import buttonStyles from '../styles/buttonStyles';
-import { QualificationUnitPart } from "../types";
-import Table, { TableHeaderCell } from "./common/Table";
+import { TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Pencil, Info, Plus } from "lucide-react";
+import { GET_QUALIFICATION_UNIT_PARTS } from "@/graphql/GetQualificationUnitParts";
+import { QualificationUnitPart } from "@/types";
+import DataTable, { type TableHeaderCell } from "@/components/common/data-table";
 
 const tableHeaderCells: readonly TableHeaderCell[] = [
   {
@@ -42,7 +33,7 @@ const tableHeaderCells: readonly TableHeaderCell[] = [
   }
 ]
 
-const QualificationUnitPartList: React.FC = () => {
+const QualificationUnitPartList = () => {
   const { loading, error, data } = useQuery(GET_QUALIFICATION_UNIT_PARTS);
   const navigate = useNavigate();
 
@@ -52,52 +43,41 @@ const QualificationUnitPartList: React.FC = () => {
   const parts: QualificationUnitPart[] = data?.parts.parts || [];
 
   return (
-    <div className="qualification-unit-parts-container">
-      <div className="button-container">
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          sx={{ ...buttonStyles.cancelButton, mr: 2 }}
-          onClick={() => navigate("/qualificationunitparts/new")}
-        >
-          Lisää Teema
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <Button onClick={() => navigate("/qualificationunitparts/new")}>
+          <Plus />
+          Lis&auml;&auml; Teema
         </Button>
-
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          sx={buttonStyles.cancelButton}
-          onClick={() => navigate("/teacherdashboard/reorderparts")}
-        >
-          Järjestele Teemoja
+        <Button onClick={() => navigate("/teacherdashboard/reorderparts")}>
+          <Plus />
+          J&auml;rjestele Teemoja
         </Button>
       </div>
-      <Table<QualificationUnitPart> headerCells={tableHeaderCells} data={parts}>
+      <DataTable<QualificationUnitPart> headerCells={tableHeaderCells} data={parts}>
         {rows =>
           <TableBody>
             {rows.map((part) => (
-              <TableRow key={part.id} className="table-row">
+              <TableRow key={part.id}>
                 <TableCell>{part.id}</TableCell>
                 <TableCell>{part.name}</TableCell>
                 <TableCell>{part.parentQualificationUnit.name}</TableCell>
                 <TableCell>
-                  <div className="button-group">
+                  <div className="flex gap-2">
                     <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<EditIcon />}
+                      variant="outline"
+                      size="sm"
                       onClick={() => navigate(`/qualificationunitparts/edit/${part.id}`)}
                     >
+                      <Pencil />
                       Muokkaa
                     </Button>
                     <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<InfoIcon />}
+                      variant="outline"
+                      size="sm"
                       onClick={() => navigate(`/qualificationunitparts/${part.id}`)}
                     >
+                      <Info />
                       Tiedot
                     </Button>
                   </div>
@@ -105,7 +85,7 @@ const QualificationUnitPartList: React.FC = () => {
               </TableRow>
             ))}
           </TableBody>}
-      </Table>
+      </DataTable>
     </div>
   );
 };
