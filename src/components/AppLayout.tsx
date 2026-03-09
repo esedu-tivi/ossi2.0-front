@@ -12,7 +12,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState<boolean>(false);
-  const [title, setTitle] = useState<string>("Otsikko");
+  const [title] = useState<string>("Otsikko");
 
   const handleDrawerToggle = () => {
     if (!isClosing) {

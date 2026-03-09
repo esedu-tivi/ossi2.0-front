@@ -1,4 +1,4 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Menu, MenuItem, Typography } from "@mui/material";
+import { Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Menu, MenuItem, Typography } from "@mui/material";
 import { useMutation, useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import RichTextEditor from "../../common/RichTextEditor";
@@ -9,7 +9,6 @@ import { GET_STUDENT_PROJECTS } from "../../../graphql/GetStudentProjects";
 import { UNASSIGN_STUDENT_PROJECT } from "../../../graphql/UnassignStudentProject";
 import ProjectDescription from "./ProjectDescription";
 import { GET_ASSIGNED_PROJECT } from "../../../graphql/GetAssignedProject";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 
@@ -103,12 +102,6 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
 
   const returnProject = async () => {
     await saveProject(ProjectStatus.Returned);
-
-    onClose();
-  };
-
-  const reactivateProject = async () => {
-    await saveProject(ProjectStatus.Working);
 
     onClose();
   };

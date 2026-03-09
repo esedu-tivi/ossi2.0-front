@@ -1,15 +1,20 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Dialog, DialogTitle, Typography } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Button, Typography } from "@mui/material"
 import RichTextEditor from "../common/RichTextEditor"
 import { useMutation } from "@apollo/client";
 import { GET_ASSIGNED_PROJECT } from "../../graphql/GetAssignedProject";
 import { GET_STUDENT_PROJECTS } from "../../graphql/GetStudentProjects";
 import { UPDATE_STUDENT_PROJECT } from "../../graphql/UpdateStudentProject";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { AssignedProject } from "../../types";
 //import formStyles from "../../styles/formStyles";
 
+interface EvaluateProjectProps {
+    project: AssignedProject;
+    studentId: number;
+}
 
-const EvaluateProject=({ project, studentId, })=>{
+const EvaluateProject = ({ project, studentId }: EvaluateProjectProps) => {
     const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_ASSIGNED_PROJECT, GET_STUDENT_PROJECTS]})
       const [feedback, setFeedback]= useState('')
       const addFeedback = async () =>{
@@ -22,7 +27,7 @@ const EvaluateProject=({ project, studentId, })=>{
             projectReport: project.projectPlan, update: projectUpdate }});
         setFeedback('')
       }
-      const handleFeedback = (content) =>{//function formats feedback so there are no html components and no null present
+      const handleFeedback = (content: string) =>{//function formats feedback so there are no html components and no null present
         let newContent = content;
         setFeedback(newContent)
       }

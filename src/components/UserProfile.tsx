@@ -14,7 +14,7 @@ import '../css/UserProfile.css';
 import NotificationDrawer from './NotificationDrawer';
 import { GET_UNREAD_NOTIFICATION_COUNT } from '../graphql/GetUnreadNotificationCount';
 import { useQuery } from '@apollo/client';
-import { ButtonBase, Menu, MenuItem, Tooltip } from '@mui/material';
+import { ButtonBase, Menu, MenuItem } from '@mui/material';
 import { useMsal } from '@azure/msal-react';
 
 

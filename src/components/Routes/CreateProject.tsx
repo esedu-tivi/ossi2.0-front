@@ -18,7 +18,6 @@ import { GET_PROJECT_TAGS } from '../../graphql/GetProjectTags';
 import { useFormHandleManager } from '../../hooks/useFormHandleManager';
 import { ASSIGN_TEACHING_PROJECT } from '../../graphql/AssignTeachingProject';
 import { USER_SETUP } from '../../graphql/UserSetup';
-import { userInfo } from 'os';
 import { GET_ASSIGNED_TEACHING_PROJECT_IDS } from '../../graphql/GetAssignedTeachingProjectIds';
 
 const NewProjectForm: React.FC = () => {
