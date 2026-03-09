@@ -30,3 +30,6 @@ dist-ssr
 
 # Ignore authConfig file
 src/authConfig.ts
+
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo
