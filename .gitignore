@@ -15,6 +15,10 @@ dist-ssr
 CLAUDE.md
 /.playwright-mcp
 .claude
+screenshots/
+*.png
+*.jpg
+*.jpeg
 
 # Editor directories and files
 .vscode/*
