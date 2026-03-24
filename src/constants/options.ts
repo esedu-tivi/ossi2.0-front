@@ -1,26 +1,26 @@
 // src/constants/options.ts
 
-// Example options for selection menus
-
-export const STATUS_OPTIONS = [
-  { id: 'in_progress', name: 'Kesken', color: '#ffb300' },
-  { id: 'done', name: 'Valmis', color: '#43a047' },
-  { id: 'not_started', name: 'Ei aloitettu', color: '#d21938' },
-];
+// Set colors for project tags
 
 export const COLOR_OPTIONS = [
-  { id: 'red', name: 'Punainen', color: '#e57373' },
-  { id: 'green', name: 'Vihreä', color: '#81c784' },
-  { id: 'blue', name: 'Sininen', color: '#64b5f6' },
-  { id: 'orange', name: 'Oranssi', color: '#ffb74d' },
-  { id: 'purple', name: 'Violetti', color: '#ba68c8' },
-  { id: 'black', name: 'Musta', color: '#000000' },
-];
+  { id: 'soft_red', name: 'Vaaleanpunainen', color: '#f8cdcd' },
+  { id: 'muted_red', name: 'Tumma punainen', color: '#e76363' },
 
-export const TAG_OPTIONS = [
-  { id: 'urgent', name: 'Kiireellinen' },
-  { id: 'info', name: 'Info' },
-  { id: 'pending', name: 'Odottaa' },
-];
+  { id: 'peach', name: 'Persikka', color: '#fad4b3' },
+  { id: 'muted_orange', name: 'Tumma oranssi', color: '#df993f' },
 
-// Add more selection options as needed
+  { id: 'soft_yellow', name: 'Keltainen', color: '#ebe39a' },
+  { id: 'muted_yellow', name: 'Tumma keltainen', color: '#eec306' },
+
+  { id: 'soft_green', name: 'Vihreä', color: '#c5e9c7' },
+  { id: 'muted_green', name: 'Tumma vihreä', color: '#9ada8d' },
+
+  { id: 'soft_blue', name: 'Sininen', color: '#a1d4ec' },
+  { id: 'muted_blue', name: 'Tumma sininen', color: '#7fb4fa' },
+
+  { id: 'lavender', name: 'Laventeli', color: '#d7c5f8' },
+  { id: 'muted_purple', name: 'Violetti', color: '#b4abfc' },
+
+  { id: 'soft_grey', name: 'Harmaa', color: '#c8ccce' },
+  { id: 'brown', name: 'Ruskea', color: '#c9ae9c' },
+];
