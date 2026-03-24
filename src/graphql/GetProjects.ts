@@ -18,7 +18,9 @@ export const GET_PROJECTS = gql`
         materials
         isActive
         tags {
+          id
           name
+          color
         }
       }
     }

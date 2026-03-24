@@ -9,6 +9,7 @@ export const GET_PROJECT_TAGS = gql`
             projectTags {
                 name
                 id
+                color
             }
         }
     }

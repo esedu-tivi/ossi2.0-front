@@ -54,6 +54,18 @@ export interface Project {
   id: number;
   name: string;
   includedInQualificationUnitParts: { id: number; name: string }[];
+  tags?: Tag[];
+  description: string;
+  materials: string;
+  duration: number | string;
+  competenceRequirements?: { id: string; description: string }[];
+  isActive?: boolean;
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  color?: string;
 }
 
 export interface SortConfig {
