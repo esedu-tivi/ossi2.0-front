@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { TableBody, TableCell, TableRow, Button } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import InfoIcon from '@mui/icons-material/Info';
-import ArchiveIcon from '@mui/icons-material/Archive';
+import { TableBody, TableCell, TableRow } from '@mui/material';
 import TeacherStudentMenu from './common/TeacherStudentMenu';
+import { COLOR_OPTIONS } from '../constants/options';
 import { addFollowedStudent, getFollowedStudents, removeFollowedStudent, FollowedStudent } from '../utils/followedStudents';
 import { addNotifiedStudent, removeNotifiedStudent, getNotifiedStudents } from '../utils/notifiedStudents';
 import { GET_STUDENTS } from '../graphql/GetStudents';
+import { GET_PROJECT_TAGS } from '../graphql/GetProjectTags';
 import '../css/StudentList.css';
 import { useNavigate } from 'react-router-dom';
 import Table, { TableHeaderCell } from './common/Table';
@@ -29,18 +28,23 @@ const headerCells: readonly TableHeaderCell[] = [
     },
     {
         id: 2,
+        type: "none",
+        label: "Tunnisteet"
+    },
+    {
+        id: 3,
         type: "sort",
         label: "Ryhmä",
         sortPath: "groupId"
     },
     {
-        id: 3,
+        id: 4,
         type: "sort",
         label: "Ammattinimike",
         sortPath: "studyingQualificationTitle.name"
     },
     {
-        id: 4,
+        id: 5,
         type: "search",
         searchPath: "fullName"
     }
@@ -53,7 +57,10 @@ interface ParsedStudent extends Student {
 const StudentList: React.FC = () => {
     const [notifiedIds, setNotifiedIds] = useState<string[]>([]);
     const [followedIds, setFollowedIds] = useState<string[]>([]);
+    const [studentTags, setStudentTags] = useState<{ [studentId: string]: Array<{ tagId: string, colorId: string, tagName?: string }> }>({});
     const { addAlert } = useAlerts();
+    const { data: tagData } = useQuery(GET_PROJECT_TAGS);
+    const assignedTags = tagData?.projectTags?.projectTags || [];
 
     useEffect(() => {
         setNotifiedIds(getNotifiedStudents());
@@ -89,62 +96,133 @@ const StudentList: React.FC = () => {
         <Table<ParsedStudent> headerCells={headerCells} data={students}>
             {(rows) =>
                 <TableBody>
-                    {rows.map((student: ParsedStudent) => (
-                        <TableRow key={student.id} className="table-row">
-                            <TableCell>{student.id}</TableCell>
-                            <TableCell>{`${student.fullName}`}</TableCell>
-                            <TableCell>{student.groupId}</TableCell>
-                            <TableCell>{student.studyingQualificationTitle ? student.studyingQualificationTitle.name : ''}</TableCell>
-                            <TableCell>
-                                <div className="hover-buttons">
-                                    <Button variant="outlined" size="small" startIcon={<InfoIcon />} onClick={() => navigate(`/teacherdashboard/students/${student.id}`)}>
-                                        Tiedot
-                                    </Button>
-                                    <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => console.log('Edit Student')}>
-                                        Muokkaa
-                                    </Button>
-                                    <Button variant="outlined" size="small" startIcon={<ArchiveIcon />} onClick={() => console.log('Archive')}>
-                                        Arkistoi
-                                    </Button>
-                                    <TeacherStudentMenu
-                                        isFollowed={followedIds.includes(student.id.toString())}
-                                        isNotified={notifiedIds.includes(student.id.toString())}
-                                        onFollowToggle={() => {
-                                            if (followedIds.includes(student.id.toString())) {
-                                                removeFollowedStudent(student.id.toString());
-                                                const followed = getFollowedStudents();
-                                                setFollowedIds(followed.map((s: FollowedStudent) => s.id));
-                                                addAlert('Seuranta poistettu käytöstä', 'info');
-                                            } else {
-                                                addFollowedStudent({
-                                                    id: student.id.toString(),
-                                                    firstName: student.firstName,
-                                                    lastName: student.lastName
-                                                });
-                                                const followed = getFollowedStudents();
-                                                setFollowedIds(followed.map((s: FollowedStudent) => s.id));
-                                                addAlert('Seuranta otettu käyttöön', 'success');
-                                            }
-                                        }}
-                                        onNotifyToggle={() => {
-                                            if (notifiedIds.includes(student.id.toString())) {
-                                                removeNotifiedStudent(student.id.toString());
-                                                setNotifiedIds(getNotifiedStudents());
-                                                addAlert('Ilmoitukset poistettu käytöstä', 'info');
-                                            } else {
-                                                addNotifiedStudent(student.id.toString());
-                                                setNotifiedIds(getNotifiedStudents());
-                                                addAlert('Ilmoitukset otettu käyttöön', 'success');
-                                            }
-                                        }}
-                                        onEdit={() => console.log('Edit Student')}
-                                        onArchive={() => console.log('Archive')}
-                                        onProfile={() => navigate(`/teacherdashboard/students/${student.id}`)}
-                                    />
-                                </div>
+                    {/* If no results match the search query, display a message */}
+                    {rows.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={headerCells.length} align="center">
+                                Ei tuloksia
                             </TableCell>
                         </TableRow>
-                    ))}
+                    ) : (
+                        rows.map((student: ParsedStudent) => (
+                            <TableRow key={student.id} className="table-row">
+                                <TableCell>{student.id}</TableCell>
+                                <TableCell>{student.fullName}</TableCell>
+                                {/* Tags column */}
+                                <TableCell>
+                                    {studentTags[student.id] && studentTags[student.id].length > 0 && (
+                                        studentTags[student.id].map((tag, idx) => (
+                                            <span
+                                                key={tag.tagId + '-' + idx}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    marginRight: 8,
+                                                    padding: '2px 8px',
+                                                    borderRadius: 8,
+                                                    background: COLOR_OPTIONS.find(c => c.id === tag.colorId)?.color || '#accecc',
+                                                    fontSize: 12,
+                                                    marginBottom: 4,
+                                                    color: '#222',
+                                                    border: '1px solid #2c2b2b',
+                                                    position: 'relative'
+                                                }}
+                                            >
+                                                {tag.tagName ? tag.tagName : assignedTags.find((t: { id: string, name: string }) => t.id === tag.tagId)?.name}
+                                                <span
+                                                    style={{ marginLeft: 6, cursor: 'pointer', color: '#b71c1c', fontWeight: 'bold' }}
+                                                    title="Poista tunniste"
+                                                    onClick={() => {
+                                                        setStudentTags(prev => {
+                                                            const prevTags = prev[student.id] || [];
+                                                            const updatedTags = prevTags.filter((_, i) => i !== idx);
+                                                            return {
+                                                                ...prev,
+                                                                [student.id]: updatedTags
+                                                            };
+                                                        });
+                                                    }}
+                                                >
+                                                    ×
+                                                </span>
+                                            </span>
+                                        ))
+                                    )}
+                                </TableCell>
+                                <TableCell>{student.groupId}</TableCell>
+                                <TableCell>{student.studyingQualificationTitle ? student.studyingQualificationTitle.name : ''}</TableCell>
+                                <TableCell>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }} className="button-group">
+                                        <TeacherStudentMenu
+                                            isFollowed={followedIds.includes(student.id.toString())}
+                                            isNotified={notifiedIds.includes(student.id.toString())}
+                                            onFollowToggle={() => {
+                                                if (followedIds.includes(student.id.toString())) {
+                                                    removeFollowedStudent(student.id.toString());
+                                                    const followed = getFollowedStudents();
+                                                    setFollowedIds(followed.map((s: FollowedStudent) => s.id));
+                                                    addAlert('Seuranta poistettu käytöstä', 'info');
+                                                } else {
+                                                    addFollowedStudent({
+                                                        id: student.id.toString(),
+                                                        firstName: student.firstName,
+                                                        lastName: student.lastName
+                                                    });
+                                                    const followed = getFollowedStudents();
+                                                    setFollowedIds(followed.map((s: FollowedStudent) => s.id));
+                                                    addAlert('Seuranta otettu käyttöön', 'success');
+                                                }
+                                            }}
+                                            onNotifyToggle={() => {
+                                                if (notifiedIds.includes(student.id.toString())) {
+                                                    removeNotifiedStudent(student.id.toString());
+                                                    setNotifiedIds(getNotifiedStudents());
+                                                    addAlert('Ilmoitukset poistettu käytöstä', 'info');
+                                                } else {
+                                                    addNotifiedStudent(student.id.toString());
+                                                    setNotifiedIds(getNotifiedStudents());
+                                                    addAlert('Ilmoitukset otettu käyttöön', 'success');
+                                                }
+                                            }}
+                                            // Tag management
+                                            onEdit={() => console.log('Edit Student')}
+                                            onArchive={() => console.log('Archive')}
+                                            onProfile={() => navigate(`/teacherdashboard/students/${student.id}`)}
+                                            studentId={student.id}
+                                            studentTags={studentTags}
+                                            onTagSelect={(tagId: string, colorId?: string, tagName?: string) => {
+                                                if (tagId && colorId) {
+                                                    setStudentTags(prev => {
+                                                        const prevTags = prev[student.id] || [];
+                                                        // If the tag is already added, update the color and name (in case it was a new tag without name)
+                                                        const tagIndex = prevTags.findIndex(t => t.tagId === tagId);
+                                                        if (tagIndex !== -1) {
+                                                            const updatedTags = [...prevTags];
+                                                            updatedTags[tagIndex] = {
+                                                                ...updatedTags[tagIndex],
+                                                                colorId,
+                                                                tagName: tagName || updatedTags[tagIndex].tagName
+                                                            };
+                                                            return {
+                                                                ...prev,
+                                                                [student.id]: updatedTags
+                                                            };
+                                                        }
+                                                        // Otherwise, add a new tag
+                                                        return {
+                                                            ...prev,
+                                                            [student.id]: [...prevTags, { tagId, colorId, tagName }]
+                                                        };
+                                                    });
+                                                }
+                                            }}
+                                            tags={assignedTags}
+                                        />
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
                 </TableBody>}
         </Table>
     );
