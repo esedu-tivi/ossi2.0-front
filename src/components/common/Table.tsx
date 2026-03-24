@@ -104,7 +104,7 @@ const Head = ({
             </Box>
           </TableCell>
           : (part.type === "search") ?
-            <TableCell className="table-header-cell" key={part.id}>
+            <TableCell className="table-header-cell" key={part.id} style={{ minWidth: 300 }}>
               <div className="search-container">
                 <SearchIcon />
                 <TextField
