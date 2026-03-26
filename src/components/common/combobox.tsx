@@ -53,6 +53,7 @@ const Combobox = ({
         <PopoverTrigger asChild>
           <Button
             id={id}
+            type="button"
             variant="outline"
             role="combobox"
             aria-expanded={open}
@@ -62,7 +63,7 @@ const Combobox = ({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" style={{ pointerEvents: 'auto' }}>
           <Command>
             <CommandInput placeholder="Hae..." />
             <CommandList>

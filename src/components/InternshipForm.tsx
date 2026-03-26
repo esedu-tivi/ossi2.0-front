@@ -5,7 +5,6 @@ import { useLazyQuery, useQuery } from "@apollo/client"
 import { GET_INTERNSHIP_DATA } from "../graphql/GetInternshipData"
 import { GET_JOB_SUPERVISORS_BY_WORKPLACE } from "../graphql/GetJobSupervisorsByWorkplace"
 import { JobSupervisor, Student, Workplace } from "../types"
-import Combobox, { type Option } from "@/components/common/combobox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -36,9 +35,7 @@ const InternshipForm = ({
   setWorkplaceId,
 }: InternshipFormProps) => {
   const { loading, data, error } = useQuery(GET_INTERNSHIP_DATA)
-  const [loadSupervisors, jobSupervisorsData] = useLazyQuery(GET_JOB_SUPERVISORS_BY_WORKPLACE, {
-    variables: { workplaceId: workplaceId }
-  })
+  const [loadSupervisors, jobSupervisorsData] = useLazyQuery(GET_JOB_SUPERVISORS_BY_WORKPLACE)
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
@@ -61,7 +58,7 @@ const InternshipForm = ({
 
   useEffect(() => {
     if (workplaceId) {
-      loadSupervisors()
+      loadSupervisors({ variables: { workplaceId } })
     }
   }, [workplaceId, loadSupervisors])
 
@@ -79,15 +76,17 @@ const InternshipForm = ({
 
   const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors || []
 
-  const workplaceOptions: Option[] = workplaces.map((workplace: Workplace) => ({
+  const workplaceOptions: { id: string; name: string }[] = workplaces.map((workplace: Workplace) => ({
     id: workplace.id,
     name: workplace.name
   }))
 
-  const jobSupervisorOptions: Option[] = jobSupervisors?.map((jobSupervisor: JobSupervisor) => ({
-    id: jobSupervisor.id,
-    name: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
-  }))
+  const jobSupervisorOptions: { id: string; name: string }[] = jobSupervisors
+    ?.filter((jobSupervisor: JobSupervisor) => jobSupervisor.id)
+    .map((jobSupervisor: JobSupervisor) => ({
+      id: jobSupervisor.id as string,
+      name: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
+    }))
 
   return (
     <form
@@ -95,6 +94,7 @@ const InternshipForm = ({
       className="text-center"
     >
       <div className="flex flex-col md:flex-row gap-4 mt-4">
+
         <div className="flex-1 space-y-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="teacher">Opettaja</Label>
@@ -126,49 +126,90 @@ const InternshipForm = ({
               }}
             >
               <SelectTrigger id="qualificationUnitId" className="w-full text-left">
-                <SelectValue placeholder="Valitse tutkinnonosa..." />
+                <SelectValue placeholder="Valitse tutkinnonosa...">
+                  
+                  {qualificationUnits.find((u: { id: string; name: string }) => String(u.id) === String(formData.qualificationUnitId))?.name ?? ''}
+                </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+
+              <SelectContent style={{ pointerEvents: 'auto' }}>
+                
                 {qualificationUnits.map((unit: { id: string; name: string }) => (
-                  <SelectItem key={unit.id} value={unit.id}>
+                  <SelectItem key={unit.id} value={String(unit.id)}>
                     {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="workplaceId">
+              Työpaikka
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Select
+              value={formData.workplaceId}
+              onValueChange={(value) => {
+                setFormData((prevFormData: InternshipWithoutId) => ({
+                  ...prevFormData,
+                  workplaceId: value,
+                  jobSupervisorId: "",
+                }));
+                setWorkplaceId(value);
+              }}
+              required
+            >
+              <SelectTrigger id="workplaceId" className="w-full text-left">
+                <SelectValue placeholder="Valitse työpaikka...">
+                  {workplaceOptions.find((o) => String(o.id) === String(formData.workplaceId))?.name ?? ''}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent style={{ pointerEvents: 'auto' }}>
+                {workplaceOptions.map((workplace) => (
+                  <SelectItem key={workplace.id} value={String(workplace.id)}>
+                    {workplace.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <Combobox
-            id="workplace"
-            label="Työpaikka"
-            options={workplaceOptions}
-            value={workplaceOptions.find((option: Option) => option.id === formData.workplaceId) || null}
-            onChange={(_event, newValue: Option | null) => {
-              setFormData((prevFormData: InternshipWithoutId) => ({
-                ...prevFormData,
-                workplaceId: newValue ? String(newValue.id) : "",
-              }));
-              setWorkplaceId(newValue ? String(newValue.id) : null);
-            }}
-            noOptionsText="Ei löytynyt yhtään työpaikkaa"
-            required
-          />
-
           {formData.workplaceId &&
-            <Combobox
-              id="jobSupervisor"
-              label="Työpaikkaohjaaja"
-              options={jobSupervisorOptions}
-              value={jobSupervisorOptions.find((option: Option) => option.id === formData.jobSupervisorId) || null}
-              onChange={(_event, newValue: Option | null) => {
-                setFormData((prevFormData: InternshipWithoutId) => ({
-                  ...prevFormData,
-                  jobSupervisorId: newValue ? String(newValue.id) : "",
-                }));
-              }}
-              noOptionsText="Ei löytynyt yhtään työpaikkaohjaajaa"
-              required
-            />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="jobSupervisorId">
+                Työpaikkaohjaaja
+                <span className="text-destructive ml-1">*</span>
+              </Label>
+
+              <Select
+                value={formData.jobSupervisorId}
+                onValueChange={(value) => {
+                  setFormData((prevFormData: InternshipWithoutId) => ({
+                    ...prevFormData,
+                    jobSupervisorId: value,
+                  }));
+                }}
+                required
+              >
+                <SelectTrigger id="jobSupervisorId" className="w-full text-left">
+                  <SelectValue placeholder={jobSupervisorsData.loading ? "Ladataan..." : "Valitse työpaikkaohjaaja..."}>
+                    {jobSupervisorOptions.find((option) => String(option.id) === String(formData.jobSupervisorId))?.name ?? ''}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent style={{ pointerEvents: 'auto' }}>
+                  {jobSupervisorOptions.map((supervisor) => (
+                    <SelectItem key={supervisor.id} value={String(supervisor.id)}>
+                      {supervisor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {jobSupervisorsData.error && (
+                <p className="text-sm text-destructive">Virhe: {jobSupervisorsData.error.message}</p>
+              )}
+            </div>
           }
 
           <div className="flex flex-col gap-1.5">

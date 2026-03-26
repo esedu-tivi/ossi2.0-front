@@ -12,9 +12,7 @@ dist
 dist-ssr
 *.local
 /public/tinymce/
-CLAUDE.md
 /.playwright-mcp
-.claude
 screenshots/
 *.png
 *.jpg
