@@ -11,12 +11,6 @@ node_modules
 dist
 dist-ssr
 *.local
-/public/tinymce/
-/.playwright-mcp
-screenshots/
-*.png
-*.jpg
-*.jpeg
 
 # Editor directories and files
 .vscode/*
