@@ -4,6 +4,10 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '../ProtectedRoute';
 
 const mockUseAuth = vi.fn();
+const routerFuture = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+} as const;
 
 vi.mock('@/utils/auth-context', () => ({
   useAuth: () => mockUseAuth(),
@@ -11,7 +15,7 @@ vi.mock('@/utils/auth-context', () => ({
 
 function renderWithRouter(ui: React.ReactNode, initialEntry = '/test') {
   return render(
-    <MemoryRouter initialEntries={[initialEntry]}>
+    <MemoryRouter initialEntries={[initialEntry]} future={routerFuture}>
       <Routes>
         <Route path="/test" element={ui} />
         <Route path="/" element={<div>Redirected to Login</div>} />

@@ -5,6 +5,10 @@ import { MemoryRouter } from 'react-router-dom';
 const mockUseAuth = vi.fn();
 const mockUseQuery = vi.fn();
 const mockUseMsal = vi.fn();
+const routerFuture = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+} as const;
 
 vi.mock('@/utils/auth-context', () => ({
   useAuth: () => mockUseAuth(),
@@ -121,7 +125,7 @@ describe('App', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>
     );
@@ -143,7 +147,7 @@ describe('App', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>
     );
@@ -165,7 +169,7 @@ describe('App', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>
     );
@@ -187,7 +191,7 @@ describe('App', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>
     );
