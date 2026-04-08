@@ -416,7 +416,7 @@ const EditPart: React.FC = () => {
                 title={title}
                 buttonText={buttonText}
                 open={selectorOpen}
-                selectedItems={selectedItems[currentField] ?? []}
+                selectedItems={currentField ? selectedItems[currentField] ?? [] : []}
                 onAdd={handleAdd}
                 onClose={handleCloseSelector}
                 currentField={currentField ?? ''}
