@@ -11,8 +11,9 @@ import { GET_ASSIGNED_PROJECT } from "../../graphql/GetAssignedProject";
 import { GET_STUDENT_PROJECTS } from "../../graphql/GetStudentProjects";
 import { UPDATE_STUDENT_PROJECT } from "../../graphql/UpdateStudentProject";
 import { useState } from "react";
+import { AssignedProject } from "../../types";
 
-const EvaluateProject=({ project, studentId }: { project: any, studentId: any })=>{
+const EvaluateProject=({ project, studentId }: { project: AssignedProject, studentId: number })=>{
     const [updateProject] = useMutation(UPDATE_STUDENT_PROJECT, {refetchQueries: [GET_ASSIGNED_PROJECT, GET_STUDENT_PROJECTS]})
       const [feedback, setFeedback]= useState('')
       const addFeedback = async () =>{

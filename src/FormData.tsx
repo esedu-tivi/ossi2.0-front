@@ -11,7 +11,7 @@ export interface BasePartFormData {
   parentQualificationUnit: Item[];
 }
 
-export interface CreatePartFormData extends BasePartFormData {}
+export type CreatePartFormData = BasePartFormData;
 
 export interface EditPartFormData extends BasePartFormData {
   notifyStudents?: boolean;
@@ -29,7 +29,7 @@ export interface BaseProjectFormData {
   isActive: boolean;
 }
 
-export interface CreateProjectFormData extends BaseProjectFormData {}
+export type CreateProjectFormData = BaseProjectFormData;
 
 export interface EditProjectFormData extends BaseProjectFormData {
   notifyStudents?: boolean;
