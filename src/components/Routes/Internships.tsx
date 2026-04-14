@@ -10,7 +10,6 @@ import Table, { TableHeaderCell } from "../common/Table";
 import { convertDateForForm } from "../../utils/convertDateForForm";
 import { Internship, Student } from "../../types";
 import { EDIT_INTERNSHIP } from "../../graphql/EditInternship";
-import { GET_JOB_SUPERVISORS } from "../../graphql/GetJobSupervisors";
 import { useAlerts } from "../../context/AlertContext";
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
@@ -115,6 +114,52 @@ const headerCells: readonly TableHeaderCell[] = [
   }
 ]
 
+const getInternshipValidationError = (fd: InternshipWithoutId): string | null => {
+  if (!fd.qualificationUnitId || !fd.workplaceId || !fd.jobSupervisorId || !fd.startDate || !fd.endDate) {
+    return "Täytä pakolliset kentät (tutkinnonosa, työpaikka, työpaikkaohjaaja, aloitus- ja lopetusaika)."
+  }
+
+  const workplaceIdNum = Number(fd.workplaceId)
+  const jobSupervisorIdNum = Number(fd.jobSupervisorId)
+  const qualificationUnitIdNum = fd.qualificationUnitId ? Number(fd.qualificationUnitId) : null
+  const studentIdNum = Number(fd.studentId)
+
+  if (!Number.isFinite(workplaceIdNum) || !Number.isFinite(jobSupervisorIdNum) || (fd.qualificationUnitId && !Number.isFinite(qualificationUnitIdNum))) {
+    return "Tallennus epäonnistui: työpaikan/ohjaajan/tutkinnonosan ID ei ole numero (tarkista valinnat)."
+  }
+
+  if (!Number.isFinite(studentIdNum)) {
+    return "Tallennus epäonnistui: opiskelijan ID ei ole numero (tarkista opiskelijan tiedot)."
+  }
+
+  return null
+}
+
+const buildInternshipVars = (fd: InternshipWithoutId): InternshipWithoutId => {
+  const qualificationUnitIdNum = fd.qualificationUnitId ? Number(fd.qualificationUnitId) : null
+
+  return {
+    ...fd,
+    workplaceId: String(Number(fd.workplaceId)),
+    jobSupervisorId: String(Number(fd.jobSupervisorId)),
+    qualificationUnitId: fd.qualificationUnitId ? String(qualificationUnitIdNum) : "",
+    studentId: String(Number(fd.studentId)),
+    teacherId: "",
+  }
+}
+
+const getMutationErrorMessage = (error: unknown): string => {
+  if (error instanceof ApolloError) {
+    return error.graphQLErrors?.[0]?.message || error.message || "Tuntematon virhe"
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return "Tuntematon virhe"
+}
+
 const Internships = ({ student }: { student: Student }) => {
   const [showAddInternship, setShowAddInternship] = useState(false)
   const [showEditInternship, setShowEditInternship] = useState(false)
@@ -139,7 +184,6 @@ const Internships = ({ student }: { student: Student }) => {
     variables: { studentId: student.id },
     fetchPolicy: "network-only",
   })
-  const { data: jobSupervisorsData } = useQuery(GET_JOB_SUPERVISORS)
   const [internships, setInternships] = useState<ParsedInternships[]>([])
   const confirm = useConfirm()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -147,8 +191,6 @@ const Internships = ({ student }: { student: Student }) => {
   const { addAlert } = useAlerts()
   const [infoDialogOpen, setInfoDialogOpen] = useState(false)
   const [selectedInfoInternship, setSelectedInfoInternship] = useState<ParsedInternships | null>(null)
-
-  const allJobSupervisors = jobSupervisorsData?.jobSupervisors?.jobSupervisors || []
 
   useEffect(() => {
     if (data && !loading) {
@@ -215,54 +257,24 @@ const Internships = ({ student }: { student: Student }) => {
   const handleNewFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     const fd = formData as InternshipWithoutId
-    if (!fd.qualificationUnitId || !fd.workplaceId || !fd.jobSupervisorId || !fd.startDate || !fd.endDate) {
-      addAlert("Täytä pakolliset kentät (tutkinnonosa, työpaikka, työpaikkaohjaaja, aloitus- ja lopetusaika).", "error")
+    const validationError = getInternshipValidationError(fd)
+    if (validationError) {
+      addAlert(validationError, "error", true)
       return
     }
-    const workplaceIdNum = Number(fd.workplaceId)
-    const jobSupervisorIdNum = Number(fd.jobSupervisorId)
-    const qualificationUnitIdNum = fd.qualificationUnitId ? Number(fd.qualificationUnitId) : null
-    const studentIdNum = Number(fd.studentId)
-    if (!Number.isFinite(workplaceIdNum) || !Number.isFinite(jobSupervisorIdNum) || (fd.qualificationUnitId && !Number.isFinite(qualificationUnitIdNum))) {
-      addAlert("Tallennus epäonnistui: työpaikan/ohjaajan/tutkinnonosan ID ei ole numero (tarkista valinnat).", "error", true)
-      return
-    }
-    if (!Number.isFinite(studentIdNum)) {
-      addAlert("Tallennus epäonnistui: opiskelijan ID ei ole numero (tarkista opiskelijan tiedot).", "error", true)
-      return
-    }
-    const internshipVars: InternshipWithoutId = {
-      ...fd,
-      workplaceId: String(workplaceIdNum),
-      jobSupervisorId: String(jobSupervisorIdNum),
-      qualificationUnitId: fd.qualificationUnitId ? String(qualificationUnitIdNum) : "",
-      studentId: String(studentIdNum),
-      teacherId: "",
-    }
+
+    const internshipVars = buildInternshipVars(fd)
+
     try {
-      console.log("createInternship payload", internshipVars)
       await createInternship({ variables: { internship: internshipVars } })
       setDialogOpen(false)
     } catch (e) {
-      const err = e as ApolloError
-      console.error("createInternship failed", {
-        message: err?.message,
-        graphQLErrors: err?.graphQLErrors?.map(ge => ({
-          message: ge.message,
-          path: ge.path,
-          extensions: ge.extensions,
-        })),
-        networkError: err?.networkError,
-      })
-      console.error("createInternship graphQLErrors raw", JSON.stringify(err?.graphQLErrors ?? [], null, 2))
-      const gqlMsg = err?.graphQLErrors?.[0]?.message
-      addAlert(`Lisäyksessä tapahtui virhe: ${gqlMsg || err?.message || "Tuntematon virhe"}`, "error", true)
+      addAlert(`Lisäyksessä tapahtui virhe: ${getMutationErrorMessage(e)}`, "error", true)
       return
     }
   }
 
   const handleDelete = async (id: string | number) => {
-    console.log(id)
     const { confirmed } = await confirm({
       title: "Poisto",
       description: "Oletko aivan varma, että haluat poistaa harjoittelu jakson?"
@@ -281,30 +293,12 @@ const Internships = ({ student }: { student: Student }) => {
     event.preventDefault()
 
     const fd = formData as InternshipWithoutId
-    if (!fd.qualificationUnitId || !fd.workplaceId || !fd.jobSupervisorId || !fd.startDate || !fd.endDate) {
-      addAlert("Täytä pakolliset kentät (tutkinnonosa, työpaikka, työpaikkaohjaaja, aloitus- ja lopetusaika).", "error")
+    const validationError = getInternshipValidationError(fd)
+    if (validationError) {
+      addAlert(validationError, "error", true)
       return
     }
-    const workplaceIdNum = Number(fd.workplaceId)
-    const jobSupervisorIdNum = Number(fd.jobSupervisorId)
-    const qualificationUnitIdNum = fd.qualificationUnitId ? Number(fd.qualificationUnitId) : null
-    const studentIdNum = Number(fd.studentId)
-    if (!Number.isFinite(workplaceIdNum) || !Number.isFinite(jobSupervisorIdNum) || (fd.qualificationUnitId && !Number.isFinite(qualificationUnitIdNum))) {
-      addAlert("Tallennus epäonnistui: työpaikan/ohjaajan/tutkinnonosan ID ei ole numero (tarkista valinnat).", "error", true)
-      return
-    }
-    if (!Number.isFinite(studentIdNum)) {
-      addAlert("Tallennus epäonnistui: opiskelijan ID ei ole numero (tarkista opiskelijan tiedot).", "error", true)
-      return
-    }
-    const internshipVars: InternshipWithoutId = {
-      ...fd,
-      workplaceId: String(workplaceIdNum),
-      jobSupervisorId: String(jobSupervisorIdNum),
-      qualificationUnitId: fd.qualificationUnitId ? String(qualificationUnitIdNum) : "",
-      studentId: String(studentIdNum),
-      teacherId: "",
-    }
+    const internshipVars = buildInternshipVars(fd)
 
     const { confirmed } = await confirm({
       title: "Muokkaus",
@@ -315,18 +309,7 @@ const Internships = ({ student }: { student: Student }) => {
         await editInternship({ variables: { internshipId: selectedInternshipId, internship: internshipVars } })
         setDialogOpen(false)
       } catch (e) {
-        const err = e as ApolloError
-        console.error("editInternship failed", {
-          message: err?.message,
-          graphQLErrors: err?.graphQLErrors?.map(ge => ({
-            message: ge.message,
-            path: ge.path,
-            extensions: ge.extensions,
-          })),
-          networkError: err?.networkError,
-        })
-        const gqlMsg = err?.graphQLErrors?.[0]?.message
-        addAlert(`Muokkauksessa tapahtui virhe: ${gqlMsg || err?.message || "Tuntematon virhe"}`, "error", true)
+        addAlert(`Muokkauksessa tapahtui virhe: ${getMutationErrorMessage(e)}`, "error", true)
       }
     }
   }
@@ -470,27 +453,21 @@ const Internships = ({ student }: { student: Student }) => {
         onClose={handleInfoDialogClose}
       >
         {selectedInfoInternship ? (
-          (() => {
-            const supervisorFromInternship = selectedInfoInternship.workplace?.jobSupervisor || null
-            const supervisorFromList = allJobSupervisors.find(
-              (js: { id: string }) =>
-                supervisorFromInternship && String(js.id) === String(supervisorFromInternship.id)
-            ) as { firstName: string; lastName: string; email?: string; phoneNumber?: string } | undefined
-            const supervisor = supervisorFromList || supervisorFromInternship
-            return (
           <Box sx={{ textAlign: "left" }}>
             <Typography sx={{ mb: 1 }}>ID: {selectedInfoInternship.id}</Typography>
             <Typography sx={{ mb: 1 }}>
               Työpaikka: {selectedInfoInternship.workplace?.name}
             </Typography>
             <Typography sx={{ mb: 1 }}>
-              Ohjaaja: {supervisor ? `${supervisor.firstName} ${supervisor.lastName}` : ""}
+              Ohjaaja: {selectedInfoInternship.workplace?.jobSupervisor
+                ? `${selectedInfoInternship.workplace.jobSupervisor.firstName} ${selectedInfoInternship.workplace.jobSupervisor.lastName}`
+                : ""}
             </Typography>
             <Typography sx={{ mb: 1 }}>
-              Sähköposti: {supervisor?.email || ""}
+              Sähköposti: {selectedInfoInternship.workplace?.jobSupervisor?.email || ""}
             </Typography>
             <Typography sx={{ mb: 1 }}>
-              Puhelin: {supervisor?.phoneNumber || ""}
+              Puhelin: {selectedInfoInternship.workplace?.jobSupervisor?.phoneNumber || ""}
             </Typography>
             <Typography sx={{ mb: 1 }}>
               Tutkinnonosa: {selectedInfoInternship.qualificationUnit?.name || ""}
@@ -499,8 +476,6 @@ const Internships = ({ student }: { student: Student }) => {
             <Typography sx={{ mb: 1 }}>Aloitusaika: {selectedInfoInternship.startDate}</Typography>
             <Typography sx={{ mb: 1 }}>Lopetusaika: {selectedInfoInternship.endDate}</Typography>
           </Box>
-            )
-          })()
         ) : null}
       </Dialog>
     </>
