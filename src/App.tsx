@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { useAuth } from './utils/auth-context';
 import { USER_SETUP } from './graphql/UserSetup';
 
 import TeacherDashboard from './components/Routes/teacherDashboard';
 import StudentDashboard from './components/Routes/studentDashboard';
+import StudentInternships from './components/Routes/studentDashboard/StudentInternships';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './components/Login';
 import TeacherProjectsView from './components/Routes/TeacherProjectsView';
@@ -25,13 +26,13 @@ import Workplace from './components/Routes/Workplace';
 import JobSupervisor from './components/Routes/JobSupervisor';
 
 const App = () => {
-    const { isAuthenticated, userEmail, role } = useAuth();
+    const { isAuthenticated, role } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const hasRedirectedRef = useRef(false);
     const [postLoginLoading, setPostLoginLoading] = useState(true);
 
-    const { data: studentData, loading: studentLoading, refetch } = useQuery(USER_SETUP, {
+    const { data: studentData, loading: studentLoading } = useQuery(USER_SETUP, {
         skip: !isAuthenticated,
         fetchPolicy: 'network-only',
     });
@@ -42,13 +43,12 @@ const App = () => {
         if (!studentLoading && studentData) {
             const timer = setTimeout(() => {
                 setPostLoginLoading(false);
-            }, 800); // Wait 800ms to settle down after studentData ready
+            }, 800);
 
             return () => clearTimeout(timer);
         }
     }, [isAuthenticated, studentLoading, studentData]);
 
-    // Prevent redirects if the user is already on a valid route.
     useEffect(() => {
         if (hasRedirectedRef.current) return;
         if (!isAuthenticated) return;
@@ -66,21 +66,18 @@ const App = () => {
             !location.pathname.startsWith('/teacherprojects') &&
             !location.pathname.startsWith('/qualificationunitparts')
         ) {
-            console.log('Redirecting to /teacherdashboard');
             navigate('/teacherdashboard');
             hasRedirectedRef.current = true;
         } else if (isStudent && !isSetUp && location.pathname !== '/studentdashboard/newuserlogin') {
             navigate('/studentdashboard/newuserlogin');
             hasRedirectedRef.current = true;
-        } else if (isStudent && isSetUp && location.pathname !== '/studentdashboard') {
+        } else if (isStudent && isSetUp && !location.pathname.startsWith('/studentdashboard')) {
             navigate('/studentdashboard');
             hasRedirectedRef.current = true;
         }
-    }, [studentLoading, isAuthenticated, userEmail, studentData, location.pathname, navigate]);
+    }, [studentLoading, isAuthenticated, role, studentData, location.pathname, navigate]);
 
-    // Loading screen while data is fetched
     if (isAuthenticated && (studentLoading || !studentData || postLoginLoading)) {
-        refetch()
         return (
             <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
                 <div className="bounce-spinner">
@@ -125,12 +122,15 @@ const App = () => {
                     <ProtectedRoute
                         element={
                             <AppLayout>
-                                <StudentDashboard />
+                                <Outlet />
                             </AppLayout>
                         }
                     />
                 }
-            />
+            >
+                <Route index element={<StudentDashboard />} />
+                <Route path="harjoittelujaksot" element={<StudentInternships />} />
+            </Route>
             <Route
                 path="/teacherprojects"
                 element={

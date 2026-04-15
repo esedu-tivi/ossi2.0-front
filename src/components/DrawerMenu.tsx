@@ -11,8 +11,8 @@ import HomeIcon from '@mui/icons-material/Home';
 import SchoolIcon from '@mui/icons-material/School';
 import FolderIcon from '@mui/icons-material/Folder';
 import EventIcon from '@mui/icons-material/Event';
-import WorkIcon from '@mui/icons-material/Work';
 import GradeIcon from '@mui/icons-material/Grade';
+import BusinessIcon from '@mui/icons-material/Business';
 import UserProfile from './UserProfile';
 
 import '../css/DrawerMenu.css';
@@ -26,31 +26,47 @@ interface DrawerMenuProps {
 
 const drawerWidth = 240;
 
+type ActiveMatch = 'exact' | 'prefix' | 'none';
+
+interface MenuItemConfig {
+  text: string;
+  icon: React.ReactNode;
+  route: string;
+  activeMatch?: ActiveMatch;
+}
+
+const teacherMenu: MenuItemConfig[] = [
+  { text: 'Etusivu', icon: <HomeIcon />, route: '/teacherdashboard' },
+  { text: 'Opiskelijat', icon: <SchoolIcon />, route: '/teacherdashboard' },
+  { text: 'Projektit', icon: <FolderIcon />, route: '/teacherprojects' },
+  { text: 'Teemat', icon: <EventIcon />, route: '/qualificationunitparts' },
+  { text: 'Tutkinnot', icon: <GradeIcon />, route: '/teacherdashboard' },
+];
+
+const studentMenu: MenuItemConfig[] = [
+  { text: 'Etusivu', icon: <HomeIcon />, route: '/studentdashboard', activeMatch: 'exact' },
+  { text: 'Projektit', icon: <FolderIcon />, route: '/studentdashboard', activeMatch: 'none' },
+  { text: 'Tehtävät', icon: <EventIcon />, route: '/studentdashboard', activeMatch: 'none' },
+  { text: 'Arvosanat', icon: <GradeIcon />, route: '/studentdashboard', activeMatch: 'none' },
+  { text: 'Harjoittelujaksot', icon: <BusinessIcon />, route: '/studentdashboard/harjoittelujaksot', activeMatch: 'prefix' },
+];
+
 const DrawerMenu: React.FC<DrawerMenuProps> = ({ mobileOpen, handleDrawerClose, handleDrawerTransitionEnd }) => {
   const navigate = useNavigate();
   const location = useLocation();
-
-
   const { role } = useAuth();
 
-  // Sidebar navigation drawer based on the role of user
-  const teacherMenu = [
-    { text: 'Etusivu', icon: <HomeIcon />, route: '/teacherdashboard' },
-    { text: 'Opiskelijat', icon: <SchoolIcon />, route: '/teacherdashboard' },
-    { text: 'Projektit', icon: <FolderIcon />, route: '/teacherprojects' },
-    { text: 'Teemat', icon: <EventIcon />, route: '/qualificationunitparts' },
-    { text: 'Työpaikat', icon: <WorkIcon />, route: '/workplaces' },
-    { text: 'Tutkinnot', icon: <GradeIcon />, route: '/teacherdashboard' }, // Temp route
-  ];
-
-  const studentMenu = [
-    { text: 'Etusivu', icon: <HomeIcon />, route: '/studentdashboard' },
-    { text: 'Projektit', icon: <FolderIcon />, route: '/studentdashboard' }, // Temp route
-    { text: 'Tehtävät', icon: <EventIcon />, route: '/studentdashboard' }, // Temp route
-    { text: 'Arvosanat', icon: <GradeIcon />, route: '/studentdashboard' }, // Temp route
-  ];
-
   const menuItems = role === 'teacher' ? teacherMenu : studentMenu;
+
+  const itemIsActive = (item: MenuItemConfig) => {
+    const currentPath = location.pathname;
+    if (role === 'teacher') return currentPath === item.route;
+
+    const m = item.activeMatch ?? 'none';
+    if (m === 'none') return false;
+    if (m === 'exact') return currentPath === item.route;
+    return currentPath === item.route || currentPath.startsWith(`${item.route}/`);
+  };
 
   const drawer = (
     <div>
@@ -62,10 +78,9 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({ mobileOpen, handleDrawerClose, 
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               onClick={() => {
-                console.log(`Navigating to ${item.route}`);
                 navigate(item.route);
               }}
-              className={`menu-item ${location.pathname === item.route ? 'active' : ''}`}
+              className={`menu-item ${itemIsActive(item) ? 'active' : ''}`}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
@@ -102,7 +117,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({ mobileOpen, handleDrawerClose, 
           }}
           slotProps={{
             root: {
-              keepMounted: true, // Better open performance on mobile.
+              keepMounted: true,
             },
           }}
         >
