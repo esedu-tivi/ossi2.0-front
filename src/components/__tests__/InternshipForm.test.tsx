@@ -198,7 +198,7 @@ describe('InternshipForm', () => {
   it('shows add supervisor button when workplace is selected but supervisor is missing', () => {
     setupLoadedQueries();
 
-    const loadSupervisors = vi.fn(() => Promise.resolve());
+    const loadSupervisors = vi.fn(async () => ({}) as never);
 
     vi.mocked(useLazyQuery).mockReturnValue([
       loadSupervisors,

@@ -96,7 +96,7 @@ describe('Internships', () => {
 
     vi.mocked(useConfirmDialog).mockReturnValue({
       confirm,
-      ConfirmDialog: () => null,
+      ConfirmDialog: () => <div />,
     });
 
     vi.mocked(useQuery).mockReturnValue({
