@@ -97,27 +97,6 @@ const InternshipForm = ({
     }
   }, [formData.workplaceId, workplaceId, loadSupervisors])
 
-  useEffect(() => {
-    if (showNewWorkplaceForm || showNewJobSupervisorForm || showEditJobSupervisorForm) {
-      return
-    }
-
-    if (jobSupervisorOptions.length > 0) {
-      setJobSupervisorOptionsState(jobSupervisorOptions)
-      return
-    }
-
-    if (!jobSupervisorsData.loading && jobSupervisorsData.data) {
-      setJobSupervisorOptionsState([])
-    }
-  }, [
-    showNewWorkplaceForm,
-    showNewJobSupervisorForm,
-    showEditJobSupervisorForm,
-    jobSupervisorsData.loading,
-    jobSupervisorsData.data,
-  ])
-
   const teacher = data?.me?.user || null
   const workplaces = data?.workplaces?.workplaces || []
   const qualificationUnits = data?.units?.units || []
@@ -139,6 +118,28 @@ const InternshipForm = ({
     id: js.id,
     name: `${js.firstName} ${js.lastName}`
   }))
+
+  useEffect(() => {
+    if (showNewWorkplaceForm || showNewJobSupervisorForm || showEditJobSupervisorForm) {
+      return
+    }
+
+    if (jobSupervisorOptions.length > 0) {
+      setJobSupervisorOptionsState(jobSupervisorOptions)
+      return
+    }
+
+    if (!jobSupervisorsData.loading && jobSupervisorsData.data) {
+      setJobSupervisorOptionsState([])
+    }
+  }, [
+    showNewWorkplaceForm,
+    showNewJobSupervisorForm,
+    showEditJobSupervisorForm,
+    jobSupervisorOptions,
+    jobSupervisorsData.loading,
+    jobSupervisorsData.data,
+  ])
 
   const handleCreateWorkplace = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

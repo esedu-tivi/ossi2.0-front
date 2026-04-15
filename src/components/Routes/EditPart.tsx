@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Save, Undo2, Archive } from 'lucide-react';
 import ItemSelectorDialog from '@/components/common/item-selector-dialog';
 import PlateEditor from '@/components/common/plate-editor';
@@ -67,9 +67,9 @@ const EditPart: React.FC = () => {
     }, [data]);
 
     // Reverts Markdown back to HTML for editor fields
-    const md = new MarkdownIt({
+    const md = useMemo(() => new MarkdownIt({
         html: true,
-    });
+    }), []);
 
     // Enforces allowed HTML tags and attributes using DOMPurify
     const sanitizeHtml = (html: string) =>
@@ -117,7 +117,7 @@ const EditPart: React.FC = () => {
                 console.error("No part found in response:", data);
             }
         }
-    }, [data, loading]);
+    }, [data, loading, md]);
 
     // Mutation for updating the Part
     const [updatePart] = useMutation(UPDATE_PART, {

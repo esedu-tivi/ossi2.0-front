@@ -21,7 +21,7 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-vi.mock('../../../context/AlertContext', () => ({
+vi.mock('../../../context/use-alerts', () => ({
   useAlerts: vi.fn(() => ({
     addAlert: vi.fn(),
   })),

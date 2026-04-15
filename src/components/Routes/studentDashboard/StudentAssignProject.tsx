@@ -28,7 +28,7 @@ const StudentAssignProject: React.FC<StudentAssignProjectProps> = ({ open, onClo
   useEffect(() => {
     if (!project) return;
     setFormData({ plan: '', report: '' });
-  }, [open]);
+  }, [open, project]);
 
   if (!project) {
     return null;
