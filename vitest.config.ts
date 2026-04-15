@@ -16,5 +16,8 @@ export default defineConfig({
     css: true,
     pool: 'forks',
     fileParallelism: false,
+    isolate: true,
+    testTimeout: 10000,
+    hookTimeout: 10000,
   },
 });

@@ -102,22 +102,22 @@ const InternshipForm = ({
   const qualificationUnits = data?.units?.units || []
   const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors || []
 
-  const workplaceOptions: Option[] = workplaces.map((workplace: Workplace) => ({
+  const workplaceOptions: Option[] = useMemo(() => workplaces.map((workplace: Workplace) => ({
     id: workplace.id,
     name: workplace.name
-  }))
+  })), [workplaces])
 
-  const jobSupervisorOptions: Option[] = jobSupervisors
+  const jobSupervisorOptions: Option[] = useMemo(() => jobSupervisors
     ?.filter((jobSupervisor: JobSupervisor) => jobSupervisor.id)
     .map((jobSupervisor: JobSupervisor) => ({
       id: jobSupervisor.id as string,
       name: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
-    }))
+    })), [jobSupervisors])
 
-  const allJobSupervisorOptions: Option[] = (allJobSupervisorsData?.jobSupervisors?.jobSupervisors || []).map((js: JobSupervisor & { id: string }) => ({
+  const allJobSupervisorOptions: Option[] = useMemo(() => (allJobSupervisorsData?.jobSupervisors?.jobSupervisors || []).map((js: JobSupervisor & { id: string }) => ({
     id: js.id,
     name: `${js.firstName} ${js.lastName}`
-  }))
+  })), [allJobSupervisorsData])
 
   useEffect(() => {
     if (showNewWorkplaceForm || showNewJobSupervisorForm || showEditJobSupervisorForm) {
@@ -125,12 +125,21 @@ const InternshipForm = ({
     }
 
     if (jobSupervisorOptions.length > 0) {
-      setJobSupervisorOptionsState(jobSupervisorOptions)
+      setJobSupervisorOptionsState((prev) => {
+        const isSame =
+          prev.length === jobSupervisorOptions.length &&
+          prev.every((option, index) =>
+            String(option.id) === String(jobSupervisorOptions[index]?.id) &&
+            option.name === jobSupervisorOptions[index]?.name
+          )
+
+        return isSame ? prev : jobSupervisorOptions
+      })
       return
     }
 
     if (!jobSupervisorsData.loading && jobSupervisorsData.data) {
-      setJobSupervisorOptionsState([])
+      setJobSupervisorOptionsState((prev) => (prev.length === 0 ? prev : []))
     }
   }, [
     showNewWorkplaceForm,

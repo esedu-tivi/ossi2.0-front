@@ -198,7 +198,9 @@ describe('InternshipForm', () => {
   it('shows add supervisor button when workplace is selected but supervisor is missing', () => {
     setupLoadedQueries();
 
-    const loadSupervisors = vi.fn(async () => ({}) as never);
+    const loadSupervisors = vi.fn(() => ({
+      catch: () => null,
+    }) as never);
 
     vi.mocked(useLazyQuery).mockReturnValue([
       loadSupervisors,
@@ -216,6 +218,7 @@ describe('InternshipForm', () => {
       />
     );
 
+    expect(loadSupervisors).toHaveBeenCalled();
     expect(screen.getByRole('button', { name: /Lisää työohjaaja/i })).toBeInTheDocument();
   });
 });
