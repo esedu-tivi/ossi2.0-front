@@ -98,17 +98,17 @@ const InternshipForm = ({
   }, [formData.workplaceId, workplaceId, loadSupervisors])
 
   const teacher = data?.me?.user || null
-  const workplaces = data?.workplaces?.workplaces || []
-  const qualificationUnits = data?.units?.units || []
-  const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors || []
+  const workplaces = data?.workplaces?.workplaces
+  const qualificationUnits = data?.units?.units
+  const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors
 
-  const workplaceOptions: Option[] = useMemo(() => workplaces.map((workplace: Workplace) => ({
+  const workplaceOptions: Option[] = useMemo(() => (workplaces ?? []).map((workplace: Workplace) => ({
     id: workplace.id,
     name: workplace.name
   })), [workplaces])
 
-  const jobSupervisorOptions: Option[] = useMemo(() => jobSupervisors
-    ?.filter((jobSupervisor: JobSupervisor) => jobSupervisor.id)
+  const jobSupervisorOptions: Option[] = useMemo(() => (jobSupervisors ?? [])
+    .filter((jobSupervisor: JobSupervisor) => jobSupervisor.id)
     .map((jobSupervisor: JobSupervisor) => ({
       id: jobSupervisor.id as string,
       name: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
@@ -263,11 +263,11 @@ const InternshipForm = ({
               >
                 <SelectTrigger id="qualificationUnitId" className="w-full text-left">
                   <SelectValue placeholder="Valitse tutkinnonosa...">
-                    {qualificationUnits.find((u: { id: string; name: string }) => String(u.id) === String(formData.qualificationUnitId))?.name ?? ''}
+                    {(qualificationUnits ?? []).find((u: { id: string; name: string }) => String(u.id) === String(formData.qualificationUnitId))?.name ?? ''}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent style={{ pointerEvents: 'auto' }}>
-                  {qualificationUnits.map((unit: { id: string; name: string }) => (
+                  {(qualificationUnits ?? []).map((unit: { id: string; name: string }) => (
                     <SelectItem key={unit.id} value={String(unit.id)}>
                       {unit.name}
                     </SelectItem>
@@ -375,7 +375,7 @@ const InternshipForm = ({
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    const selected = jobSupervisors.find(
+                    const selected = (jobSupervisors ?? []).find(
                       (jobSupervisor: JobSupervisor) => String(jobSupervisor.id) === String(formData.jobSupervisorId)
                     )
                     if (!selected?.id) return
