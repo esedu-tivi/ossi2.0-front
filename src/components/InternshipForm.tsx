@@ -97,48 +97,58 @@ const InternshipForm = ({
     }
   }, [formData.workplaceId, workplaceId, loadSupervisors])
 
+  const teacher = data?.me?.user || null
+  const workplaces = data?.workplaces?.workplaces
+  const qualificationUnits = data?.units?.units
+  const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors
+
+  const workplaceOptions: Option[] = useMemo(() => (workplaces ?? []).map((workplace: Workplace) => ({
+    id: workplace.id,
+    name: workplace.name
+  })), [workplaces])
+
+  const jobSupervisorOptions: Option[] = useMemo(() => (jobSupervisors ?? [])
+    .filter((jobSupervisor: JobSupervisor) => jobSupervisor.id)
+    .map((jobSupervisor: JobSupervisor) => ({
+      id: jobSupervisor.id as string,
+      name: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
+    })), [jobSupervisors])
+
+  const allJobSupervisorOptions: Option[] = useMemo(() => (allJobSupervisorsData?.jobSupervisors?.jobSupervisors || []).map((js: JobSupervisor & { id: string }) => ({
+    id: js.id,
+    name: `${js.firstName} ${js.lastName}`
+  })), [allJobSupervisorsData])
+
   useEffect(() => {
     if (showNewWorkplaceForm || showNewJobSupervisorForm || showEditJobSupervisorForm) {
       return
     }
 
     if (jobSupervisorOptions.length > 0) {
-      setJobSupervisorOptionsState(jobSupervisorOptions)
+      setJobSupervisorOptionsState((prev) => {
+        const isSame =
+          prev.length === jobSupervisorOptions.length &&
+          prev.every((option, index) =>
+            String(option.id) === String(jobSupervisorOptions[index]?.id) &&
+            option.name === jobSupervisorOptions[index]?.name
+          )
+
+        return isSame ? prev : jobSupervisorOptions
+      })
       return
     }
 
     if (!jobSupervisorsData.loading && jobSupervisorsData.data) {
-      setJobSupervisorOptionsState([])
+      setJobSupervisorOptionsState((prev) => (prev.length === 0 ? prev : []))
     }
   }, [
     showNewWorkplaceForm,
     showNewJobSupervisorForm,
     showEditJobSupervisorForm,
+    jobSupervisorOptions,
     jobSupervisorsData.loading,
     jobSupervisorsData.data,
   ])
-
-  const teacher = data?.me?.user || null
-  const workplaces = data?.workplaces?.workplaces || []
-  const qualificationUnits = data?.units?.units || []
-  const jobSupervisors = jobSupervisorsData.data?.jobSupervisorsByWorkplace.jobSupervisors || []
-
-  const workplaceOptions: Option[] = workplaces.map((workplace: Workplace) => ({
-    id: workplace.id,
-    name: workplace.name
-  }))
-
-  const jobSupervisorOptions: Option[] = jobSupervisors
-    ?.filter((jobSupervisor: JobSupervisor) => jobSupervisor.id)
-    .map((jobSupervisor: JobSupervisor) => ({
-      id: jobSupervisor.id as string,
-      name: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`
-    }))
-
-  const allJobSupervisorOptions: Option[] = (allJobSupervisorsData?.jobSupervisors?.jobSupervisors || []).map((js: JobSupervisor & { id: string }) => ({
-    id: js.id,
-    name: `${js.firstName} ${js.lastName}`
-  }))
 
   const handleCreateWorkplace = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -253,11 +263,11 @@ const InternshipForm = ({
               >
                 <SelectTrigger id="qualificationUnitId" className="w-full text-left">
                   <SelectValue placeholder="Valitse tutkinnonosa...">
-                    {qualificationUnits.find((u: { id: string; name: string }) => String(u.id) === String(formData.qualificationUnitId))?.name ?? ''}
+                    {(qualificationUnits ?? []).find((u: { id: string; name: string }) => String(u.id) === String(formData.qualificationUnitId))?.name ?? ''}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent style={{ pointerEvents: 'auto' }}>
-                  {qualificationUnits.map((unit: { id: string; name: string }) => (
+                  {(qualificationUnits ?? []).map((unit: { id: string; name: string }) => (
                     <SelectItem key={unit.id} value={String(unit.id)}>
                       {unit.name}
                     </SelectItem>
@@ -365,7 +375,7 @@ const InternshipForm = ({
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    const selected = jobSupervisors.find(
+                    const selected = (jobSupervisors ?? []).find(
                       (jobSupervisor: JobSupervisor) => String(jobSupervisor.id) === String(formData.jobSupervisorId)
                     )
                     if (!selected?.id) return

@@ -35,6 +35,10 @@ vi.mock('@/components/Routes/studentDashboard', () => ({
   default: () => <div>Student Dashboard</div>,
 }));
 
+vi.mock('@/components/Routes/studentDashboard/StudentInternships', () => ({
+  default: () => <div>Student Internships</div>,
+}));
+
 vi.mock('@/components/Login', () => ({
   default: () => <div>Login Page</div>,
 }));

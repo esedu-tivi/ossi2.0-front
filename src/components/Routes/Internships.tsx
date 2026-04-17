@@ -9,7 +9,7 @@ import DataTable, { type TableHeaderCell } from "@/components/common/data-table"
 import { convertDateForForm } from "../../utils/convertDateForForm";
 import { Internship, Student } from "../../types";
 import { EDIT_INTERNSHIP } from "../../graphql/EditInternship";
-import { useAlerts } from "../../context/AlertContext";
+import { useAlerts } from "../../context/use-alerts";
 import { Plus, Pencil, Info, Trash2 } from "lucide-react";
 import AppDialog from "@/components/common/app-dialog";
 import { convertDateToString } from "../../utils/convertDateToString";

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Archive, Undo2, Save } from 'lucide-react';
 import ItemSelectorDialog from '@/components/common/item-selector-dialog';
 import TurndownService from 'turndown';
@@ -60,9 +60,9 @@ const EditProject: React.FC = () => {
     });
 
     // Reverts Markdown back to HTML for TinyMCE editor fields
-    const md = new MarkdownIt({
+    const md = useMemo(() => new MarkdownIt({
         html: true,
-    });
+    }), []);
 
     // Enforces allowed HTML tags and attributes using DOMPurify
     const sanitizeHtml = (html: string) =>
@@ -107,7 +107,7 @@ const EditProject: React.FC = () => {
                 includedInParts: project.includedInQualificationUnitParts || [],
             });
         }
-    }, [data, loading]);
+    }, [data, loading, md, project, setFormData, setSelectedItems]);
 
     // Mutation for updating the project
     const [updateProject] = useMutation(UPDATE_PROJECT, {

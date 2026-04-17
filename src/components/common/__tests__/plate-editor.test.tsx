@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { serializeToHtml } from '../plate-editor';
+import { serializeToHtml } from '../plate-editor-html';
 
 // Mock platejs/react — jsdom does not support contenteditable
 vi.mock('platejs/react', async () => {

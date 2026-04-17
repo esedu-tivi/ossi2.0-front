@@ -12,7 +12,7 @@ vi.mock('@apollo/client', async () => {
   };
 });
 
-vi.mock('../../../context/AlertContext', () => ({
+vi.mock('../../../context/use-alerts', () => ({
   useAlerts: vi.fn(),
 }));
 
@@ -32,7 +32,7 @@ vi.mock('../../../components/InternshipForm', () => ({
   ),
 }));
 
-import { useAlerts } from '../../../context/AlertContext';
+import { useAlerts } from '../../../context/use-alerts';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import Internships from '../Internships';
 
@@ -96,7 +96,7 @@ describe('Internships', () => {
 
     vi.mocked(useConfirmDialog).mockReturnValue({
       confirm,
-      ConfirmDialog: () => null,
+      ConfirmDialog: () => <div />,
     });
 
     vi.mocked(useQuery).mockReturnValue({
