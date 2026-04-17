@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react';
-import type { Descendant, Value } from 'platejs';
-import { KEYS } from 'platejs';
+import { useCallback, useEffect, useRef } from "react";
+import type { Descendant, Value } from "platejs";
+import { KEYS } from "platejs";
 import {
   BoldPlugin,
   ItalicPlugin,
@@ -9,12 +9,20 @@ import {
   H1Plugin,
   H2Plugin,
   H3Plugin,
-} from '@platejs/basic-nodes/react';
-import { IndentPlugin } from '@platejs/indent/react';
-import { ListPlugin } from '@platejs/list/react';
-import { LinkPlugin } from '@platejs/link/react';
-import { Plate, PlateContent, usePlateEditor } from 'platejs/react';
-import { Label } from '@/components/ui/label';
+} from "@platejs/basic-nodes/react";
+import { IndentPlugin } from "@platejs/indent/react";
+import { ListPlugin } from "@platejs/list/react";
+import { LinkPlugin } from "@platejs/link/react";
+import { MediaEmbedPlugin, ImagePlugin } from "@platejs/media/react";
+import { Plate, PlateContent, usePlateEditor } from "platejs/react";
+import { Label } from "@/components/ui/label";
+import { toggleList } from "@platejs/list";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import {
   Bold,
   Italic,
@@ -26,7 +34,10 @@ import {
   ListOrdered,
   Quote,
   Link,
-} from 'lucide-react';
+  Video,
+  ImagePlus,
+  Image as ImageIcon,
+} from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -57,20 +68,63 @@ interface SlateElement {
 }
 
 // ---------------------------------------------------------------------------
-// HTML Serializer (pure function — easy to test)
+// Custom Elements (Media & Image)
+// ---------------------------------------------------------------------------
+
+const MediaEmbedElement = ({ attributes, children, element }: any) => {
+  return (
+    <div {...attributes} className="relative my-6">
+      <div contentEditable={false} className="group relative">
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black shadow-md border border-slate-200">
+          <iframe
+            src={element.url}
+            title="embed"
+            className="absolute inset-0 h-full w-full pointer-events-none"
+            frameBorder="0"
+            allowFullScreen
+          />
+        </div>
+        <div className="absolute inset-0 z-10 cursor-pointer" />
+      </div>
+      {children}
+    </div>
+  );
+};
+
+const ImageElement = ({ attributes, children, element }: any) => {
+  return (
+    <div {...attributes} className="relative my-6">
+      <div
+        contentEditable={false}
+        className="group relative flex justify-center"
+      >
+        <img
+          src={element.url}
+          alt="User uploaded"
+          className="max-w-full shadow-md border border-slate-200"
+        />
+        <div className="absolute inset-0 z-10 cursor-pointer" />
+      </div>
+      {children}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// HTML Serializer
 // ---------------------------------------------------------------------------
 
 function escapeHtml(text: string): string {
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function serializeLeaf(node: SlateText): string {
   let text = escapeHtml(node.text);
-  if (!text) return '';
+  if (!text) return "";
   if (node.bold) text = `<strong>${text}</strong>`;
   if (node.italic) text = `<em>${text}</em>`;
   if (node.underline) text = `<u>${text}</u>`;
@@ -78,51 +132,50 @@ function serializeLeaf(node: SlateText): string {
 }
 
 function serializeChildren(children: (SlateElement | SlateText)[]): string {
-  return children.map((child) => serializeNode(child)).join('');
+  return children.map((child) => serializeNode(child)).join("");
 }
 
 function serializeNode(node: SlateElement | SlateText): string {
-  // Leaf text node
-  if ('text' in node) return serializeLeaf(node as SlateText);
+  if ("text" in node) return serializeLeaf(node as SlateText);
 
   const el = node as SlateElement;
   const inner = serializeChildren(el.children);
 
-  // Indent-based lists (Plate's ListPlugin uses indent + listStyleType)
   if (el.listStyleType) {
-    const tag = el.listStyleType === 'disc' ? 'ul' : 'ol';
+    const tag = el.listStyleType === "disc" ? "ul" : "ol";
     return `<${tag}><li>${inner}</li></${tag}>`;
   }
 
   switch (el.type) {
-    case 'h1':
+    case "media_embed":
+      return `<div class="media-embed" style="margin: 1.5rem 0;"><iframe src="${escapeHtml(el.url ?? "")}" style="width: 100%; aspect-ratio: 16/9; border-radius: 8px; border: none;" allowfullscreen></iframe></div>`;
+    case "img":
+    case "image":
+      return `<div class="image-embed" style="margin: 1.5rem 0; text-align: center;"><img src="${escapeHtml(el.url ?? "")}" style="max-width: 100%; height: auto; border-radius: 8px;" alt="image" /></div>`;
+    case "h1":
       return `<h1>${inner}</h1>`;
-    case 'h2':
+    case "h2":
       return `<h2>${inner}</h2>`;
-    case 'h3':
+    case "h3":
       return `<h3>${inner}</h3>`;
-    case 'blockquote':
+    case "blockquote":
       return `<blockquote>${inner}</blockquote>`;
-    case 'a':
-      return `<a href="${escapeHtml(el.url ?? '')}">${inner}</a>`;
-    case 'p':
+    case "a":
+      return `<a href="${escapeHtml(el.url ?? "")}">${inner}</a>`;
+    case "p":
     default:
       return `<p>${inner}</p>`;
   }
 }
 
-/**
- * Merge adjacent same-type list wrappers produced by serializeNode.
- * e.g. `<ul><li>A</li></ul><ul><li>B</li></ul>` → `<ul><li>A</li><li>B</li></ul>`
- */
 function mergeAdjacentLists(html: string): string {
-  return html
-    .replace(/<\/ul>\s*<ul>/g, '')
-    .replace(/<\/ol>\s*<ol>/g, '');
+  return html.replace(/<\/ul>\s*<ul>/g, "").replace(/<\/ol>\s*<ol>/g, "");
 }
 
 export function serializeToHtml(nodes: Descendant[]): string {
-  const raw = nodes.map((n) => serializeNode(n as SlateElement | SlateText)).join('');
+  const raw = nodes
+    .map((n) => serializeNode(n as SlateElement | SlateText))
+    .join("");
   return mergeAdjacentLists(raw);
 }
 
@@ -144,7 +197,7 @@ function ToolbarBtn({ icon, active, onMouseDown, title }: ToolbarBtnProps) {
       title={title}
       onMouseDown={onMouseDown}
       className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors
-        ${active ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+        ${active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
     >
       {icon}
     </button>
@@ -159,9 +212,7 @@ function Separator() {
 // Toolbar
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function EditorToolbar({ editor }: { editor: any }) {
-  // Mark toggle helper
   const toggleMark = useCallback(
     (e: React.MouseEvent, mark: string) => {
       e.preventDefault();
@@ -170,27 +221,21 @@ function EditorToolbar({ editor }: { editor: any }) {
     [editor],
   );
 
-  // Block toggle helper
-  const toggleBlock = useCallback(
-    (e: React.MouseEvent, toggle: () => void) => {
-      e.preventDefault();
-      toggle();
-    },
-    [],
-  );
+  const toggleBlock = useCallback((e: React.MouseEvent, toggle: () => void) => {
+    e.preventDefault();
+    toggle();
+  }, []);
 
-  // Check if a mark is active
   const isMarkActive = (mark: string) => {
     const marks = editor.getMarks();
     return marks ? !!(marks as Record<string, unknown>)[mark] : false;
   };
 
-  // Check if a block type is active
   const isBlockActive = (type: string) => {
     try {
       const entry = editor.api.node({
         match: { type },
-        mode: 'highest',
+        mode: "highest",
       });
       return !!entry;
     } catch {
@@ -198,12 +243,11 @@ function EditorToolbar({ editor }: { editor: any }) {
     }
   };
 
-  // Check if list style is active
   const isListActive = (listStyle: string) => {
     try {
       const entry = editor.api.node({
         match: (n: SlateElement) => n.listStyleType === listStyle,
-        mode: 'highest',
+        mode: "highest",
       });
       return !!entry;
     } catch {
@@ -214,9 +258,56 @@ function EditorToolbar({ editor }: { editor: any }) {
   const handleLink = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
-      const url = window.prompt('Linkki URL:');
+      const url = window.prompt("Linkki URL:");
       if (url) {
         editor.tf.insertLink({ url });
+      }
+    },
+    [editor],
+  );
+
+  const handleEmbed = useCallback(
+    (e: Event) => {
+      e.preventDefault();
+      const input = window.prompt("YouTube URL tai upotuskoodi:");
+      if (!input) return;
+
+      let videoId = "";
+      let finalUrl = "";
+
+      if (input.includes("<iframe")) {
+        const srcMatch = input.match(/src="([^"]+)"/);
+        if (srcMatch) finalUrl = srcMatch[1];
+      } else if (input.includes("v=")) {
+        videoId = input.split("v=")[1].split("&")[0];
+      } else if (input.includes("youtu.be/")) {
+        videoId = input.split("youtu.be/")[1].split("?")[0];
+      }
+
+      if (videoId) finalUrl = `https://www.youtube.com/embed/${videoId}`;
+      else if (!finalUrl && input.startsWith("http")) finalUrl = input;
+
+      if (finalUrl) {
+        editor.tf.insertNodes([
+          { type: "media_embed", url: finalUrl, children: [{ text: "" }] },
+          { type: "p", children: [{ text: "" }] },
+        ]);
+        editor.tf.focus();
+      }
+    },
+    [editor],
+  );
+
+  const handleImage = useCallback(
+    (e: Event) => {
+      e.preventDefault();
+      const url = window.prompt("Kuvan URL (esim. https://.../kuva.jpg):");
+      if (url) {
+        editor.tf.insertNodes([
+          { type: "img", url, children: [{ text: "" }] }, // Default type in Plate
+          { type: "p", children: [{ text: "" }] },
+        ]);
+        editor.tf.focus();
       }
     },
     [editor],
@@ -229,19 +320,19 @@ function EditorToolbar({ editor }: { editor: any }) {
       {/* Headings */}
       <ToolbarBtn
         icon={<Heading1 size={iconSize} />}
-        active={isBlockActive('h1')}
+        active={isBlockActive("h1")}
         onMouseDown={(e) => toggleBlock(e, () => editor.tf.h1.toggle())}
         title="Otsikko 1"
       />
       <ToolbarBtn
         icon={<Heading2 size={iconSize} />}
-        active={isBlockActive('h2')}
+        active={isBlockActive("h2")}
         onMouseDown={(e) => toggleBlock(e, () => editor.tf.h2.toggle())}
         title="Otsikko 2"
       />
       <ToolbarBtn
         icon={<Heading3 size={iconSize} />}
-        active={isBlockActive('h3')}
+        active={isBlockActive("h3")}
         onMouseDown={(e) => toggleBlock(e, () => editor.tf.h3.toggle())}
         title="Otsikko 3"
       />
@@ -251,20 +342,20 @@ function EditorToolbar({ editor }: { editor: any }) {
       {/* Marks */}
       <ToolbarBtn
         icon={<Bold size={iconSize} />}
-        active={isMarkActive('bold')}
-        onMouseDown={(e) => toggleMark(e, 'bold')}
+        active={isMarkActive("bold")}
+        onMouseDown={(e) => toggleMark(e, "bold")}
         title="Lihavointi (⌘B)"
       />
       <ToolbarBtn
         icon={<Italic size={iconSize} />}
-        active={isMarkActive('italic')}
-        onMouseDown={(e) => toggleMark(e, 'italic')}
+        active={isMarkActive("italic")}
+        onMouseDown={(e) => toggleMark(e, "italic")}
         title="Kursiivi (⌘I)"
       />
       <ToolbarBtn
         icon={<Underline size={iconSize} />}
-        active={isMarkActive('underline')}
-        onMouseDown={(e) => toggleMark(e, 'underline')}
+        active={isMarkActive("underline")}
+        onMouseDown={(e) => toggleMark(e, "underline")}
         title="Alleviivaus (⌘U)"
       />
 
@@ -273,14 +364,18 @@ function EditorToolbar({ editor }: { editor: any }) {
       {/* Lists */}
       <ToolbarBtn
         icon={<List size={iconSize} />}
-        active={isListActive('disc')}
-        onMouseDown={(e) => toggleBlock(e, () => editor.tf.listStyleType.toggle('disc'))}
+        active={isListActive("disc")}
+        onMouseDown={(e) =>
+          toggleBlock(e, () => toggleList(editor, { listStyleType: "disc" }))
+        }
         title="Luettelo"
       />
       <ToolbarBtn
         icon={<ListOrdered size={iconSize} />}
-        active={isListActive('decimal')}
-        onMouseDown={(e) => toggleBlock(e, () => editor.tf.listStyleType.toggle('decimal'))}
+        active={isListActive("decimal")}
+        onMouseDown={(e) =>
+          toggleBlock(e, () => toggleList(editor, { listStyleType: "decimal" }))
+        }
         title="Numeroitu luettelo"
       />
 
@@ -289,18 +384,40 @@ function EditorToolbar({ editor }: { editor: any }) {
       {/* Blockquote */}
       <ToolbarBtn
         icon={<Quote size={iconSize} />}
-        active={isBlockActive('blockquote')}
+        active={isBlockActive("blockquote")}
         onMouseDown={(e) => toggleBlock(e, () => editor.tf.blockquote.toggle())}
         title="Lainaus"
       />
 
-      {/* Link */}
+      {/* Links, Videos & Images */}
       <ToolbarBtn
         icon={<Link size={iconSize} />}
         active={false}
         onMouseDown={handleLink}
         title="Linkki"
       />
+      {/* Image- and Video embedding dropdown*/}
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <button>
+            <ToolbarBtn
+              icon={<ImagePlus size={iconSize} />}
+              title="Media"
+              onMouseDown={() => {}}
+            />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onSelect={handleImage}>
+            <ImageIcon />
+            Kuva
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={handleEmbed}>
+            <Video />
+            Video
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
@@ -339,10 +456,16 @@ const PlateEditor = ({
         },
       }),
       LinkPlugin,
+      MediaEmbedPlugin.configure({
+        render: { node: MediaEmbedElement },
+      }).extend(() => ({ isVoid: true }) as any),
+
+      ImagePlugin.configure({
+        render: { node: ImageElement },
+      }).extend(() => ({ isVoid: true }) as any),
     ],
   });
 
-  // Deserialize HTML and set editor value
   const setEditorFromHtml = useCallback(
     (html: string) => {
       skipOnChangeRef.current = true;
@@ -350,9 +473,10 @@ const PlateEditor = ({
         const deserialized = editor.api.html.deserialize({ element: html });
         editor.tf.setValue(deserialized as Value);
       } catch {
-        editor.tf.setValue([{ type: 'p', children: [{ text: html }] }] as Value);
+        editor.tf.setValue([
+          { type: "p", children: [{ text: html }] },
+        ] as Value);
       }
-      // Reset skip flag after React processes the update
       setTimeout(() => {
         skipOnChangeRef.current = false;
       }, 0);
@@ -360,16 +484,12 @@ const PlateEditor = ({
     [editor],
   );
 
-  // Set initial value on mount
   useEffect(() => {
     if (value) {
       setEditorFromHtml(value);
     }
-    // Only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update editor when external value changes
   useEffect(() => {
     if (value !== lastValueRef.current) {
       lastValueRef.current = value;
@@ -379,7 +499,6 @@ const PlateEditor = ({
     }
   }, [value, setEditorFromHtml]);
 
-  // Debounced onChange handler
   const handleChange = useCallback(
     ({ value: newValue }: { value: Value }) => {
       if (skipOnChangeRef.current) return;
@@ -395,7 +514,6 @@ const PlateEditor = ({
     [onChange],
   );
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -409,8 +527,8 @@ const PlateEditor = ({
         <Plate editor={editor} onChange={handleChange}>
           <EditorToolbar editor={editor} />
           <PlateContent
-            placeholder="Kirjoita tahan..."
-            className="plate-editor-content min-h-[100px] px-3 py-2 text-sm"
+            placeholder="Kirjoita tähän..."
+            className="plate-editor-content min-h-[100px] px-3 py-2 text-sm focus-visible:outline-none"
             style={{ minHeight: height }}
           />
         </Plate>

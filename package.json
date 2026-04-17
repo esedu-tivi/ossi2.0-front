@@ -19,6 +19,7 @@
     "@platejs/indent": "^52.0.11",
     "@platejs/link": "^52.0.11",
     "@platejs/list": "^52.0.11",
+    "@platejs/media": "^52.3.10",
     "@tailwindcss/vite": "^4.2.0",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
