@@ -68,16 +68,24 @@ const SupervisorField = ({ formData, onToggle, jobSupervisors }: SupervisorField
                     className="text-xs"
                   >
                     {`${supervisor.firstName} ${supervisor.lastName}`}
-                    <button
-                      type="button"
+                    <span
+                      role="button"
+                      tabIndex={0}
                       className="ml-1 rounded-full outline-none hover:bg-muted-foreground/20"
                       onClick={(e) => {
                         e.stopPropagation()
                         onToggle(supervisor.id)
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          onToggle(supervisor.id)
+                        }
+                      }}
                     >
                       <X className="h-3 w-3" />
-                    </button>
+                    </span>
                   </Badge>
                 ))}
               </div>
