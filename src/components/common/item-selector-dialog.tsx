@@ -222,8 +222,9 @@ const ItemSelectorDialog: React.FC<ItemSelectorDialogProps> = ({
       onOpenChange={(v) => {
         if (!v) onClose();
       }}
-    >
+    >  {/* THIS WORKS WITHOUT OVERFLOW-HIDDEN HERE, OLD COMMENT: Use overflow-hidden to prevent content from overflowing the dialog when the list is long, previous version was commented out. I also changed ScrollArea */}
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg">
+
         <DialogHeader className="rounded-t-lg bg-primary px-6 py-4 text-primary-foreground">
           <DialogTitle className="text-primary-foreground">
             {title}
@@ -273,7 +274,8 @@ const ItemSelectorDialog: React.FC<ItemSelectorDialogProps> = ({
         </div>
 
         {/* Items list */}
-        <ScrollArea className="max-h-[50vh]">
+        {/* Added overflow-auto to the ScrollArea as it wasn't creating a scroll bar when items were overflowing. If we want to replace the scrollbar with the Radix scrollbar, we change it to overflow-hidden and remove max- from max-h-[50vh] the downside of this is that the scroll area will always be "tall" even with few items */}
+          <ScrollArea className="max-h-[50vh] overflow-auto">
           <div className="divide-y">
             {filteredItems.map((item) => (
               <button

@@ -31,8 +31,8 @@ const QualificationUnitPartDetails = () => {
   const md = new MarkdownIt({ html: true });
   const sanitizeHtml = (html: string) =>
     DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ["p", "b", "i", "strong", "a", "ul", "li", "ol", "img", "h1", "h2", "h3", "br", "div"],
-      ALLOWED_ATTR: ["src", "href", "alt", "target"],
+      ALLOWED_TAGS: ["p", "b", "i", "strong", "a", "ul", "li", "ol", "img", "h1", "h2", "h3", "br", "div", "span", "iframe"],
+      ALLOWED_ATTR: ["src", "href", "alt", "target", "allowfullscreen", "allow", "style", "class", "frameborder"],
     });
 
   const safeDescription = sanitizeHtml(md.render(part.description || ""));
