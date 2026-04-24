@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
-export const GET_STUDENT_INTERNSHIPS = gql`
-  query Internships($studentId: ID!) {
-    internships(studentId: $studentId) {
+export const GET_MY_INTERNSHIPS = gql`
+  query MyInternships {
+    myInternships {
       internships {
         id
         info
@@ -33,4 +33,4 @@ export const GET_STUDENT_INTERNSHIPS = gql`
       success
     }
   }
-`
+`;

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AssignedProject, ProjectStatus, Student } from '../../types';
@@ -9,13 +10,26 @@ const StudentProjectsPath = ({ student }: { student: Student }) => {
   const { studentId } = useParams();
 
   const { loading, data, startPolling, stopPolling } = useQuery(GET_STUDENT_PROJECTS_BY_STUDENT_ID, { variables: { studentId } });
+
+  useEffect(() => {
+    if (loading || !data) {
+      startPolling(500);
+      return () => {
+        stopPolling();
+      };
+    }
+
+    stopPolling();
+    return () => {
+      stopPolling();
+    };
+  }, [loading, data, startPolling, stopPolling]);
+
   if (loading || !data) {
-    startPolling(500); // making sure data has loaded
     return (
       <p className="p-4 text-muted-foreground">loading</p>
     );
   }
-  stopPolling();
 
   const assignedProjects: AssignedProject[] = data.assignedStudentProjects?.assignedProjects || [];
   console.log(assignedProjects);

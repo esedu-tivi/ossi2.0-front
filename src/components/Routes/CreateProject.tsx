@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import TurndownService from 'turndown';
 import PlateEditor from '@/components/common/plate-editor';
 import ChipSelector from '@/components/common/chip-selector';
@@ -23,7 +23,7 @@ import { GET_ASSIGNED_TEACHING_PROJECT_IDS } from '../../graphql/GetAssignedTeac
 const NewProjectForm: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const copiedProject = location.state || {};
+    const copiedProject = useMemo(() => location.state || {}, [location.state]);
     const turndownService = new TurndownService();
     const initialState = {
         name: '',
@@ -73,7 +73,7 @@ const NewProjectForm: React.FC = () => {
                 includedInParts: copiedProject.includedInParts || [],
             });
         }
-    }, [copiedProject]);
+    }, [copiedProject, setFormData, setSelectedItems]);
 
     // Mutation for creating new project
     const [createProject, { loading, error, data }] = useMutation(CREATE_PROJECT, {

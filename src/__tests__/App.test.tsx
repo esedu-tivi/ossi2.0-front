@@ -5,6 +5,10 @@ import { MemoryRouter } from 'react-router-dom';
 const mockUseAuth = vi.fn();
 const mockUseQuery = vi.fn();
 const mockUseMsal = vi.fn();
+const routerFuture = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+} as const;
 
 vi.mock('@/utils/auth-context', () => ({
   useAuth: () => mockUseAuth(),
@@ -29,6 +33,10 @@ vi.mock('@/components/Routes/teacherDashboard', () => ({
 
 vi.mock('@/components/Routes/studentDashboard', () => ({
   default: () => <div>Student Dashboard</div>,
+}));
+
+vi.mock('@/components/Routes/studentDashboard/StudentInternships', () => ({
+  default: () => <div>Student Internships</div>,
 }));
 
 vi.mock('@/components/Login', () => ({
@@ -121,7 +129,7 @@ describe('App', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>
     );
@@ -143,7 +151,7 @@ describe('App', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>
     );
@@ -165,7 +173,7 @@ describe('App', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>
     );
@@ -187,7 +195,7 @@ describe('App', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>
     );

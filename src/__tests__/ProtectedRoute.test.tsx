@@ -4,6 +4,11 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '../ProtectedRoute';
 
 const mockUseAuth = vi.fn();
+const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+const routerFuture = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+} as const;
 
 vi.mock('@/utils/auth-context', () => ({
   useAuth: () => mockUseAuth(),
@@ -11,7 +16,7 @@ vi.mock('@/utils/auth-context', () => ({
 
 function renderWithRouter(ui: React.ReactNode, initialEntry = '/test') {
   return render(
-    <MemoryRouter initialEntries={[initialEntry]}>
+    <MemoryRouter initialEntries={[initialEntry]} future={routerFuture}>
       <Routes>
         <Route path="/test" element={ui} />
         <Route path="/" element={<div>Redirected to Login</div>} />
@@ -25,6 +30,7 @@ function renderWithRouter(ui: React.ReactNode, initialEntry = '/test') {
 describe('ProtectedRoute', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    warnSpy.mockClear();
   });
 
   it('renders element when user is authenticated with correct role', () => {
@@ -87,6 +93,7 @@ describe('ProtectedRoute', () => {
     // Teacher should be redirected to teacher dashboard
     expect(screen.queryByText('Student Only Content')).not.toBeInTheDocument();
     expect(screen.getByText('Teacher Dashboard')).toBeInTheDocument();
+    expect(warnSpy).toHaveBeenCalledWith('Unauthorized access attempt to /test by teacher');
   });
 
   it('redirects student to /studentdashboard when role does not match allowedRoles', () => {
@@ -105,6 +112,7 @@ describe('ProtectedRoute', () => {
     // Student should be redirected to student dashboard
     expect(screen.queryByText('Teacher Only Content')).not.toBeInTheDocument();
     expect(screen.getByText('Student Dashboard')).toBeInTheDocument();
+    expect(warnSpy).toHaveBeenCalledWith('Unauthorized access attempt to /test by student');
   });
 
   it('renders element when user has one of multiple allowedRoles', () => {

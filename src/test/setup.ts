@@ -1,4 +1,10 @@
 import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+afterEach(() => {
+  cleanup();
+});
 
 // Polyfill window.matchMedia for jsdom (used by useIsMobile / SidebarProvider)
 Object.defineProperty(window, 'matchMedia', {

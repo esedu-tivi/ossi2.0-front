@@ -109,4 +109,30 @@ describe('Combobox', () => {
 
     expect(screen.getByText('Ei tuloksia')).toBeInTheDocument();
   });
+
+  it('supports creating a new option when creatable is enabled', async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn();
+    const onChange = vi.fn();
+
+    render(
+      <Combobox
+        id="test-combo"
+        label="Kaupunki"
+        value={null}
+        options={options}
+        onChange={onChange}
+        onCreate={onCreate}
+        creatable
+        createText={(input) => `Lisää "${input}"`}
+      />
+    );
+
+    await user.click(screen.getByRole('combobox'));
+    await user.type(screen.getByPlaceholderText('Hae...'), 'Oulu');
+    await user.click(screen.getByText('Lisää "Oulu"'));
+
+    expect(onCreate).toHaveBeenCalledWith('Oulu');
+    expect(onChange).toHaveBeenCalledWith(expect.anything(), null);
+  });
 });

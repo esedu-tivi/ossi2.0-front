@@ -26,6 +26,7 @@ interface MenuItem {
   text: string;
   icon: React.ReactNode;
   route: string;
+  activeMatch?: 'exact' | 'prefix' | 'none';
 }
 
 const teacherMenu: MenuItem[] = [
@@ -38,10 +39,11 @@ const teacherMenu: MenuItem[] = [
 ];
 
 const studentMenu: MenuItem[] = [
-  { text: 'Etusivu', icon: <Home className="size-4" />, route: '/studentdashboard' },
-  { text: 'Projektit', icon: <FolderOpen className="size-4" />, route: '/studentdashboard' },
-  { text: 'Tehtävät', icon: <ClipboardList className="size-4" />, route: '/studentdashboard' },
-  { text: 'Arvosanat', icon: <Award className="size-4" />, route: '/studentdashboard' },
+  { text: 'Etusivu', icon: <Home className="size-4" />, route: '/studentdashboard', activeMatch: 'exact' },
+  { text: 'Projektit', icon: <FolderOpen className="size-4" />, route: '/studentdashboard', activeMatch: 'none' },
+  { text: 'Tehtävät', icon: <ClipboardList className="size-4" />, route: '/studentdashboard', activeMatch: 'none' },
+  { text: 'Arvosanat', icon: <Award className="size-4" />, route: '/studentdashboard', activeMatch: 'none' },
+  { text: 'Harjoittelujaksot', icon: <Building2 className="size-4" />, route: '/studentdashboard/harjoittelujaksot', activeMatch: 'prefix' },
 ];
 
 export function AppSidebar() {
@@ -50,6 +52,14 @@ export function AppSidebar() {
   const { role } = useAuth();
 
   const menuItems = role === 'teacher' ? teacherMenu : studentMenu;
+  const itemIsActive = (item: MenuItem) => {
+    if (role === 'teacher') return location.pathname === item.route;
+
+    const match = item.activeMatch ?? 'none';
+    if (match === 'none') return false;
+    if (match === 'exact') return location.pathname === item.route;
+    return location.pathname === item.route || location.pathname.startsWith(`${item.route}/`);
+  };
 
   return (
     <Sidebar>
@@ -64,7 +74,7 @@ export function AppSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.text}>
                   <SidebarMenuButton
-                    isActive={location.pathname === item.route}
+                    isActive={itemIsActive(item)}
                     tooltip={item.text}
                     onClick={() => navigate(item.route)}
                   >

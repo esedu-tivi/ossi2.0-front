@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BaseProject, StudentProject, ProjectStatus, QualificationUnit } from '../../../types';
@@ -16,14 +16,25 @@ const StudentDashboard: React.FC = () => {
 
   const { loading, data, startPolling, stopPolling } = useQuery(GET_STUDENT_PROJECTS);
 
+  useEffect(() => {
+    if (loading || !data) {
+      startPolling(500);
+      return () => {
+        stopPolling();
+      };
+    }
+
+    stopPolling();
+    return () => {
+      stopPolling();
+    };
+  }, [loading, data, startPolling, stopPolling]);
+
   if (loading || !data) {
-    startPolling(500); // making sure data has loaded
     return (
       <p className="p-4 text-muted-foreground">loading</p>
     );
   }
-
-  stopPolling();
 
   const assignedQualificationUnits = data.me.user.assignedQualificationUnits || [];
   const assignedProjects = data.me.user.assignedProjects || [];

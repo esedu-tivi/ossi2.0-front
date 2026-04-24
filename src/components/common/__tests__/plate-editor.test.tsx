@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { serializeToHtml } from '../plate-editor';
+import { serializeToHtml } from '../plate-editor-html';
 
 // Mock platejs/react — jsdom does not support contenteditable
-vi.mock('platejs/react', () => {
-  const React = require('react');
+vi.mock('platejs/react', async () => {
+  const React = await import('react');
   return {
     Plate: ({ children }: { children: React.ReactNode }) =>
       React.createElement('div', { 'data-testid': 'plate-root' }, children),

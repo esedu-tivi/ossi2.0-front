@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
+import { ApolloError, useMutation, useQuery } from "@apollo/client";
 import InternshipForm from "../InternshipForm";
-import { useMutation, useQuery } from "@apollo/client";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { CREATE_INTERNSHIP } from "../../graphql/CreateInternship";
 import { GET_STUDENT_INTERNSHIPS } from "../../graphql/GetStudentInternships";
@@ -9,7 +9,7 @@ import DataTable, { type TableHeaderCell } from "@/components/common/data-table"
 import { convertDateForForm } from "../../utils/convertDateForForm";
 import { Internship, Student } from "../../types";
 import { EDIT_INTERNSHIP } from "../../graphql/EditInternship";
-import { useAlerts } from "../../context/AlertContext";
+import { useAlerts } from "../../context/use-alerts";
 import { Plus, Pencil, Info, Trash2 } from "lucide-react";
 import AppDialog from "@/components/common/app-dialog";
 import { convertDateToString } from "../../utils/convertDateToString";
@@ -22,9 +22,11 @@ interface InternshipData extends Internship {
     name: string
     jobSupervisor: {
       id: string
-      fistName: string
+      firstName: string
       lastName: string
-    }
+      email: string | null
+      phoneNumber: string | null
+    } | null
   },
   teacher: {
     id: string
@@ -34,7 +36,7 @@ interface InternshipData extends Internship {
   qualificationUnit: {
     id: string,
     name: string
-  }
+  } | null
 }
 
 interface ParsedInternships extends InternshipData {
@@ -70,43 +72,123 @@ const headerCells: readonly TableHeaderCell[] = [
   },
   {
     id: 2,
+    label: "Ohjaaja",
+    type: "sort",
+    sortPath: "workplace.jobSupervisor.lastName"
+  },
+  {
+    id: 3,
+    label: "Tutkinnonosa",
+    type: "sort",
+    sortPath: "qualificationUnit.name"
+  },
+  {
+    id: 4,
     label: "Info",
     type: "sort",
     sortPath: "info"
   },
   {
-    id: 3,
+    id: 5,
     label: "Aloitusaika",
     type: "sort",
     sortPath: "startDate"
   },
   {
-    id: 4,
+    id: 6,
     label: "Lopetusaika",
     type: "sort",
     sortPath: "endDate"
   },
   {
-    id: 5,
+    id: 7,
+    type: "none",
+    label: ""
+  },
+  {
+    id: 8,
     type: "search",
     searchPath: "workplace.name"
   }
 ]
 
+const getInternshipValidationError = (fd: InternshipWithoutId): string | null => {
+  if (!fd.qualificationUnitId || !fd.workplaceId || !fd.jobSupervisorId || !fd.startDate || !fd.endDate) {
+    return "Täytä pakolliset kentät (tutkinnonosa, työpaikka, työpaikkaohjaaja, aloitus- ja lopetusaika)."
+  }
+
+  const workplaceIdNum = Number(fd.workplaceId)
+  const jobSupervisorIdNum = Number(fd.jobSupervisorId)
+  const qualificationUnitIdNum = fd.qualificationUnitId ? Number(fd.qualificationUnitId) : null
+  const studentIdNum = Number(fd.studentId)
+
+  if (!Number.isFinite(workplaceIdNum) || !Number.isFinite(jobSupervisorIdNum) || (fd.qualificationUnitId && !Number.isFinite(qualificationUnitIdNum))) {
+    return "Tallennus epäonnistui: työpaikan/ohjaajan/tutkinnonosan ID ei ole numero."
+  }
+
+  if (!Number.isFinite(studentIdNum)) {
+    return "Tallennus epäonnistui: opiskelijan ID ei ole numero."
+  }
+
+  return null
+}
+
+const buildInternshipVars = (fd: InternshipWithoutId): InternshipWithoutId => {
+  const qualificationUnitIdNum = fd.qualificationUnitId ? Number(fd.qualificationUnitId) : null
+
+  return {
+    ...fd,
+    workplaceId: String(Number(fd.workplaceId)),
+    jobSupervisorId: String(Number(fd.jobSupervisorId)),
+    qualificationUnitId: fd.qualificationUnitId ? String(qualificationUnitIdNum) : "",
+    studentId: String(Number(fd.studentId)),
+    teacherId: "",
+  }
+}
+
+const getMutationErrorMessage = (error: unknown): string => {
+  if (error instanceof ApolloError) {
+    return error.graphQLErrors?.[0]?.message || error.message || "Tuntematon virhe"
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return "Tuntematon virhe"
+}
+
 const Internships = ({ student }: { student: Student }) => {
   const [showAddInternship, setShowAddInternship] = useState(false)
   const [showEditInternship, setShowEditInternship] = useState(false)
-  const [formData, setFormData] = useState<InternshipWithoutId | Internship>(initFormData);
+  const [formData, setFormData] = useState<InternshipWithoutId>(initFormData);
   const [selectedInternshipId, setSelectedInternshipId] = useState<string | number | null>(null)
-  const [createInternship, { data: createData, error: createError, loading: createLoading }] = useMutation(CREATE_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
+  const [createInternship, { data: createData, error: createError, loading: createLoading }] = useMutation(
+    CREATE_INTERNSHIP,
+    {
+      refetchQueries: [{ query: GET_STUDENT_INTERNSHIPS, variables: { studentId: student.id } }],
+      awaitRefetchQueries: true
+    }
+  )
   const [deleteInternship, { data: deleteData, error: deleteError, loading: deleteLoading }] = useMutation(DELETE_INTERNSHIP)
-  const [editInternship, { data: editData, error: editError, loading: editLoading }] = useMutation(EDIT_INTERNSHIP, { refetchQueries: [GET_STUDENT_INTERNSHIPS] })
-  const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, { variables: { studentId: student.id } })
+  const [editInternship, { data: editData, error: editError, loading: editLoading }] = useMutation(
+    EDIT_INTERNSHIP,
+    {
+      refetchQueries: [{ query: GET_STUDENT_INTERNSHIPS, variables: { studentId: student.id } }],
+      awaitRefetchQueries: true
+    }
+  )
+  const { data, loading } = useQuery(GET_STUDENT_INTERNSHIPS, {
+    variables: { studentId: student.id },
+    fetchPolicy: "network-only",
+  })
   const [internships, setInternships] = useState<ParsedInternships[]>([])
   const { confirm, ConfirmDialog } = useConfirmDialog()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<string | null>(null)
   const { addAlert } = useAlerts()
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false)
+  const [selectedInfoInternship, setSelectedInfoInternship] = useState<ParsedInternships | null>(null)
 
   useEffect(() => {
     if (data && !loading) {
@@ -117,18 +199,16 @@ const Internships = ({ student }: { student: Student }) => {
       })) as ParsedInternships[]
       setInternships(parsedInternships)
     }
-
   }, [data, loading])
 
   useEffect(() => {
     if (!dialogOpen) {
       setShowAddInternship(false)
       setShowEditInternship(false)
-      if (!showAddInternship) {
-        setFormData(initFormData)
-      }
+      setFormData(initFormData)
+      setSelectedWorkplaceId(null)
     }
-  }, [showAddInternship, formData, dialogOpen])
+  }, [dialogOpen])
 
   useEffect(() => {
     if (!editLoading) {
@@ -139,7 +219,6 @@ const Internships = ({ student }: { student: Student }) => {
         addAlert(`Muokkauksessa tapahtui virhe: ${editError.message}`, 'error', true)
       }
     }
-
   }, [editData, editError, editLoading, addAlert, student])
 
   useEffect(() => {
@@ -164,8 +243,6 @@ const Internships = ({ student }: { student: Student }) => {
     }
   }, [createData, createError, createLoading, addAlert, student])
 
-
-
   if (loading) {
     return <p className="p-4">Loading...</p>
   }
@@ -173,18 +250,27 @@ const Internships = ({ student }: { student: Student }) => {
   const handleNewFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
+    const validationError = getInternshipValidationError(formData)
+    if (validationError) {
+      addAlert(validationError, "error", true)
+      return
+    }
+
     const confirmed = await confirm({
       title: "Lisäys",
       description: "Oletko aivan varma, että haluat lisätä harjoittelu jakson?"
     })
-    if (confirmed) {
-      await createInternship({ variables: { internship: formData } })
+    if (!confirmed) return
+
+    try {
+      await createInternship({ variables: { internship: buildInternshipVars(formData) } })
       setDialogOpen(false)
+    } catch (e) {
+      addAlert(`Lisäyksessä tapahtui virhe: ${getMutationErrorMessage(e)}`, "error", true)
     }
   }
 
   const handleDelete = async (id: string | number) => {
-    console.log(id)
     const confirmed = await confirm({
       title: "Poisto",
       description: "Oletko aivan varma, että haluat poistaa harjoittelu jakson?"
@@ -193,7 +279,8 @@ const Internships = ({ student }: { student: Student }) => {
     if (confirmed) {
       await deleteInternship({
         variables: { internshipId: id },
-        refetchQueries: [GET_STUDENT_INTERNSHIPS]
+        refetchQueries: [{ query: GET_STUDENT_INTERNSHIPS, variables: { studentId: student.id } }],
+        awaitRefetchQueries: true
       })
     }
   }
@@ -201,13 +288,23 @@ const Internships = ({ student }: { student: Student }) => {
   const handleEditFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
+    const validationError = getInternshipValidationError(formData)
+    if (validationError) {
+      addAlert(validationError, "error", true)
+      return
+    }
+
     const confirmed = await confirm({
       title: "Muokkaus",
       description: "Oletko aivan varma, että haluat muokata harjoittelu jaksoa?"
     })
-    if (confirmed) {
-      await editInternship({ variables: { internshipId: selectedInternshipId, internship: formData } })
+    if (!confirmed) return
+
+    try {
+      await editInternship({ variables: { internshipId: selectedInternshipId, internship: buildInternshipVars(formData) } })
       setDialogOpen(false)
+    } catch (e) {
+      addAlert(`Muokkauksessa tapahtui virhe: ${getMutationErrorMessage(e)}`, "error", true)
     }
   }
 
@@ -218,21 +315,25 @@ const Internships = ({ student }: { student: Student }) => {
 
   const handleShowEditForm = async (id: number | string) => {
     setSelectedInternshipId(id)
-    const internship = data.internships?.internships.find((internship: InternshipData) => internship.id === id)
+    const internship = data.internships?.internships.find((row: InternshipData) => row.id === id)
 
     if (internship) {
+      if (!internship.workplace?.id) {
+        addAlert("Muokkaus epäonnistui: työpaikka puuttuu", "error", true)
+        return
+      }
+
       setSelectedWorkplaceId(internship.workplace.id)
-      const parsedInternship: InternshipWithoutId = {
+      setFormData({
         info: internship.info || "",
         startDate: convertDateForForm(internship.startDate),
         endDate: convertDateForForm(internship.endDate),
         qualificationUnitId: internship.qualificationUnit?.id || '',
-        workplaceId: internship.workplace.id || '',
-        teacherId: internship.teacher.id,
+        workplaceId: internship.workplace?.id || '',
+        teacherId: "",
         studentId: student.id.toString(),
-        jobSupervisorId: internship.workplace.jobSupervisor.id || '',
-      }
-      setFormData(parsedInternship)
+        jobSupervisorId: internship.workplace?.jobSupervisor?.id || '',
+      })
       setShowEditInternship(true)
       setDialogOpen(true)
     }
@@ -246,6 +347,7 @@ const Internships = ({ student }: { student: Student }) => {
           Lisää harjoittelujakso
         </Button>
       </div>
+
       <DataTable<ParsedInternships>
         headerCells={headerCells}
         data={internships}
@@ -256,6 +358,12 @@ const Internships = ({ student }: { student: Student }) => {
               <TableRow key={internship.id}>
                 <TableCell>{internship.id}</TableCell>
                 <TableCell>{internship.workplace?.name}</TableCell>
+                <TableCell>
+                  {internship.workplace?.jobSupervisor
+                    ? `${internship.workplace.jobSupervisor.firstName} ${internship.workplace.jobSupervisor.lastName}`
+                    : ""}
+                </TableCell>
+                <TableCell>{internship.qualificationUnit?.name || ""}</TableCell>
                 <TableCell>{internship.info}</TableCell>
                 <TableCell>{internship.startDate}</TableCell>
                 <TableCell>{internship.endDate}</TableCell>
@@ -272,7 +380,10 @@ const Internships = ({ student }: { student: Student }) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => console.log("Info")}
+                      onClick={() => {
+                        setSelectedInfoInternship(internship)
+                        setInfoDialogOpen(true)
+                      }}
                     >
                       <Info className="mr-1 h-3 w-3" />
                       Tiedot
@@ -292,6 +403,7 @@ const Internships = ({ student }: { student: Student }) => {
           </TableBody>
         )}
       </DataTable>
+
       <AppDialog
         title={showAddInternship ? 'Lisää harjoittelu' : showEditInternship ? 'Muokkaa harjoittelujaksoa' : ''}
         open={dialogOpen}
@@ -318,6 +430,27 @@ const Internships = ({ student }: { student: Student }) => {
           />
         ) : null}
       </AppDialog>
+
+      <AppDialog title="Tiedot" open={infoDialogOpen} onClose={setInfoDialogOpen}>
+        {selectedInfoInternship ? (
+          <div className="space-y-2 text-left text-sm">
+            <p>ID: {selectedInfoInternship.id}</p>
+            <p>Työpaikka: {selectedInfoInternship.workplace?.name ?? ""}</p>
+            <p>
+              Ohjaaja: {selectedInfoInternship.workplace?.jobSupervisor
+                ? `${selectedInfoInternship.workplace.jobSupervisor.firstName} ${selectedInfoInternship.workplace.jobSupervisor.lastName}`
+                : ""}
+            </p>
+            <p>Sähköposti: {selectedInfoInternship.workplace?.jobSupervisor?.email ?? ""}</p>
+            <p>Puhelin: {selectedInfoInternship.workplace?.jobSupervisor?.phoneNumber ?? ""}</p>
+            <p>Tutkinnonosa: {selectedInfoInternship.qualificationUnit?.name ?? ""}</p>
+            <p>Info: {selectedInfoInternship.info ?? ""}</p>
+            <p>Aloitusaika: {selectedInfoInternship.startDate}</p>
+            <p>Lopetusaika: {selectedInfoInternship.endDate}</p>
+          </div>
+        ) : null}
+      </AppDialog>
+
       <ConfirmDialog />
     </>
   )

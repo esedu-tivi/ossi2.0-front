@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Save, Undo2, Archive } from 'lucide-react';
 import ItemSelectorDialog from '@/components/common/item-selector-dialog';
 import PlateEditor from '@/components/common/plate-editor';
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { EditPartFormData, Item } from '../../FormData';
@@ -47,11 +47,11 @@ const EditPart: React.FC = () => {
 
     const handleCloseSelector = () => {
         setSelectorOpen(false);
-        setCurrentField(null as any);
+        setCurrentField(null);
     };
 
     const [selectorOpen, setSelectorOpen] = useState(false);
-    const [currentField, setCurrentField] = useState<'projectsInOrder' | 'parentQualificationUnit'>('parentQualificationUnit');
+    const [currentField, setCurrentField] = useState<'projectsInOrder' | 'parentQualificationUnit' | null>('parentQualificationUnit');
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: Item[] }>({
         projectsInOrder: [],
         parentQualificationUnit: [],
@@ -67,9 +67,9 @@ const EditPart: React.FC = () => {
     }, [data]);
 
     // Reverts Markdown back to HTML for editor fields
-    const md = new MarkdownIt({
+    const md = useMemo(() => new MarkdownIt({
         html: true,
-    });
+    }), []);
 
     // Enforces allowed HTML tags and attributes using DOMPurify
     const sanitizeHtml = (html: string) =>
@@ -117,7 +117,7 @@ const EditPart: React.FC = () => {
                 console.error("No part found in response:", data);
             }
         }
-    }, [data, loading]);
+    }, [data, loading, md]);
 
     // Mutation for updating the Part
     const [updatePart] = useMutation(UPDATE_PART, {
@@ -152,7 +152,7 @@ const EditPart: React.FC = () => {
         setSelectorOpen(false);
     };
 
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: DropResult) => {
         if (!result.destination) return;
 
         const reorderedProjects = Array.from(formData.projectsInOrder);
@@ -416,7 +416,7 @@ const EditPart: React.FC = () => {
                 title={title}
                 buttonText={buttonText}
                 open={selectorOpen}
-                selectedItems={selectedItems[currentField] ?? []}
+                selectedItems={currentField ? selectedItems[currentField] ?? [] : []}
                 onAdd={handleAdd}
                 onClose={handleCloseSelector}
                 currentField={currentField ?? ''}

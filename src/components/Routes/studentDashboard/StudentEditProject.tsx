@@ -49,27 +49,21 @@ const StudentEditProject: React.FC<StudentEditProjectProps> = ({ open, onClose, 
     if (loading || !projectId || !data) {
       return;
     }
-    if (data.me.user.assignedProjectSingle.project.teacherComment === '') {
-      setFormData({
-        ...formData, plan: data.me.user.assignedProjectSingle.project.projectPlan,
-        report: data.me.user.assignedProjectSingle.project.projectReport,
-        message: 'Feedback not provided'
-      });
-    } else {
-      setFormData({
-        ...formData, plan: data.me.user.assignedProjectSingle.project.projectPlan,
-        report: data.me.user.assignedProjectSingle.project.projectReport,
-        message: data.me.user.assignedProjectSingle.project.teacherComment
-      });
-    }
+    const assignedProject = data.me.user.assignedProjectSingle.project;
 
-    console.log(formData);
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      plan: assignedProject.projectPlan,
+      report: assignedProject.projectReport,
+      message: assignedProject.teacherComment === '' ? 'Feedback not provided' : assignedProject.teacherComment,
+    }));
+
     let timeDifference = 0;
-    if (data.me.user.assignedProjectSingle.project.deadline && data.me.user.assignedProjectSingle.project.startDate) {
-      timeDifference = (data.me.user.assignedProjectSingle.project.deadline?.valueOf() - data.me.user.assignedProjectSingle.project.startDate?.valueOf()) - (data.me.user.assignedProjectSingle.project.deadline?.valueOf() - new Date().valueOf());
+    if (assignedProject.deadline && assignedProject.startDate) {
+      timeDifference = (assignedProject.deadline?.valueOf() - assignedProject.startDate?.valueOf()) - (assignedProject.deadline?.valueOf() - new Date().valueOf());
     }
     setDaysUsed(Math.floor(timeDifference / 1000 / 60 / 60 / 24));
-  }, [data]);
+  }, [data, loading, projectId]);
 
   if (loading || !projectId || !data) {
     return null;

@@ -30,6 +30,10 @@ interface ComboboxProps {
   options: Option[];
   onChange: (event: React.SyntheticEvent, newValue: Option | null) => void;
   noOptionsText?: string;
+  onCreate?: (inputValue: string) => void;
+  creatable?: boolean;
+  createText?: (input: string) => string;
+  placeholder?: string;
 }
 
 const Combobox = ({
@@ -40,8 +44,27 @@ const Combobox = ({
   options,
   onChange,
   noOptionsText = 'Ei vaihtoehtoja.',
+  onCreate,
+  creatable = false,
+  createText,
+  placeholder = 'Valitse...',
 }: ComboboxProps) => {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredOptions = options.filter((option) =>
+    option.name.toLowerCase().includes(normalizedQuery)
+  );
+  const canCreate =
+    creatable &&
+    normalizedQuery.length > 0 &&
+    !options.some((option) => option.name.toLowerCase() === normalizedQuery);
+
+  const closeAndReset = () => {
+    setOpen(false);
+    setQuery('');
+  };
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -59,17 +82,21 @@ const Combobox = ({
             aria-expanded={open}
             className="w-full justify-between font-normal"
           >
-            {value ? value.name : 'Valitse...'}
+            {value ? value.name : placeholder}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" style={{ pointerEvents: 'auto' }}>
           <Command>
-            <CommandInput placeholder="Hae..." />
+            <CommandInput
+              placeholder="Hae..."
+              value={query}
+              onValueChange={setQuery}
+            />
             <CommandList>
               <CommandEmpty>{noOptionsText}</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
+                {filteredOptions.map((option) => (
                   <CommandItem
                     key={option.id}
                     value={option.name}
@@ -82,7 +109,7 @@ const Combobox = ({
                         target: { value: newValue },
                       } as unknown as React.SyntheticEvent;
                       onChange(syntheticEvent, newValue);
-                      setOpen(false);
+                      closeAndReset();
                     }}
                   >
                     <Check
@@ -94,6 +121,24 @@ const Combobox = ({
                     {option.name}
                   </CommandItem>
                 ))}
+                {canCreate && (
+                  <CommandItem
+                    key={`create-${normalizedQuery}`}
+                    value={query}
+                    onSelect={() => {
+                      if (!onCreate) return;
+                      onCreate(query.trim());
+                      const syntheticEvent = {
+                        type: 'change',
+                        target: { value: null },
+                      } as unknown as React.SyntheticEvent;
+                      onChange(syntheticEvent, null);
+                      closeAndReset();
+                    }}
+                  >
+                    {createText ? createText(query.trim()) : `Lisää "${query.trim()}"`}
+                  </CommandItem>
+                )}
               </CommandGroup>
             </CommandList>
           </Command>
