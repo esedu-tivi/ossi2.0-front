@@ -222,7 +222,7 @@ const ItemSelectorDialog: React.FC<ItemSelectorDialogProps> = ({
       onOpenChange={(v) => {
         if (!v) onClose();
       }}
-    >  {/* THIS WORKS WITHOUT OVERFLOW-HIDDEN HERE, OLD COMMENT: Use overflow-hidden to prevent content from overflowing the dialog when the list is long, previous version was commented out. I also changed ScrollArea */}
+    >
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg">
 
         <DialogHeader className="rounded-t-lg bg-primary px-6 py-4 text-primary-foreground">
