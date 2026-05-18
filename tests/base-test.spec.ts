@@ -40,7 +40,8 @@ test('Login + Basic Functionalities', async ({ page }) => {
   await page.getByRole('button', { name: 'Tallenna muutokset' }).click();
   await page.waitForTimeout(2000);
   //Create a project and then edit it
-  await page.getByRole('button', { name: 'Projektit' }).click();
+  await page.getByRole('button', { name: 'Projektit' }).click({ force: true });
+  //webkit needs force:true for some reason, investigating this later.
   await page.getByRole('button', { name: 'Lisää Projekti' }).click();
   const projectName = `Test Project ${Date.now()}`;
   await page.getByRole('textbox', { name: 'Projektin nimi' }).fill(projectName);

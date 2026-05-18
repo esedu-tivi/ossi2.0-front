@@ -501,20 +501,18 @@ const PlateEditor = ({
     }
   }, [value, setFromHtml]);
 
-  const handleChange = useCallback(
-    ({ value: v }: { value: Value }) => {
-      if (skipRef.current) return;
-
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-
-      debounceRef.current = setTimeout(() => {
-        const html = serializeToHtml(v as Descendant[]);
-        lastValueRef.current = html;
-        onChange(html);
-      }, 300);
-    },
-    [onChange]
-  );
+const handleChange = useCallback(
+  ({ value: v }: { value: Value }) => {
+    if (skipRef.current) {
+      skipRef.current = false; // clear on the first onChange after a setValue
+      return;
+    }
+    const html = serializeToHtml(v as Descendant[]);
+    lastValueRef.current = html;
+    onChange(html);
+  },
+  [onChange]
+);
 
   return (
     <div className="mb-4">
