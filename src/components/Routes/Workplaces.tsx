@@ -58,6 +58,11 @@ const headerCells: readonly TableHeaderCell[] = [
   },
   {
     id: 2,
+    label: "Työpaikkaohjaajat",
+    type: "default"
+  },
+  {
+    id: 3,
     type: "search",
     searchPath: "name"
   }
@@ -111,7 +116,7 @@ const Workplaces = () => {
   const [updateSupervisorAssigns] = useMutation(UPDATE_JOB_SUPERVISOR_ASSIGNS, { refetchQueries: [GET_JOB_SUPERVISORS] })
 
   const [createJobSupervisor] = useMutation(CREATE_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS] })
-  const [deleteJobSupervisor] = useMutation(DELETE_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS] })
+  const [deleteJobSupervisor] = useMutation(DELETE_JOB_SUPERVISOR, { refetchQueries: [GET_JOB_SUPERVISORS, GET_WORKPLACES] })
 
   const [requestMagicLink] = useMutation(REQUEST_MAGIC_LINK)
 
@@ -146,6 +151,18 @@ const Workplaces = () => {
   const [workplaceFormData, setWorkplaceFormData] = useState<WorkplaceFormData>(initWorkplaceFormData);
   const [jobSupervisorFormData, setJobSupervisorFormData] = useState<JobSupervisor>(initJobSupervisorFormData)
 
+  const getErrorMessage = (error: unknown) => {
+    if (error && typeof error === "object") {
+      const possibleGraphQLErrors = (error as { graphQLErrors?: { message?: string }[] }).graphQLErrors
+      if (possibleGraphQLErrors?.length && possibleGraphQLErrors[0]?.message) {
+        return possibleGraphQLErrors[0].message
+      }
+      const possibleMessage = (error as { message?: string }).message
+      if (possibleMessage) return possibleMessage
+    }
+    return "Tuntematon virhe"
+  }
+
   useEffect(() => {
     if (!dialogOpen) {
       setShowNewForm(false)
@@ -163,52 +180,111 @@ const Workplaces = () => {
     }
   }, [showNewWorkplaceForm, showEditWorkplaceForm, showNewJobSupervisorForm, showEditJobSupervisorForm])
 
+  const workplaces: WorkplaceWithJobSupervisorId[] = workplaceData?.workplaces?.workplaces || []
+
+  const jobSupervisors: JobSupervisorWithFullNameAndWorkplace[] = jobSupervisorsData?.jobSupervisors?.jobSupervisors?.map(((jobSupervisor: JobSupervisorWithFullNameAndWorkplace) => ({
+    ...jobSupervisor,
+    fullName: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`,
+    phoneNumber: jobSupervisor.phoneNumber || ""
+  }))) || []
+
+  useEffect(() => {
+    if (!selectedWorkplaceId) return
+
+    const foundWorkplace = workplaces.find(workplace => Number(workplace.id) === selectedWorkplaceId)
+    const workplace = foundWorkplace ? {
+      ...foundWorkplace,
+      jobSupervisorIds: foundWorkplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
+    } : initWorkplaceFormData
+
+    setWorkplaceFormData(workplace)
+    setSelectedWorkplaceId(null)
+  }, [selectedWorkplaceId, workplaces])
+
+  useEffect(() => {
+    if (!selectedJobSupervisorId) return
+
+    const foundJobSupervisor = jobSupervisors.find(jobSupervisor => jobSupervisor.id === selectedJobSupervisorId)
+    if (foundJobSupervisor) {
+      setJobSupervisorFormData({
+        id: selectedJobSupervisorId,
+        firstName: foundJobSupervisor.firstName,
+        lastName: foundJobSupervisor.lastName,
+        email: foundJobSupervisor.email,
+        phoneNumber: foundJobSupervisor.phoneNumber || ""
+      })
+    }
+    setSelectedJobSupervisorId(null)
+  }, [selectedJobSupervisorId, jobSupervisors])
+
   const loading = workplaceLoading || jobSupervisorsLoading
   const error = workplaceError || jobSupervisorsError
 
   if (loading) return <p className="p-4">Loading...</p>
   if (error) return <p className="p-4">Error: {error.message}</p>
 
-  const workplaces: WorkplaceWithJobSupervisorId[] = workplaceData.workplaces?.workplaces || []
-
-  const jobSupervisors: JobSupervisorWithFullNameAndWorkplace[] = jobSupervisorsData.jobSupervisors?.jobSupervisors.map(((jobSupervisor: JobSupervisorWithFullNameAndWorkplace) => ({
-    ...jobSupervisor,
-    fullName: `${jobSupervisor.firstName} ${jobSupervisor.lastName}`,
-    phoneNumber: jobSupervisor.phoneNumber || ""
-  })))
-
 
   const handleDelete = async (id: number, name: string) => {
-    console.log(id);
     const confirmed = await confirm({
       title: "Poisto",
       description: `Oletko aivan varma, että haluat poistaa '${name}' työpaikan?`
     })
 
-    if (confirmed) {
+    if (!confirmed) return
+
+    try {
       const response = await deleteWorkplace({ variables: { deleteWorkplaceId: id } })
-      console.log(response)
       if (response.data.deleteWorkplace.success) {
-        return addAlert("Työpaikka poistettu", "success")
+        addAlert("Työpaikka poistettu", "success")
+        return
       }
       addAlert("Poistossa tapahtui virhe", "error")
+    } catch (deleteError) {
+      addAlert(`Poisto epäonnistui: ${getErrorMessage(deleteError)}`, "error", true)
     }
   }
 
-  const handleJobSupervisorDelete = async (id: string, fullName: string) => {
-    console.log(id);
+  const handleJobSupervisorDelete = async (id: string, fullName: string, workplaceId?: string) => {
     const confirmed = await confirm({
       title: "Poisto",
       description: `Oletko aivan varma, että haluat poistaa '${fullName}' työpaikkaohjaajan?`
     })
 
-    if (confirmed) {
+    if (!confirmed) return
+
+    try {
       const response = await deleteJobSupervisor({ variables: { jobSupervisorId: id } })
       if (response.data.deleteJobSupervisor.success) {
-        return addAlert("Työpaikkaohjaaja poistettu", "success")
+        addAlert("Työpaikkaohjaaja poistettu", "success")
+        return
       }
-      addAlert("Poistossa tapahtui virhe", "error")
+    } catch (initialDeleteError) {
+      if (workplaceId) {
+        try {
+          await updateSupervisorAssigns({
+            variables: {
+              workplaceId,
+              assignIds: [],
+              unassignIds: [id]
+            }
+          })
+
+          const retryResponse = await deleteJobSupervisor({ variables: { jobSupervisorId: id } })
+          if (retryResponse.data.deleteJobSupervisor.success) {
+            addAlert("Työpaikkaohjaaja poistettu", "success")
+            return
+          }
+        } catch (retryError) {
+          addAlert(`Poisto epäonnistui: ${getErrorMessage(retryError)}`, "error", true)
+          return
+        }
+      }
+
+      addAlert(`Poisto epäonnistui: ${getErrorMessage(initialDeleteError)}`, "error", true)
+      return
     }
+
+    addAlert("Poistossa tapahtui virhe", "error")
   }
 
   const handleNewWorkplaceFormSubmit = async (event: React.FormEvent) => {
@@ -219,8 +295,7 @@ const Workplaces = () => {
     })
 
     if (confirmed) {
-      const response = await createWorkplace({ variables: { name: workplaceFormData.name } })
-      console.log('GraphQL Response:', response.data);
+      await createWorkplace({ variables: { name: workplaceFormData.name } })
       setWorkplaceFormData(initWorkplaceFormData)
 
       addAlert("Työpaikka lisätty", "success")
@@ -243,8 +318,6 @@ const Workplaces = () => {
         assignIds.push(...workplaceFormData.jobSupervisorIds)
       }
 
-      console.log("assignIds", assignIds)
-      console.log("unassignIds", unassignIds)
       await updateSupervisorAssigns({
         variables: {
           workplaceId: workplace.id,
@@ -262,7 +335,6 @@ const Workplaces = () => {
 
   const handleNewJobSupervisorFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    console.log(jobSupervisorFormData)
 
     const confirmed = await confirm({
       title: "Luonti",
@@ -293,17 +365,20 @@ const Workplaces = () => {
       description: `Oletko aivan varma, että haluat muokata työpaikkaohjaajaa?`
     })
 
-    if (confirmed) {
-      const id = jobSupervisorFormData.id
-      delete jobSupervisorFormData.id
+    if (!confirmed) return
+
+    try {
+      const { id, ...jobSupervisorPayload } = jobSupervisorFormData
       const response = await editJobSupervisor({
-        variables: { jobSupervisorId: id, jobSupervisor: jobSupervisorFormData }
+        variables: { jobSupervisorId: id, jobSupervisor: jobSupervisorPayload }
       })
       setDialogOpen(false)
       if (response.data.editJobSupervisor.success) {
         return addAlert("Työpaikkaohjaajan muokkaus onnistui", "success")
       }
       addAlert("Työpaikkaohjaajan muokkauksessa tapahtui virhe", "error", true)
+    } catch (editError) {
+      addAlert(`Työpaikkaohjaajan muokkaus epäonnistui: ${getErrorMessage(editError)}`, "error", true)
     }
   }
 
@@ -327,29 +402,20 @@ const Workplaces = () => {
     setShowEditJobSupervisorForm(true)
   }
 
-  if (selectedWorkplaceId) {
-    const foundWorkplace = workplaces.find(workplace => Number(workplace.id) === selectedWorkplaceId)
-    const workplace = foundWorkplace ? {
-      ...foundWorkplace,
-      jobSupervisorIds: foundWorkplace.jobSupervisors.map(jobSupervisor => jobSupervisor.id)
-    } : initWorkplaceFormData
-
-    setWorkplaceFormData(workplace)
-    setSelectedWorkplaceId(null)
+  const handleNavigateToWorkplaceDetails = (workplaceId?: string | null) => {
+    if (!workplaceId) {
+      addAlert("Työpaikan tietoja ei voi avata: puuttuva tunniste", "error")
+      return
+    }
+    navigate(`/workplaces/${workplaceId}`)
   }
 
-  if (selectedJobSupervisorId) {
-    const foundJobSupervisor = jobSupervisors.find(jobSupervisor => jobSupervisor.id === selectedJobSupervisorId)
-    if (foundJobSupervisor) {
-      setJobSupervisorFormData({
-        id: selectedJobSupervisorId,
-        firstName: foundJobSupervisor.firstName,
-        lastName: foundJobSupervisor.lastName,
-        email: foundJobSupervisor.email,
-        phoneNumber: foundJobSupervisor.phoneNumber || ""
-      })
+  const handleNavigateToJobSupervisorDetails = (jobSupervisorId?: string | null) => {
+    if (!jobSupervisorId) {
+      addAlert("Työpaikkaohjaajan tietoja ei voi avata: puuttuva tunniste", "error")
+      return
     }
-    setSelectedJobSupervisorId(null)
+    navigate(`/jobsupervisors/${jobSupervisorId}`)
   }
 
   return (
@@ -380,6 +446,23 @@ const Workplaces = () => {
                       <TableCell>{workplace.name}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
+                          {workplace.jobSupervisors?.length
+                            ? workplace.jobSupervisors.map((supervisor) => (
+                              <Button
+                                key={supervisor.id}
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto px-2 py-1"
+                                onClick={() => handleNavigateToJobSupervisorDetails(supervisor.id)}
+                              >
+                                {`${supervisor.firstName} ${supervisor.lastName}`}
+                              </Button>
+                            ))
+                            : <span className="text-sm text-muted-foreground">Ei liitettyjä ohjaajia</span>}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
                           <Button
                             variant="outline"
                             size="sm"
@@ -391,7 +474,7 @@ const Workplaces = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => navigate(`/workplaces/${workplace.id}`)}
+                            onClick={() => handleNavigateToWorkplaceDetails(workplace.id)}
                           >
                             <Info className="mr-1 h-3 w-3" />
                             Tiedot
@@ -425,7 +508,20 @@ const Workplaces = () => {
                     <TableRow key={jobSupervisor.id}>
                       <TableCell>{jobSupervisor.id}</TableCell>
                       <TableCell>{jobSupervisor.fullName}</TableCell>
-                      <TableCell>{jobSupervisor.workplace?.name || ""}</TableCell>
+                      <TableCell>
+                        {jobSupervisor.workplace
+                          ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-auto px-2 py-1"
+                              onClick={() => handleNavigateToWorkplaceDetails(jobSupervisor.workplace?.id)}
+                            >
+                              {jobSupervisor.workplace.name}
+                            </Button>
+                          )
+                          : ""}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           <Button
@@ -439,7 +535,7 @@ const Workplaces = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => navigate(`/jobsupervisors/${jobSupervisor.id}`)}
+                            onClick={() => handleNavigateToJobSupervisorDetails(jobSupervisor.id)}
                           >
                             <Info className="mr-1 h-3 w-3" />
                             Tiedot
@@ -447,7 +543,7 @@ const Workplaces = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleJobSupervisorDelete(jobSupervisor.id, jobSupervisor.fullName)}
+                            onClick={() => handleJobSupervisorDelete(jobSupervisor.id, jobSupervisor.fullName, jobSupervisor.workplace?.id)}
                           >
                             <Trash2 className="mr-1 h-3 w-3" />
                             Poista
