@@ -444,7 +444,6 @@ const PlateEditor = ({
   height = 400,
   maxHeight = 600,
 }: PlateEditorProps) => {
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipRef = useRef(false);
   const lastValueRef = useRef(value);
 

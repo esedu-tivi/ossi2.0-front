@@ -32,7 +32,7 @@ const App = () => {
     const hasRedirectedRef = useRef(false);
     const [postLoginLoading, setPostLoginLoading] = useState(true);
 
-    const { data: studentData, loading: studentLoading } = useQuery(USER_SETUP, {
+    const { data: studentData, loading: studentLoading, error: studentError } = useQuery(USER_SETUP, {
         skip: !isAuthenticated,
         fetchPolicy: 'network-only',
     });
@@ -40,14 +40,14 @@ const App = () => {
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        if (!studentLoading && studentData) {
+        if (!studentLoading && (studentData || studentError)) {
             const timer = setTimeout(() => {
                 setPostLoginLoading(false);
             }, 800);
 
             return () => clearTimeout(timer);
         }
-    }, [isAuthenticated, studentLoading, studentData]);
+    }, [isAuthenticated, studentLoading, studentData, studentError]);
 
     useEffect(() => {
         if (hasRedirectedRef.current) return;
@@ -79,7 +79,7 @@ const App = () => {
         }
     }, [studentLoading, isAuthenticated, role, studentData, location.pathname, navigate]);
 
-    if (isAuthenticated && (studentLoading || !studentData || postLoginLoading)) {
+    if (isAuthenticated && !studentError && (studentLoading || !studentData || postLoginLoading)) {
         return (
             <div className="flex h-screen items-center justify-center flex-col">
                 <div className="bounce-spinner">
