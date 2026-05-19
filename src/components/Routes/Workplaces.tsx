@@ -59,7 +59,7 @@ const headerCells: readonly TableHeaderCell[] = [
   {
     id: 2,
     label: "Työpaikkaohjaajat",
-    type: "default"
+    type: "none"
   },
   {
     id: 3,
