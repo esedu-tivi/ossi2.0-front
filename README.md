@@ -87,6 +87,24 @@ See detailed documentation:
 - [docs/frontend-architecture.md](/Users/purot/ossi/ossi2.0-front/docs/frontend-architecture.md)
 - [docs/deploy.md](/Users/purot/ossi/ossi2.0-front/docs/deploy.md)
 
+## Testing
+- Testing is done using playwright.
+- Testing requires a first time manual authentication and then a re-authentication every once in a while.
+- You manually authenticate using login-setup.ts, which stores your browser session storage into playwright/.auth/user.json
+
+1. Run this command, which opens a browser window. (If prompted to install tsx, press y)
+```bash
+npx tsx login-setup.ts
+```
+2. Login normally using your esedu account and wait for the browser to close.
+` `
+3. Run the tests
+```bash
+npx playwright test
+```
+* You can use the ```--ui ```flag for extensive troubleshooting.
+
+
 ## Troubleshooting
 
 - `Missing environment variables for MSAL configuration`:

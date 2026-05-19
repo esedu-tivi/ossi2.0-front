@@ -60,7 +60,7 @@ vi.mock('@platejs/list/react', () => ({
 }));
 
 vi.mock('@platejs/link/react', () => ({
-  LinkPlugin: {},
+  LinkPlugin: { configure: vi.fn().mockReturnValue({}) },
 }));
 
 // ---------------------------------------------------------------------------
