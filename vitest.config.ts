@@ -19,5 +19,6 @@ export default defineConfig({
     isolate: true,
     testTimeout: 10000,
     hookTimeout: 10000,
+    exclude: ['**/node_modules/**', 'tests/**'],
   },
 });

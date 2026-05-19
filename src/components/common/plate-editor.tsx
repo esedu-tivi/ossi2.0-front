@@ -375,26 +375,26 @@ const handleLink = useCallback(
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b px-2 py-1">
-      <ToolbarBtn icon={<Heading1 size={iconSize} />} active={isBlockActive("h1")} onMouseDown={(e) => toggleBlock(e, () => editor.tf.h1.toggle())} title="H1" />
-      <ToolbarBtn icon={<Heading2 size={iconSize} />} active={isBlockActive("h2")} onMouseDown={(e) => toggleBlock(e, () => editor.tf.h2.toggle())} title="H2" />
-      <ToolbarBtn icon={<Heading3 size={iconSize} />} active={isBlockActive("h3")} onMouseDown={(e) => toggleBlock(e, () => editor.tf.h3.toggle())} title="H3" />
+      <ToolbarBtn icon={<Heading1 size={iconSize} />} active={isBlockActive("h1")} onMouseDown={(e) => toggleBlock(e, () => editor.tf.h1.toggle())} title="Otsikko 1" />
+      <ToolbarBtn icon={<Heading2 size={iconSize} />} active={isBlockActive("h2")} onMouseDown={(e) => toggleBlock(e, () => editor.tf.h2.toggle())} title="Otsikko 2" />
+      <ToolbarBtn icon={<Heading3 size={iconSize} />} active={isBlockActive("h3")} onMouseDown={(e) => toggleBlock(e, () => editor.tf.h3.toggle())} title="Otsikko 3" />
 
       <Separator />
 
-      <ToolbarBtn icon={<Bold size={iconSize} />} active={isMarkActive("bold")} onMouseDown={(e) => toggleMark(e, "bold")} title="Bold" />
-      <ToolbarBtn icon={<Italic size={iconSize} />} active={isMarkActive("italic")} onMouseDown={(e) => toggleMark(e, "italic")} title="Italic" />
-      <ToolbarBtn icon={<Underline size={iconSize} />} active={isMarkActive("underline")} onMouseDown={(e) => toggleMark(e, "underline")} title="Underline" />
+      <ToolbarBtn icon={<Bold size={iconSize} />} active={isMarkActive("bold")} onMouseDown={(e) => toggleMark(e, "bold")} title="Lihavointi (⌘B)" />
+      <ToolbarBtn icon={<Italic size={iconSize} />} active={isMarkActive("italic")} onMouseDown={(e) => toggleMark(e, "italic")} title="Kursiivi (⌘I)" />
+      <ToolbarBtn icon={<Underline size={iconSize} />} active={isMarkActive("underline")} onMouseDown={(e) => toggleMark(e, "underline")} title="Alleviivaus (⌘U)" />
 
       <Separator />
 
-      <ToolbarBtn icon={<List size={iconSize} />} active={isListActive("disc")} onMouseDown={(e) => toggleBlock(e, () => toggleList(editor as never, { listStyleType: "disc" }))} title="List" />
-      <ToolbarBtn icon={<ListOrdered size={iconSize} />} active={isListActive("decimal")} onMouseDown={(e) => toggleBlock(e, () => toggleList(editor as never, { listStyleType: "decimal" }))} title="Numbered list" />
+      <ToolbarBtn icon={<List size={iconSize} />} active={isListActive("disc")} onMouseDown={(e) => toggleBlock(e, () => toggleList(editor as never, { listStyleType: "disc" }))} title="Luettelo" />
+      <ToolbarBtn icon={<ListOrdered size={iconSize} />} active={isListActive("decimal")} onMouseDown={(e) => toggleBlock(e, () => toggleList(editor as never, { listStyleType: "decimal" }))} title="Numeroitu luettelo" />
 
       <Separator />
 
-      <ToolbarBtn icon={<Quote size={iconSize} />} active={isBlockActive("blockquote")} onMouseDown={(e) => toggleBlock(e, () => editor.tf.blockquote.toggle())} title="Quote" />
+      <ToolbarBtn icon={<Quote size={iconSize} />} active={isBlockActive("blockquote")} onMouseDown={(e) => toggleBlock(e, () => editor.tf.blockquote.toggle())} title="Lainaus" />
 
-      <ToolbarBtn icon={<Link size={iconSize} />} title="Link" onMouseDown={handleLink} />
+      <ToolbarBtn icon={<Link size={iconSize} />} title="Linkki" onMouseDown={handleLink} />
 
     <DropdownMenu>
   <DropdownMenuTrigger asChild>
