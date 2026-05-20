@@ -1,5 +1,7 @@
 @startuml OSSI 2.0 Use Case Diagram
 !theme plain
+left to right direction
+scale 0.75
 skinparam actorStyle awesome
 skinparam packageStyle rectangle
 skinparam usecaseBorderColor #4A90D9
