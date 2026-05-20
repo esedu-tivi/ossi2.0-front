@@ -1,0 +1,201 @@
+@startuml OSSI 2.0 Use Case Diagram
+!theme plain
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecaseBorderColor #4A90D9
+skinparam usecaseBackgroundColor #EBF5FB
+skinparam actorBorderColor #2C3E50
+skinparam packageBorderColor #7F8C8D
+skinparam packageBackgroundColor #FDFEFE
+skinparam arrowColor #2C3E50
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #F9A825
+
+title OSSI 2.0 – UML Use Case -kaavio
+
+' =====================
+' TOIMIJAT
+' =====================
+actor "Opettaja" as Teacher
+actor "Opiskelija" as Student
+actor "Työpaikkaohjaaja" as Supervisor
+actor "Azure AD" as AzureAD <<system>>
+
+' =====================
+' KIRJAUTUMINEN (yhteinen)
+' =====================
+package "Autentikointi" {
+  usecase "Kirjaudu sisään\n(Azure AD / MSAL)" as UC_Login
+  usecase "Vaihda rooli\n(dev-tila)" as UC_SwitchRole
+}
+
+UC_Login ..> AzureAD : <<include>>
+Teacher --> UC_Login
+Student --> UC_Login
+UC_SwitchRole ..> UC_Login : <<extend>>\n[dev-ympäristö]
+
+' =====================
+' OPISKELIJAN KÄYTTÖTAPAUKSET
+' =====================
+package "Opiskelijan toiminnot" {
+
+  package "Ensimmäinen kirjautuminen" {
+    usecase "Valitse tutkintotyyppi\n(täysi / osatutkinto)" as UC_NewUserSetup
+  }
+
+  package "Projektit" {
+    usecase "Selaa saatavilla\nolevia projekteja" as UC_BrowseProjects
+    usecase "Hae projektiin" as UC_ApplyProject
+    usecase "Peru projektihakemus" as UC_UnassignProject
+    usecase "Muokkaa projektisuunnitelmaa" as UC_EditPlan
+    usecase "Muokkaa projektiraporttia" as UC_EditReport
+    usecase "Merkitse työtunnit" as UC_LogWorktime
+    usecase "Poista työtuntimerkintä" as UC_DeleteWorktime
+    usecase "Seuraa projektin tilaa" as UC_TrackStatus
+  }
+
+  package "Harjoittelujaksot" {
+    usecase "Katsele omia\nharjoittelujaksoja" as UC_ViewInternships
+    usecase "Näe työpaikan ja\nohjaajan tiedot" as UC_ViewWorkplaceInfo
+  }
+
+}
+
+Student --> UC_NewUserSetup
+Student --> UC_BrowseProjects
+Student --> UC_ApplyProject
+Student --> UC_UnassignProject
+Student --> UC_EditPlan
+Student --> UC_EditReport
+Student --> UC_LogWorktime
+Student --> UC_DeleteWorktime
+Student --> UC_TrackStatus
+Student --> UC_ViewInternships
+
+UC_ApplyProject ..> UC_BrowseProjects : <<include>>
+UC_EditPlan ..> UC_ApplyProject : <<include>>
+UC_EditReport ..> UC_ApplyProject : <<include>>
+UC_LogWorktime ..> UC_ApplyProject : <<include>>
+UC_ViewWorkplaceInfo ..> UC_ViewInternships : <<include>>
+
+' =====================
+' OPETTAJAN KÄYTTÖTAPAUKSET
+' =====================
+package "Opettajan toiminnot" {
+
+  package "Opiskelijoiden hallinta" {
+    usecase "Katsele opiskelijalistaa" as UC_ViewStudents
+    usecase "Katsele opiskelijan tietoja" as UC_ViewStudentInfo
+    usecase "Katsele opiskelijan\nHOKS-polkua" as UC_ViewHOKS
+    usecase "Katsele opiskelijan projekteja" as UC_ViewStudentProjects
+  }
+
+  package "Projektien hallinta" {
+    usecase "Katsele kaikkia projekteja" as UC_ViewProjects
+    usecase "Luo uusi projekti" as UC_CreateProject
+    usecase "Muokkaa projektia" as UC_EditProject
+    usecase "Merkitse projekti\nseurattavaksi" as UC_AssignTeachingProject
+    usecase "Poista seuranta\nprojektilta" as UC_UnassignTeachingProject
+    usecase "Liitä projekteja\ntutkinnonosan osiin" as UC_TagProjects
+  }
+
+  package "Tutkinnonosajen hallinta" {
+    usecase "Katsele tutkinnonosia" as UC_ViewQualParts
+    usecase "Luo tutkinnonosan osa" as UC_CreateQualPart
+    usecase "Muokkaa tutkinnonosan osaa" as UC_EditQualPart
+    usecase "Järjestä tutkinnonosan\nosia uudelleen" as UC_ReorderQualParts
+  }
+
+  package "Työpaikkojen hallinta" {
+    usecase "Katsele työpaikkoja" as UC_ViewWorkplaces
+    usecase "Luo uusi työpaikka" as UC_CreateWorkplace
+    usecase "Muokkaa työpaikan tietoja" as UC_EditWorkplace
+    usecase "Poista työpaikka" as UC_DeleteWorkplace
+  }
+
+  package "Työpaikkaohjaajien hallinta" {
+    usecase "Katsele ohjaajia" as UC_ViewSupervisors
+    usecase "Luo uusi ohjaaja" as UC_CreateSupervisor
+    usecase "Muokkaa ohjaajan tietoja" as UC_EditSupervisor
+    usecase "Poista ohjaaja" as UC_DeleteSupervisor
+    usecase "Liitä ohjaaja työpaikalle" as UC_AssignSupervisor
+    usecase "Lähetä magic link\nohjaajalle" as UC_SendMagicLink
+  }
+
+  package "Harjoittelujaksojen hallinta" {
+    usecase "Katsele opiskelijan\nharjoittelujaksoja" as UC_ViewStudentInternships
+    usecase "Luo harjoittelujakso" as UC_CreateInternship
+    usecase "Muokkaa harjoittelujaksoa" as UC_EditInternship
+    usecase "Poista harjoittelujakso" as UC_DeleteInternship
+  }
+
+  package "Ilmoitukset" {
+    usecase "Katsele ilmoituksia" as UC_ViewNotifications
+    usecase "Merkitse ilmoitus luetuksi" as UC_MarkNotificationRead
+  }
+
+}
+
+Teacher --> UC_ViewStudents
+Teacher --> UC_ViewStudentInfo
+Teacher --> UC_ViewHOKS
+Teacher --> UC_ViewStudentProjects
+Teacher --> UC_ViewProjects
+Teacher --> UC_CreateProject
+Teacher --> UC_EditProject
+Teacher --> UC_AssignTeachingProject
+Teacher --> UC_UnassignTeachingProject
+Teacher --> UC_TagProjects
+Teacher --> UC_ViewQualParts
+Teacher --> UC_CreateQualPart
+Teacher --> UC_EditQualPart
+Teacher --> UC_ReorderQualParts
+Teacher --> UC_ViewWorkplaces
+Teacher --> UC_CreateWorkplace
+Teacher --> UC_EditWorkplace
+Teacher --> UC_DeleteWorkplace
+Teacher --> UC_ViewSupervisors
+Teacher --> UC_CreateSupervisor
+Teacher --> UC_EditSupervisor
+Teacher --> UC_DeleteSupervisor
+Teacher --> UC_AssignSupervisor
+Teacher --> UC_SendMagicLink
+Teacher --> UC_ViewStudentInternships
+Teacher --> UC_CreateInternship
+Teacher --> UC_EditInternship
+Teacher --> UC_DeleteInternship
+Teacher --> UC_ViewNotifications
+Teacher --> UC_MarkNotificationRead
+
+UC_ViewStudentInfo ..> UC_ViewStudents : <<include>>
+UC_ViewHOKS ..> UC_ViewStudentInfo : <<include>>
+UC_ViewStudentProjects ..> UC_ViewStudentInfo : <<include>>
+UC_ViewStudentInternships ..> UC_ViewStudentInfo : <<include>>
+UC_AssignSupervisor ..> UC_ViewWorkplaces : <<include>>
+UC_SendMagicLink ..> UC_CreateSupervisor : <<extend>>
+UC_TagProjects ..> UC_ViewQualParts : <<include>>
+
+' =====================
+' TYÖPAIKKAOHJAAJAN KÄYTTÖTAPAUKSET
+' =====================
+package "Työpaikkaohjaajan toiminnot\n(tuleva toteutus)" {
+  usecase "Kirjaudu magic linkillä" as UC_MagicLogin
+  usecase "Katsele harjoittelujakson\ntietoja" as UC_ViewInternshipInfo
+  usecase "Katsele ohjattavan\nopiskelijan tietoja" as UC_ViewStudentAsSuper
+}
+
+Supervisor --> UC_MagicLogin
+Supervisor --> UC_ViewInternshipInfo
+Supervisor --> UC_ViewStudentAsSuper
+
+UC_MagicLogin ..> AzureAD : <<extend>>\n[ei Azure AD -tiliä]
+UC_ViewInternshipInfo ..> UC_MagicLogin : <<include>>
+UC_ViewStudentAsSuper ..> UC_MagicLogin : <<include>>
+
+note bottom of Supervisor
+  Työpaikkaohjaajien omat toiminnot
+  ovat suunnitteilla. Tällä hetkellä
+  opettajat hallitsevat heidän tietojaan.
+end note
+
+@enduml

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState} from 'react';
 import { Archive, Undo2, Save } from 'lucide-react';
 import ItemSelectorDialog from '@/components/common/item-selector-dialog';
 import TurndownService from 'turndown';
@@ -78,7 +78,7 @@ const EditProject: React.FC = () => {
         });
 
     const project = data?.project?.project;
-
+    const [initialized, setInitialized] = useState(false);
     // Fills the input fields with data based on which project is currently being edited
     useEffect(() => {
         if (!loading && project) {
@@ -106,6 +106,8 @@ const EditProject: React.FC = () => {
                 competenceRequirements: project.competenceRequirements || [],
                 includedInParts: project.includedInQualificationUnitParts || [],
             });
+            setInitialized(true);
+
         }
     }, [data, loading, md, project, setFormData, setSelectedItems]);
 
@@ -252,19 +254,20 @@ const EditProject: React.FC = () => {
                                 className="mt-1"
                             />
                         </div>
-
-                        <PlateEditor
-                            label="Projektin kuvaus"
-                            value={formData.description}
-                            onChange={(content) => handleEditorChange(content, 'description')}
-                        />
-
+                        {initialized && (
+                            <PlateEditor
+                                label="Projektin kuvaus"
+                                value={formData.description}
+                                onChange={(content) => handleEditorChange(content, 'description')}
+                            />
+                        )}
+                        {initialized && (
                         <PlateEditor
                             label="Materiaalit"
                             value={formData.materials}
                             onChange={(content) => handleEditorChange(content, 'materials')}
                         />
-
+                        )}
                         {formData.notifyStudents && (
                             <div>
                                 <Label htmlFor="notifyStudentsText">Muutosilmoitus</Label>

@@ -62,21 +62,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [role]);
 
   // Sends idToken to backend and checks if the returned token is valid
-  const sendIdTokenToBackend = useCallback(async (idToken: string) => {
+  const sendIdTokenToBackend = useCallback(async (idToken: string): Promise<boolean> => {
     try {
       const { data } = await loginMutation({ variables: { idToken } });
       if (data && data.login && data.login.token) {
         sessionStorage.setItem("mutatedToken", data.login.token);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error("Failed to send idToken to backend:", error);
+      return false;
     }
   }, [loginMutation]); // Memorizes the function, only re-creating it if loginMutation changes
 
   useEffect(() => {
     // Setups callback which listens to MSAL events. Updates active MSAL account, userEmail and isAuthenticated state
     // Returns callback ID so it can be removed later in case of memory leaks
-    const callbackId = handleMsalEventCallback(setUserEmail, setIsAuthenticated);
+    const callbackId = handleMsalEventCallback(setUserEmail);
 
     // Handles redirect during login
     const initializeMsal = async () => {
@@ -105,10 +108,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // Sends idToken to backend mutation
           // Temp log idToken for testing, REMOVE when not needed anymore
           console.log(idToken)
-          await sendIdTokenToBackend(idToken);
+          const loginSuccess = await sendIdTokenToBackend(idToken);
 
-          setIsAuthenticated(true);
-          sessionStorage.setItem("ossi.authenticated", JSON.stringify(true))
+          if (loginSuccess) {
+            setIsAuthenticated(true);
+            sessionStorage.setItem("ossi.authenticated", JSON.stringify(true))
+          }
         }
       } catch (error) {
         console.error("MSAL initialization error:", error);

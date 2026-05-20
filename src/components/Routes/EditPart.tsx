@@ -86,6 +86,7 @@ const EditPart: React.FC = () => {
 
     const { loading: projectsLoading, error: projectsError, data: projectsData } = useQuery(GET_PROJECTS);
     const { loading: qualificationLoading, error: qualificationError, data: qualificationData } = useQuery(GET_QUALIFICATION_UNITS);
+    const [initialized, setInitialized] = useState(false);
 
     // Fills the fields with saved Part data when page opens
     useEffect(() => {
@@ -113,6 +114,7 @@ const EditPart: React.FC = () => {
                         ? [part.parentQualificationUnit]
                         : [],
                 });
+                setInitialized(true);
             } else {
                 console.error("No part found in response:", data);
             }
@@ -301,18 +303,19 @@ const EditPart: React.FC = () => {
                                 className="mt-1"
                             />
                         </div>
-
+                        {initialized && (
                         <PlateEditor
                             label="Projektin kuvaus"
                             value={formData.description}
                             onChange={(content) => handleEditorChange(content, 'description')}
-                        />
+                        />)}
 
+                        {initialized && (
                         <PlateEditor
                             label="Materiaalit"
                             value={formData.materials}
                             onChange={(content) => handleEditorChange(content, 'materials')}
-                        />
+                        />)}
 
                         {formData.notifyStudents && (
                             <div>
