@@ -44,7 +44,7 @@ const QualificationUnitPartList = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="flex gap-2 justify-end">
         <Button onClick={() => navigate("/qualificationunitparts/new")}>
           <Plus />
           Lis&auml;&auml; Teema

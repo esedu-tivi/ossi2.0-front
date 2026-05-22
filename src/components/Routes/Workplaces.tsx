@@ -420,7 +420,7 @@ const Workplaces = () => {
 
   return (
     <>
-      <div className="mx-2 mb-4 flex flex-wrap gap-2">
+      <div className=" mb-4 flex flex-wrap justify-end gap-2">
         <Button onClick={handleShowNewWorkplaceForm}>
           <Plus className="mr-2 h-4 w-4" />
           Lisää työpaikka
