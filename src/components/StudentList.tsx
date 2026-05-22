@@ -35,6 +35,18 @@ const headerCells: readonly TableHeaderCell[] = [
     },
     {
         id: 4,
+        type: "sort",
+        label: "XP",
+        sortPath: "studentXP"
+    },
+    {
+        id: 5,
+        type: "sort",
+        label: "Last login",
+        sortPath: "studentLastLogin"
+    },
+    {
+        id: 6,
         type: "search",
         searchPath: "fullName"
     }
@@ -78,6 +90,8 @@ const StudentList = () => {
                             <TableCell>{student.fullName}</TableCell>
                             <TableCell>{student.groupId}</TableCell>
                             <TableCell>{student.studyingQualificationTitle ? student.studyingQualificationTitle.name : ''}</TableCell>
+                            <TableCell>50</TableCell>
+                            <TableCell>1.1.2026</TableCell>
                             <TableCell>
                                 <div className="flex gap-2">
                                     <Button variant="outline" size="sm" onClick={() => navigate(`/teacherdashboard/students/${student.id}`)}>
