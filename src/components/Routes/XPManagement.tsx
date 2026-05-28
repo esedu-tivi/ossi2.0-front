@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import AppDialog from "@/components/common/app-dialog"
-import { Users, Pencil, Star } from "lucide-react"
+import { Users, Pencil, AlertCircle } from "lucide-react"
 
 //  korvaa kaikki backend datalla sit ku se on valmis
 interface StudentXPData {
@@ -41,8 +41,6 @@ const MOCK_ACTIVITY: ActivityEntry[] = [
   { id: 6, studentName: "Juho Nieminen", action: "kirjautui sisään", timestamp: new Date(Date.now() - 60 * 60000) },
   { id: 8, studentName: "Liisa Mäkinen", action: "kirjautui sisään", timestamp: new Date(Date.now() - 90 * 60000) },
 ]
-
-// tasot
 
 function timeAgo(date: Date): string {
   const mins = Math.floor((Date.now() - date.getTime()) / 60000)
@@ -181,7 +179,7 @@ const XPManagement = () => {
 
                         {/* merkitse käyttäjä */}
                         <Button variant="outline" size="sm">
-                          <Star className="h-3.5 w-3.5" />
+                          <AlertCircle className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </TableCell>
