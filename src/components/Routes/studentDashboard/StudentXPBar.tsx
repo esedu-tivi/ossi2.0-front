@@ -1,48 +1,99 @@
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function StudentXPBar() {
-    
-    const [studentXP, setStudentXP] = useState(10);
-    const [XPGoal, setXPGoal] = useState(100);
-    const [XPTier, setXPTier] = useState(0)
-    const XPBarProgress = studentXP / XPGoal * 100
-    const XPColors = ["red", "orange", "yellow", "lightblue", "green",]
+  const [xp, setXp] = useState(10);
+  const [goal, setGoal] = useState(100);
 
-    // XP-palkin resetointi maalin saavutettua
-    if (studentXP >= XPGoal) {
-        setStudentXP(studentXP - XPGoal)
-        setXPGoal(XPGoal + 100)
-        if (XPTier < 4) {
-            setXPTier(XPTier + 1)
-        }
+  const progress = (xp / goal) * 100;
+
+  function addXP(amount: number) {
+    let newXp = xp + amount;
+    let newGoal = goal;
+
+    while (newXp >= newGoal) {
+      newXp -= newGoal;
+      newGoal += 100;
     }
-    return (
-        <div className="flex flex-col">    
-            <div className="rounded-full h-16 absolute" style={{width: `${XPBarProgress}%`, backgroundColor: XPColors[XPTier]}}/>     
-            <div className="flex flex-col w-full h-16 bg-green-400 rounded-full">
-                <div className="flex flex-col justify-center items-center">
-                    <p className="font-semibold text-2xl z-10">XP</p>
-                    <p className="font-semibold text-2xl z-10">{studentXP} / {XPGoal}</p>
-                </div>
-    
-            </div>
-            <div className="flex flex-col items-center justify-center">
-                <p className="text-2xl font-semibold">Kuulut parhaaseen 33% XP-keräyksessä!</p>
-                <div className="flex justify-center items-center">
 
-                    <button className="bg-green-500 w-30 rounded-full mt-2"onClick={() => setStudentXP(studentXP + 10)}>XP + 10</button>
-                    <button className="bg-green-500 w-30 rounded-full mt-2"onClick={() => setStudentXP(studentXP + 50)}>XP + 50</button>
-                    <button className="bg-green-500 w-30 rounded-full mt-2"onClick={() => setXPGoal(XPGoal + 50)}>XP Maali + 50</button>
-                    <button className="bg-green-500 w-30 rounded-full mt-2"onClick={() => {setXPGoal(100), setStudentXP(10), setXPTier(0)}}>RESET</button>
-                </div>
+    setXp(newXp);
+    setGoal(newGoal);
+  }
+
+  function reset() {
+    setXp(10);
+    setGoal(100);
+  }
+
+  return (
+    <div className="w-full p-6">
+      <div className="grid grid-cols-3 gap-4 items-start">
+
+        {/* Left col: header + bar */}
+        <div className="col-span-2 space-y-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">XP-edistyminen</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {/*Tää muutetaan sit dynaamiseks*/}
+                Olet parhaiden 33% joukossa!
+              </p>
             </div>
-            <div className="flex flex-col items-center justify-center pt-6">
-                {XPColors.map((color) => {
-                    return (
-                        <p className="text-3xl">{color}</p>
-                    )
-                })}
-            </div>
-</div>
-    )
+          </div>
+
+          <Card>
+            <CardContent className="px-5 py-4 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Maali: {goal} XP</span>
+              </div>
+
+              <div className="relative h-4 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{Math.round(progress)}% täynnä</span>
+                <span>puuttuu {goal - xp}XP </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => addXP(10)}>
+              +10 XP
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => addXP(50)}>
+              +50 XP
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setGoal(g => g + 50)}>
+               Maali +50
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={reset}>
+              Nollaa
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3">
+            
+              {/* Streakki päivät*/}
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
+                  {/* Tää muutetaan sit dynaamiseks */}
+                  5 päivän streakki!
+                </Badge>
+              </div>
+            
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
 }

@@ -8,6 +8,7 @@ import {
   Building2,
   Award,
   ClipboardList,
+  Trophy
 } from 'lucide-react';
 import {
   Sidebar,
@@ -36,6 +37,7 @@ const teacherMenu: MenuItem[] = [
   { text: 'Teemat', icon: <Layers className="size-4" />, route: '/qualificationunitparts' },
   { text: 'Työpaikat', icon: <Building2 className="size-4" />, route: '/workplaces' },
   { text: 'Tutkinnot', icon: <Award className="size-4" />, route: '/teacherdashboard' },
+  { text: 'XP hallinta', icon: <Trophy className="size-4" />, route: '/xp-management' },
 ];
 
 const studentMenu: MenuItem[] = [

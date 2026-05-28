@@ -24,6 +24,7 @@ import Workplaces from './components/Routes/Workplaces';
 import StudentInfo from './components/Routes/StudentInfo';
 import Workplace from './components/Routes/Workplace';
 import JobSupervisor from './components/Routes/JobSupervisor';
+import XPManagement from './components/Routes/XPManagement';
 
 const App = () => {
     const { isAuthenticated, role } = useAuth();
@@ -66,7 +67,8 @@ const App = () => {
             !location.pathname.startsWith('/teacherprojects') &&
             !location.pathname.startsWith('/qualificationunitparts') &&
             !location.pathname.startsWith('/workplaces') &&
-            !location.pathname.startsWith('/jobsupervisors')
+            !location.pathname.startsWith('/jobsupervisors') &&
+            !location.pathname.startsWith('/xp-management')
         ) {
             navigate('/teacherdashboard');
             hasRedirectedRef.current = true;
@@ -291,6 +293,19 @@ const App = () => {
                         element={
                             <AppLayout>
                                 <JobSupervisor />
+                            </AppLayout>
+                        }
+                    />
+                }
+            />
+             <Route
+                path="/xp-management"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={["teacher"]}
+                        element={
+                            <AppLayout>
+                                <XPManagement />
                             </AppLayout>
                         }
                     />
