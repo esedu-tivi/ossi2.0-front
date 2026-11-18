@@ -10,6 +10,7 @@ export const GET_JOB_SUPERVISORS_BY_WORKPLACE = gql`
         firstName
         lastName
         email
+        phoneNumber
       }
     }
   }

@@ -1,10 +1,8 @@
-import { Box, IconButton, TextField } from "@mui/material";
-import SaveSharpIcon from '@mui/icons-material/SaveSharp';
-import buttonStyles from "../styles/buttonStyles";
-import formStyles from "../styles/formStyles";
-import { JobSupervisor } from "../types";
-
-//export type JobSupervisorFormData = Omit<JobSupervisor, "id"> & { phoneNumber: string }
+import { Save } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { JobSupervisor } from "../types"
 
 interface JobSupervisorFormProps {
   formData: JobSupervisor
@@ -26,70 +24,73 @@ const JobSupervisorForm = ({
       [name]: value
     }));
   };
-  return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      textAlign={'center'}
-    >
-      <Box
-        sx={formStyles.formColumnBox}
-      >
-        <Box sx={{ flex: 1 }}>
-          <TextField
-            label="Etunimi"
-            variant="outlined"
-            name="firstName"
-            value={formData.firstName}
-            fullWidth
-            required
-            onChange={handleChange}
-            sx={{ my: 2 }}
-          />
-          <TextField
-            label="Sukunimi"
-            variant="outlined"
-            name="lastName"
-            value={formData.lastName}
-            fullWidth
-            required
-            onChange={handleChange}
-            sx={{ my: 2 }}
-          />
-          <TextField
-            label="Sähköposti"
-            variant="outlined"
-            name="email"
-            value={formData.email}
-            fullWidth
-            required
-            onChange={handleChange}
-            sx={{ my: 2 }}
-          />
-          <TextField
-            label="Puhelinnumero"
-            variant="outlined"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            fullWidth
-            onChange={handleChange}
-            sx={{ my: 2 }}
-          />
 
-          <IconButton
-            type="submit"
-            sx={buttonStyles.saveButton}
-          >
-            <SaveSharpIcon
-              sx={{
-                mr: 1,
-              }}
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="text-center"
+    >
+      <div className="flex flex-col md:flex-row gap-4 mt-4">
+        <div className="flex-1 space-y-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="firstName">
+              Etunimi
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Input
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="lastName">
+              Sukunimi
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Input
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="email">
+              Sähköposti
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Input
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="phoneNumber">Puhelinnumero</Label>
+            <Input
+              id="phoneNumber"
+              name="phoneNumber"
+              value={formData.phoneNumber || ""}
+              onChange={handleChange}
+            />
+          </div>
+
+          <Button type="submit" className="mt-4">
+            <Save className="mr-1 h-4 w-4" />
             {submitButtonTitle}
-          </IconButton>
-        </Box>
-      </Box>
-    </Box>
+          </Button>
+        </div>
+      </div>
+    </form>
   )
 }
 

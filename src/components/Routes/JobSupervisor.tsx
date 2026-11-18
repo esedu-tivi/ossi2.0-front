@@ -1,108 +1,18 @@
-import { Box, Table as MuiTable, TableBody, TableCell, TableRow as MuiTableRow, Typography } from "@mui/material"
 import { useParams } from "react-router-dom"
-import BackButton from "../common/BackButton"
+import BackButton from "@/components/common/back-button"
 import { useQuery } from "@apollo/client"
 import { GET_JOB_SUPERVISOR } from "../../graphql/GetJobSupervisor"
-import Table, { TableHeaderCell } from "../common/Table"
-import { Internship as InternshipData, Student } from "../../types"
-import { convertDateToString } from "../../utils/convertDateToString"
 
-interface TableRowProps {
+interface InfoRowProps {
   label: string
   value: string
 }
 
-type Person = { fullName: string, email: string, phoneNumber?: string } & Pick<Student, "id" | "firstName" | "lastName">
-
-interface Internship extends InternshipData {
-  student: Person
-  teacher: Person
-}
-
-interface ParsedInternship extends Pick<Internship, "id" | "info" | "student" | "teacher"> {
-  startDate: string
-  endDate: string
-}
-
-const headerCells: readonly TableHeaderCell[] = [
-  {
-    id: 0,
-    type: "group",
-    label: "Harjoittelujakso",
-    colSpan: 4
-  },
-  {
-    id: 1,
-    type: "group",
-    label: "Opiskelija",
-    colSpan: 2
-  },
-  {
-    id: 2,
-    type: "group",
-    label: "Opettaja",
-    colSpan: 2
-  },
-  {
-    id: 3,
-    label: "#ID",
-    type: "sort",
-    sortPath: "id"
-  },
-  {
-    id: 4,
-    label: "Info",
-    type: "sort",
-    sortPath: "info"
-  },
-  {
-    id: 5,
-    label: "Aloitusaika",
-    type: "sort",
-    sortPath: "startDate"
-  },
-  {
-    id: 6,
-    label: "Lopetusaika",
-    type: "sort",
-    sortPath: "endDate"
-  },
-  {
-    id: 7,
-    label: "Nimi",
-    type: "sort",
-    sortPath: "student.fullName"
-  },
-  {
-    id: 8,
-    label: "Sähköposti",
-    type: "sort",
-    sortPath: "student.email"
-  },
-  {
-    id: 9,
-    label: "Nimi",
-    type: "sort",
-    sortPath: "teacher.fullName"
-  },
-  {
-    id: 10,
-    label: "Sähköposti",
-    type: "sort",
-    sortPath: "teacher.email"
-  },
-  {
-    id: 11,
-    type: "search",
-    searchPath: "student.fullName"
-  }
-]
-
-const TableRow = ({ label, value }: TableRowProps) => (
-  <MuiTableRow>
-    <TableCell align="right">{label}</TableCell>
-    <TableCell>{value}</TableCell>
-  </MuiTableRow>
+const InfoRow = ({ label, value }: InfoRowProps) => (
+  <div className="grid grid-cols-1 gap-1 border-b py-3 last:border-b-0 sm:grid-cols-[170px_1fr] sm:items-center">
+    <span className="text-sm font-medium text-muted-foreground sm:text-right sm:pr-4">{label}</span>
+    <span className="text-base">{value || "-"}</span>
+  </div>
 )
 
 const JobSupervisor = () => {
@@ -110,66 +20,27 @@ const JobSupervisor = () => {
   const { data, loading, error } = useQuery(GET_JOB_SUPERVISOR, { variables: { jobSupervisorId: id } })
 
   if (loading) {
-    return <Box><Typography>Loading...</Typography></Box>
+    return <p className="p-4">Loading...</p>
   }
   if (error) {
-    return <Box><Typography>Error: {error.message}</Typography></Box>
+    return <p className="p-4">Error: {error.message}</p>
   }
-  console.log(data)
+
   const jobSupervisor = data.jobSupervisor?.jobSupervisor
-  const parsedInternships: ParsedInternship[] = jobSupervisor.internships.map((internship: Internship) => ({
-    ...internship,
-    startDate: convertDateToString(internship.startDate),
-    endDate: convertDateToString(internship.endDate),
-    student: {
-      ...internship.student,
-      fullName: `${internship.student.firstName} ${internship.student.lastName}`,
-    },
-    teacher: {
-      ...internship.teacher,
-      fullName: `${internship.teacher.firstName} ${internship.teacher.lastName}`
-    }
-  }))
 
   return (
-    <Box>
+    <div className="space-y-6">
       <BackButton />
-      <Box sx={{ maxWidth: 20 }}>
-        <Typography variant="h5">Työpaikkaohjaaja</Typography>
-        <MuiTable>
-          <TableBody>
-            <TableRow label="Nimi" value={`${jobSupervisor.firstName} ${jobSupervisor.lastName}`} />
-            <TableRow label="Sähköposti" value={jobSupervisor.email} />
-            <TableRow label="Puhelinnumero" value={jobSupervisor.phoneNumber} />
-            <TableRow label="Työpaikka" value={jobSupervisor.workplace?.name}></TableRow>
-          </TableBody>
-        </MuiTable>
-      </Box>
-      <Box>
-        <Typography sx={{ my: 2 }} variant="h5">Harjoittelujaksot</Typography>
-        <Table<ParsedInternship>
-          headerCells={headerCells}
-          data={parsedInternships}
-        >
-          {rows => (
-            <TableBody>
-              {rows.map(internship => (
-                <MuiTableRow key={internship.id} className="table-row">
-                  <TableCell>{internship.id}</TableCell>
-                  <TableCell>{internship.info}</TableCell>
-                  <TableCell>{internship.startDate}</TableCell>
-                  <TableCell>{internship.endDate}</TableCell>
-                  <TableCell sx={{ textWrap: "noWrap" }}>{internship.student.fullName}</TableCell>
-                  <TableCell>{internship.student.email}</TableCell>
-                  <TableCell sx={{ textWrap: "noWrap" }}>{internship.teacher.fullName}</TableCell>
-                  <TableCell>{internship.teacher.email}</TableCell>
-                </MuiTableRow>
-              ))}
-            </TableBody>
-          )}
-        </Table>
-      </Box>
-    </Box>
+      <div className="max-w-3xl rounded-lg border bg-card p-6 shadow-sm">
+        <h2 className="mb-4 text-2xl font-semibold">Työpaikkaohjaaja</h2>
+        <div className="space-y-1">
+          <InfoRow label="Nimi" value={`${jobSupervisor.firstName} ${jobSupervisor.lastName}`} />
+          <InfoRow label="Sähköposti" value={jobSupervisor.email} />
+          <InfoRow label="Puhelinnumero" value={jobSupervisor.phoneNumber} />
+          <InfoRow label="Työpaikka" value={jobSupervisor.workplace?.name} />
+        </div>
+      </div>
+    </div>
   )
 }
 

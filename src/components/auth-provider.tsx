@@ -1,6 +1,6 @@
 // Controls user authentication and provides it to other components in the program
 
-import { ReactNode, useEffect, useState, useCallback } from "react";
+import { ReactNode, useEffect, useState, useCallback, useRef } from "react";
 import { MsalProvider } from "@azure/msal-react";
 import { msalInstance, handleMsalEventCallback } from "../utils/auth-utils";
 import AuthContext from "../utils/auth-context";
@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loginMutation] = useMutation(LOGIN_MUTATION);
 
   const [role, setRole] = useState<Role>("unknown");
+  const roleOverrideRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -35,33 +36,50 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   useEffect(() => {
-    let role: Role = "unknown";
+    if (roleOverrideRef.current) return;
+
+    let derivedRole: Role = "unknown";
     if (userEmail.endsWith('@esedulainen.fi')) {
-      role = "student";
+      derivedRole = "student";
     } else if (userEmail.endsWith('@esedu.fi')) {
-      role = "teacher";
+      derivedRole = "teacher";
     }
 
-    setRole(role)
-    sessionStorage.setItem("ossi.role", JSON.stringify(role))
+    setRole(derivedRole)
+    sessionStorage.setItem("ossi.role", JSON.stringify(derivedRole))
   }, [userEmail]);
 
+  const switchRole = useCallback((newRole: 'teacher' | 'student') => {
+    roleOverrideRef.current = true;
+    setRole(newRole);
+  }, []);
+
+  // Persist role changes (including manual dev toggle) to sessionStorage
+  useEffect(() => {
+    if (role !== 'unknown') {
+      sessionStorage.setItem("ossi.role", JSON.stringify(role));
+    }
+  }, [role]);
+
   // Sends idToken to backend and checks if the returned token is valid
-  const sendIdTokenToBackend = useCallback(async (idToken: string) => {
+  const sendIdTokenToBackend = useCallback(async (idToken: string): Promise<boolean> => {
     try {
       const { data } = await loginMutation({ variables: { idToken } });
       if (data && data.login && data.login.token) {
         sessionStorage.setItem("mutatedToken", data.login.token);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error("Failed to send idToken to backend:", error);
+      return false;
     }
   }, [loginMutation]); // Memorizes the function, only re-creating it if loginMutation changes
 
   useEffect(() => {
     // Setups callback which listens to MSAL events. Updates active MSAL account, userEmail and isAuthenticated state
     // Returns callback ID so it can be removed later in case of memory leaks
-    const callbackId = handleMsalEventCallback(setUserEmail, setIsAuthenticated);
+    const callbackId = handleMsalEventCallback(setUserEmail);
 
     // Handles redirect during login
     const initializeMsal = async () => {
@@ -90,10 +108,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // Sends idToken to backend mutation
           // Temp log idToken for testing, REMOVE when not needed anymore
           console.log(idToken)
-          await sendIdTokenToBackend(idToken);
+          const loginSuccess = await sendIdTokenToBackend(idToken);
 
-          setIsAuthenticated(true);
-          sessionStorage.setItem("ossi.authenticated", JSON.stringify(true))
+          if (loginSuccess) {
+            setIsAuthenticated(true);
+            sessionStorage.setItem("ossi.authenticated", JSON.stringify(true))
+          }
         }
       } catch (error) {
         console.error("MSAL initialization error:", error);
@@ -114,7 +134,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   return (
 
     // Provides isAuthenticated, userEmail, setIsAuthenticated, role, setRole and setUserEmail functions to other components through auth-context
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, role, setIsAuthenticated, setUserEmail, setRole }}>
+    <AuthContext.Provider value={{ isAuthenticated, userEmail, role, setIsAuthenticated, setUserEmail, setRole, switchRole }}>
       <MsalProvider instance={msalInstance}>
         {children}
       </MsalProvider>

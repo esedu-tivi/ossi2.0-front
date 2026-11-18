@@ -1,29 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
-import "../../css/TeacherProjectsView.css";
-import {
-  TableBody,
-  TableCell,
-  TableRow,
-  Button,
-  Box,
-  IconButton,
-  Typography,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import InfoIcon from "@mui/icons-material/Info";
-import AssessmentIcon from "@mui/icons-material/Assessment";
-import AddIcon from "@mui/icons-material/Add";
-import CheckedIcon from '@mui/icons-material/CheckCircle';
-import UncheckedIcon from '@mui/icons-material/Cancel';
-import { GET_PROJECTS } from "../../graphql/GetProjects";
-import { Project } from "../../types";
-import Table, { TableHeaderCell } from "../common/Table";
-import { USER_SETUP } from "../../graphql/UserSetup";
+import { TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Plus, Pencil, Info, BarChart3, CheckCircle, XCircle } from "lucide-react";
+import { GET_PROJECTS } from "@/graphql/GetProjects";
+import { Project } from "@/types";
+import DataTable, { type TableHeaderCell } from "@/components/common/data-table";
+import { USER_SETUP } from "@/graphql/UserSetup";
 import { useEffect } from "react";
-import { GET_ASSIGNED_TEACHING_PROJECT_IDS } from "../../graphql/GetAssignedTeachingProjectIds";
-import { UNASSIGN_TEACHING_PROJECT } from "../../graphql/UnassignTeachingProject";
-import { ASSIGN_TEACHING_PROJECT } from "../../graphql/AssignTeachingProject";
+import { GET_ASSIGNED_TEACHING_PROJECT_IDS } from "@/graphql/GetAssignedTeachingProjectIds";
+import { UNASSIGN_TEACHING_PROJECT } from "@/graphql/UnassignTeachingProject";
+import { ASSIGN_TEACHING_PROJECT } from "@/graphql/AssignTeachingProject";
 
 const headerCells: readonly TableHeaderCell[] = [
   {
@@ -98,24 +85,21 @@ export default function ProjectTable() {
   const teachingProjectsIds = teachingProjectsCalled && teachingProjectsData ? teachingProjectsData.assignedTeachingProjects?.assignedProjects.map((project: Pick<Project, "id">) => project.id) : []
 
   return (
-    <Box>
-      <Box className="button-container">
-        <Button
-          variant="contained"
-          color="primary"
-          className="add-project-button"
-          startIcon={<AddIcon />}
-          onClick={() => navigate("/teacherprojects/new")}
-        >
-          Lisää Projekti
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={() => navigate("/teacherprojects/new")}>
+          <Plus />
+          Lis&auml;&auml; Projekti
         </Button>
-      </Box>
-      {teachingProjectsError && <Box><Typography>Teaching project error: {teachingProjectsError.message}</Typography></Box>}
-      <Table<Project> headerCells={headerCells} data={projects}>
+      </div>
+      {teachingProjectsError && (
+        <p className="text-sm text-destructive">Projektien seurantatietoja ei voitu ladata.</p>
+      )}
+      <DataTable<Project> headerCells={headerCells} data={projects}>
         {rows =>
           <TableBody>
             {rows.map((project) => (
-              <TableRow key={project.id} className="table-row">
+              <TableRow key={project.id}>
                 <TableCell>{project.id}</TableCell>
                 <TableCell>{project.name}</TableCell>
                 <TableCell>
@@ -124,46 +108,55 @@ export default function ProjectTable() {
                     .join(", ")}
                 </TableCell>
                 <TableCell>
-                  {teachingProjectsError ? <UncheckedIcon color="error" /> : teachingProjectsIds.includes(project.id)
-                    ? <IconButton onClick={() => removeTeachingProjectHandler(project.id)}><CheckedIcon color="success" /></IconButton>
-                    : <IconButton onClick={() => addTeachingProjectHandler(project.id)}><UncheckedIcon color="error" /></IconButton>
-                  }
+                  {teachingProjectsError ? (
+                    <XCircle className="h-5 w-5 text-destructive" />
+                  ) : teachingProjectsIds.includes(project.id) ? (
+                    <button
+                      onClick={() => removeTeachingProjectHandler(project.id)}
+                      className="inline-flex items-center justify-center rounded-md p-1 hover:bg-accent"
+                    >
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => addTeachingProjectHandler(project.id)}
+                      className="inline-flex items-center justify-center rounded-md p-1 hover:bg-accent"
+                    >
+                      <XCircle className="h-5 w-5 text-destructive" />
+                    </button>
+                  )}
                 </TableCell>
                 <TableCell>
-                  <div className="button-group">
+                  <div className="flex gap-2">
                     <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<EditIcon />}
-                      size="small"
+                      variant="outline"
+                      size="sm"
                       onClick={() => navigate(`/teacherprojects/edit/${project.id}`)}
                     >
+                      <Pencil />
                       Muokkaa
                     </Button>
                     <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<InfoIcon />}
-                      size="small"
+                      variant="outline"
+                      size="sm"
                       onClick={() => navigate(`/teacherprojects/${project.id}`)}
                     >
+                      <Info />
                       Tiedot
                     </Button>
                     <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<AssessmentIcon />}
-                      size="small"
+                      variant="outline"
+                      size="sm"
                     >
-                      Käyttöaste
+                      <BarChart3 />
+                      K&auml;ytt&ouml;aste
                     </Button>
-
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>}
-      </Table>
-    </Box >
+      </DataTable>
+    </div>
   );
 }

@@ -14,11 +14,17 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "pages", "pages", "src/authConfig.ts", "hooks"]
+  "include": ["src", "pages", "src/authConfig.ts", "hooks"]
 }

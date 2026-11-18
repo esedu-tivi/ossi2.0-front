@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { TableBody, TableCell, TableRow, Button } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import InfoIcon from '@mui/icons-material/Info';
-import ArchiveIcon from '@mui/icons-material/Archive';
-import { GET_STUDENTS } from '../graphql/GetStudents';
-import '../css/StudentList.css';
+import { TableBody, TableRow, TableCell } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Info, Pencil, Archive } from 'lucide-react';
+import { GET_STUDENTS } from '@/graphql/GetStudents';
 import { useNavigate } from 'react-router-dom';
-import Table, { TableHeaderCell } from './common/Table';
-import { Student } from '../types';
+import DataTable, { type TableHeaderCell } from '@/components/common/data-table';
+import { Student } from '@/types';
 
 const headerCells: readonly TableHeaderCell[] = [
     {
@@ -26,7 +24,7 @@ const headerCells: readonly TableHeaderCell[] = [
     {
         id: 2,
         type: "sort",
-        label: "Ryhmä",
+        label: "Ryhm\u00e4",
         sortPath: "groupId"
     },
     {
@@ -46,14 +44,12 @@ interface ParsedStudent extends Student {
     fullName: string
 }
 
-const StudentList: React.FC = () => {
+const StudentList = () => {
     //GraphQL query to fetch student data
     const { loading, error, data } = useQuery(GET_STUDENTS);
     const navigate = useNavigate()
 
-    //const [sortedStudents, setSortedStudents] = useState<ParsedStudent[]>([])
     const [students, setStudents] = useState<ParsedStudent[]>([])
-    // State for the user-entered search query, used to filter displayed students
 
     useEffect(() => {
         if (data && !loading) {
@@ -73,24 +69,27 @@ const StudentList: React.FC = () => {
     if (error) return <p>Error: {error.message}</p>;
 
     return (
-        <Table<ParsedStudent> headerCells={headerCells} data={students}>
+        <DataTable<ParsedStudent> headerCells={headerCells} data={students}>
             {(rows) =>
                 <TableBody>
                     {rows.map((student: ParsedStudent) => (
-                        <TableRow key={student.id} className="table-row">
+                        <TableRow key={student.id}>
                             <TableCell>{student.id}</TableCell>
-                            <TableCell>{`${student.fullName}`}</TableCell>
+                            <TableCell>{student.fullName}</TableCell>
                             <TableCell>{student.groupId}</TableCell>
                             <TableCell>{student.studyingQualificationTitle ? student.studyingQualificationTitle.name : ''}</TableCell>
                             <TableCell>
-                                <div className="hover-buttons">
-                                    <Button variant="outlined" size="small" startIcon={<InfoIcon />} onClick={() => navigate(`/teacherdashboard/students/${student.id}`)}>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => navigate(`/teacherdashboard/students/${student.id}`)}>
+                                        <Info />
                                         Tiedot
                                     </Button>
-                                    <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => console.log('Edit Student')}>
+                                    <Button variant="outline" size="sm" onClick={() => navigate(`/teacherdashboard/students/${student.id}`)}>
+                                        <Pencil />
                                         Muokkaa
                                     </Button>
-                                    <Button variant="outlined" size="small" startIcon={<ArchiveIcon />} onClick={() => console.log('Archive')}>
+                                    <Button variant="outline" size="sm" onClick={() => console.log('Archive')}>
+                                        <Archive />
                                         Arkistoi
                                     </Button>
                                 </div>
@@ -98,7 +97,7 @@ const StudentList: React.FC = () => {
                         </TableRow>
                     ))}
                 </TableBody>}
-        </Table>
+        </DataTable>
     );
 };
 

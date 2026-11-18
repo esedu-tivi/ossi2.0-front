@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { useAuth } from './utils/auth-context';
 import { USER_SETUP } from './graphql/UserSetup';
 
 import TeacherDashboard from './components/Routes/teacherDashboard';
 import StudentDashboard from './components/Routes/studentDashboard';
+import StudentInternships from './components/Routes/studentDashboard/StudentInternships';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './components/Login';
 import TeacherProjectsView from './components/Routes/TeacherProjectsView';
 import CreateProject from './components/Routes/CreateProject';
-import AppLayout from './components/AppLayout';
+import AppLayout from './components/layout/app-layout';
 import ProjectDetails from './components/Routes/ProjectDetails';
 import EditProject from './components/Routes/EditProject';
 import QualificationUnitPartList from './components/QualificationUnitPartList';
@@ -25,13 +26,13 @@ import Workplace from './components/Routes/Workplace';
 import JobSupervisor from './components/Routes/JobSupervisor';
 
 const App = () => {
-    const { isAuthenticated, userEmail, role } = useAuth();
+    const { isAuthenticated, role } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const hasRedirectedRef = useRef(false);
     const [postLoginLoading, setPostLoginLoading] = useState(true);
 
-    const { data: studentData, loading: studentLoading, refetch } = useQuery(USER_SETUP, {
+    const { data: studentData, loading: studentLoading, error: studentError } = useQuery(USER_SETUP, {
         skip: !isAuthenticated,
         fetchPolicy: 'network-only',
     });
@@ -39,16 +40,15 @@ const App = () => {
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        if (!studentLoading && studentData) {
+        if (!studentLoading && (studentData || studentError)) {
             const timer = setTimeout(() => {
                 setPostLoginLoading(false);
-            }, 800); // Wait 800ms to settle down after studentData ready
+            }, 800);
 
             return () => clearTimeout(timer);
         }
-    }, [isAuthenticated, studentLoading, studentData]);
+    }, [isAuthenticated, studentLoading, studentData, studentError]);
 
-    // Prevent redirects if the user is already on a valid route.
     useEffect(() => {
         if (hasRedirectedRef.current) return;
         if (!isAuthenticated) return;
@@ -64,31 +64,30 @@ const App = () => {
             isTeacher &&
             !location.pathname.startsWith('/teacherdashboard') &&
             !location.pathname.startsWith('/teacherprojects') &&
-            !location.pathname.startsWith('/qualificationunitparts')
+            !location.pathname.startsWith('/qualificationunitparts') &&
+            !location.pathname.startsWith('/workplaces') &&
+            !location.pathname.startsWith('/jobsupervisors')
         ) {
-            console.log('Redirecting to /teacherdashboard');
             navigate('/teacherdashboard');
             hasRedirectedRef.current = true;
         } else if (isStudent && !isSetUp && location.pathname !== '/studentdashboard/newuserlogin') {
             navigate('/studentdashboard/newuserlogin');
             hasRedirectedRef.current = true;
-        } else if (isStudent && isSetUp && location.pathname !== '/studentdashboard') {
+        } else if (isStudent && isSetUp && !location.pathname.startsWith('/studentdashboard')) {
             navigate('/studentdashboard');
             hasRedirectedRef.current = true;
         }
-    }, [studentLoading, isAuthenticated, userEmail, studentData, location.pathname, navigate]);
+    }, [studentLoading, isAuthenticated, role, studentData, location.pathname, navigate]);
 
-    // Loading screen while data is fetched
-    if (isAuthenticated && (studentLoading || !studentData || postLoginLoading)) {
-        refetch()
+    if (isAuthenticated && !studentError && (studentLoading || !studentData || postLoginLoading)) {
         return (
-            <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+            <div className="flex h-screen items-center justify-center flex-col">
                 <div className="bounce-spinner">
                     <div></div>
                     <div></div>
                     <div></div>
                 </div>
-                <p style={{ marginTop: '1rem' }}>Ladataan käyttäjän tietoja...</p>
+                <p className="mt-4 text-muted-foreground">Ladataan käyttäjän tietoja...</p>
             </div>
         );
     }
@@ -125,12 +124,15 @@ const App = () => {
                     <ProtectedRoute
                         element={
                             <AppLayout>
-                                <StudentDashboard />
+                                <Outlet />
                             </AppLayout>
                         }
                     />
                 }
-            />
+            >
+                <Route index element={<StudentDashboard />} />
+                <Route path="harjoittelujaksot" element={<StudentInternships />} />
+            </Route>
             <Route
                 path="/teacherprojects"
                 element={

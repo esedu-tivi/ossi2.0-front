@@ -24,6 +24,8 @@ export const GET_STUDENT_INTERNSHIPS = gql`
             id
             firstName
             lastName
+            email
+            phoneNumber
           }
         }
       }

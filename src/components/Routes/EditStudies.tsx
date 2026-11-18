@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Accordion, AccordionSummary, AccordionDetails, Typography, LinearProgress } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CheckIcon from '@mui/icons-material/Check';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { ChevronDown, Check, Info } from 'lucide-react';
 import StudiesData, { Task, Subtopic, Study } from '../../data/StudiesData';
 import { Student } from '../../types';
-// import HoksGraphsComponent from '../HoksGraphsComponent';
 
 // Calculate progress
 const calculateProgress = (tasks: Task[]) => {
@@ -20,32 +16,36 @@ const handleInfoClick = (id: number) => {
 };
 
 const EditStudies: React.FC<{ student: Student }> = ({ student }) => {
-  //const location = useLocation();
-
-  // This subtopic state must match the same interface from StudiesData
-  // const [selectedSubtopic, setSelectedSubtopic] = useState<Subtopic | null>(null);
   const [expandedSubtopicId, setExpandedSubtopicId] = useState<number | null>(null);
+  const [expandedStudyIds, setExpandedStudyIds] = useState<number[]>([]);
 
-  // Handle subtopic click
   const handleSubtopicClick = (subtopic: Subtopic) => {
-    // setSelectedSubtopic(subtopic);
     setExpandedSubtopicId((prevId) => (prevId === subtopic.id ? null : subtopic.id));
+  };
+
+  const toggleStudy = (studyId: number) => {
+    setExpandedStudyIds((prev) =>
+      prev.includes(studyId) ? prev.filter((id) => id !== studyId) : [...prev, studyId]
+    );
   };
 
   // Render tasks
   const renderTasks = (tasks: Task[]) => {
     return tasks.map((task) => (
-      <Accordion key={task.id} sx={{ border: '1px solid #95a5a6', backgroundColor: task.done ? '#94FF7C' : '#F5F5F5' }}>
-        <AccordionDetails>
-          <Typography component="div" sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-            {task.name}
-            <Box sx={{ display: 'flex', alignItems: 'right' }}>
-              {task.done && <CheckIcon />}
-              <InfoOutlinedIcon onClick={() => handleInfoClick(task.id)} sx={{ cursor: 'pointer', marginLeft: 1 }} />
-            </Box>
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
+      <div
+        key={task.id}
+        className={`rounded border p-3 ${task.done ? 'bg-green-200' : 'bg-muted/30'}`}
+      >
+        <div className="flex w-full items-center justify-between">
+          <span className="text-sm">{task.name}</span>
+          <div className="flex items-center gap-1">
+            {task.done && <Check className="h-4 w-4" />}
+            <button onClick={() => handleInfoClick(task.id)} className="text-muted-foreground hover:text-foreground">
+              <Info className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
     ));
   };
 
@@ -55,36 +55,53 @@ const EditStudies: React.FC<{ student: Student }> = ({ student }) => {
       const progress = calculateProgress(subtopic.tasks);
       const totalTasks = subtopic.tasks.length;
       const completedTasks = subtopic.tasks.filter((task) => task.done).length;
+      const isExpanded = expandedSubtopicId === subtopic.id;
 
       return (
-        <Accordion
+        <div
           key={subtopic.id}
-          disableGutters={true}
-          expanded={expandedSubtopicId === subtopic.id}
-          onChange={() => handleSubtopicClick(subtopic)}
-          sx={{ border: '1px solid #95a5a6', backgroundColor: progress === 100 ? '#94FF7C' : '#F5F5F5' }}
+          className={`rounded border ${progress === 100 ? 'bg-green-200' : 'bg-muted/30'}`}
         >
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography sx={{ flexGrow: 1 }}>{subtopic.name}</Typography>
-            <Typography>
-              {`${completedTasks}/${totalTasks}`}
-              <InfoOutlinedIcon
+          <button
+            onClick={() => handleSubtopicClick(subtopic)}
+            className="flex w-full items-center justify-between p-3 text-left"
+          >
+            <span className="flex-1 text-sm">{subtopic.name}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm">{completedTasks}/{totalTasks}</span>
+              <span
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
-                  e.stopPropagation(); // Avoid toggling
+                  e.stopPropagation();
                   handleInfoClick(subtopic.id);
                 }}
-                sx={{ cursor: 'pointer', marginLeft: 1 }}
-              />
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ width: '100%' }}>
-              <LinearProgress variant="determinate" value={progress} />
-            </Box>
-            {renderTasks(subtopic.tasks)}
-            {subtopic.subtopics && renderSubtopics(subtopic.subtopics)}
-          </AccordionDetails>
-        </Accordion>
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    handleInfoClick(subtopic.id);
+                  }
+                }}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Info className="h-4 w-4" />
+              </span>
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+          {isExpanded && (
+            <div className="space-y-2 px-3 pb-3">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              {renderTasks(subtopic.tasks)}
+              {subtopic.subtopics && renderSubtopics(subtopic.subtopics)}
+            </div>
+          )}
+        </div>
       );
     });
   };
@@ -93,41 +110,49 @@ const EditStudies: React.FC<{ student: Student }> = ({ student }) => {
   const renderStudies = (studies: Study[]) => {
     return studies.map((study) => {
       const progress = calculateProgress(study.subtopics.flatMap((subtopic) => subtopic.tasks));
+      const isExpanded = expandedStudyIds.includes(study.id);
 
       return (
-        <Accordion key={study.id} disableGutters={true} sx={{ backgroundColor: progress === 100 ? '#94FF7C' : '#F5F5F5' }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>{study.name}</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ width: '100%' }}>
-              <LinearProgress variant="determinate" value={progress} />
-            </Box>
-            {renderSubtopics(study.subtopics)}
-          </AccordionDetails>
-        </Accordion>
+        <div
+          key={study.id}
+          className={`rounded border ${progress === 100 ? 'bg-green-200' : 'bg-muted/30'}`}
+        >
+          <button
+            onClick={() => toggleStudy(study.id)}
+            className="flex w-full items-center justify-between p-3 text-left"
+          >
+            <span className="text-sm">{study.name}</span>
+            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+          </button>
+          {isExpanded && (
+            <div className="space-y-2 px-3 pb-3">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              {renderSubtopics(study.subtopics)}
+            </div>
+          )}
+        </div>
       );
     });
   };
 
   return (
-    <>
-      <Box>
-        <Typography variant="h6" sx={{ padding: 2 }}>
-          Tutkinnon osat
-        </Typography>
-        {student && (
-          <Typography variant="body1" sx={{ padding: 2 }}>
-            Opiskelija: {student.firstName} {student.lastName}
-          </Typography>
-        )}
+    <div className="space-y-4">
+      <h2 className="p-2 text-lg font-semibold">Tutkinnon osat</h2>
+      {student && (
+        <p className="px-2 text-sm">
+          Opiskelija: {student.firstName} {student.lastName}
+        </p>
+      )}
 
-        {/* Provide fallback if subtopics is missing */}
-        {/* <HoksGraphsComponent subtopics={StudiesData[0]?.subtopics ?? []} selectedSubtopic={selectedSubtopic} /> */}
-
+      <div className="space-y-2">
         {renderStudies(StudiesData)}
-      </Box>
-    </>
+      </div>
+    </div>
   );
 };
 
