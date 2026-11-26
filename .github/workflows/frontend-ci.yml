@@ -7,11 +7,11 @@ on:
   push:
     branches:
       - dev
-      - dev-shadcn
+      - main
   pull_request:
     branches:
       - dev
-      - dev-shadcn
+      - main
 
 jobs:
   frontend-ci:
