@@ -83,9 +83,9 @@ The app is available at `http://localhost:5174`.
 
 See detailed documentation:
 
-- [docs/DEVELOPER_ONBOARDING.md](/Users/purot/ossi/ossi2.0-front/docs/DEVELOPER_ONBOARDING.md)
-- [docs/frontend-architecture.md](/Users/purot/ossi/ossi2.0-front/docs/frontend-architecture.md)
-- [docs/deploy.md](/Users/purot/ossi/ossi2.0-front/docs/deploy.md)
+- [docs/DEVELOPER_ONBOARDING.md](docs/DEVELOPER_ONBOARDING.md)
+- [docs/frontend-architecture.md](docs/frontend-architecture.md)
+- [docs/deploy.md](docs/deploy.md)
 
 ## Testing
 - Testing is done using playwright.
