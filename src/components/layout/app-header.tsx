@@ -11,6 +11,8 @@ import {
 const routeTitles: Record<string, string> = {
   '/teacherdashboard': 'Etusivu',
   '/studentdashboard': 'Etusivu',
+  '/studentdashboard/opinnot': 'Omat opinnot',
+  '/studentdashboard/harjoittelujaksot': 'Harjoittelujaksot',
   '/teacherprojects': 'Projektit',
   '/qualificationunitparts': 'Teemat',
   '/workplaces': 'Työpaikat',

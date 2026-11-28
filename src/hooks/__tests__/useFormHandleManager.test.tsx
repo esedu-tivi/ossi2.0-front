@@ -141,8 +141,7 @@ describe('useFormHandleManager', () => {
     expect(result.current.currentField).toBe('includedInParts');
   });
 
-  it('handleAddItem for competenceRequirements shows alert when no parts selected', () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+  it('handleAddItem opens selector for competenceRequirements', () => {
     const initialState = createInitialState();
     const { result } = renderHook(() => useFormHandleManager(initialState));
 
@@ -150,10 +149,22 @@ describe('useFormHandleManager', () => {
       result.current.handleAddItem('competenceRequirements');
     });
 
-    expect(alertSpy).toHaveBeenCalledWith('Valitse ensin Teema.');
-    expect(result.current.selectorOpen).toBe(false);
+    expect(result.current.selectorOpen).toBe(true);
+    expect(result.current.currentField).toBe('competenceRequirements');
+  });
 
-    alertSpy.mockRestore();
+  it('changing themes keeps the selected competence requirements', () => {
+    const competence = { id: '7', name: 'osaaminen' };
+    const { result } = renderHook(() =>
+      useFormHandleManager({ ...createInitialState(), competenceRequirements: [competence] })
+    );
+
+    act(() => {
+      result.current.handleChangeTeema([{ id: '1', name: 'Teema 1' }]);
+    });
+
+    expect(result.current.formData.includedInParts).toEqual([{ id: '1', name: 'Teema 1' }]);
+    expect(result.current.formData.competenceRequirements).toEqual([competence]);
   });
 
   it('handleAdd updates tags and closes selector', () => {
@@ -196,8 +207,6 @@ describe('useFormHandleManager', () => {
     expect(result.current).toHaveProperty('handleAddItem');
     expect(result.current).toHaveProperty('handleEditorChange');
     expect(result.current).toHaveProperty('handleNotifyStudents');
-    expect(result.current).toHaveProperty('competenceOptions');
-    expect(result.current).toHaveProperty('setCompetenceOptions');
     expect(result.current).toHaveProperty('handleChangeTeema');
   });
 });

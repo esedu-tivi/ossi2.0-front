@@ -40,6 +40,7 @@ const teacherMenu: MenuItem[] = [
 
 const studentMenu: MenuItem[] = [
   { text: 'Etusivu', icon: <Home className="size-4" />, route: '/studentdashboard', activeMatch: 'exact' },
+  { text: 'Omat opinnot', icon: <GraduationCap className="size-4" />, route: '/studentdashboard/opinnot', activeMatch: 'prefix' },
   { text: 'Projektit', icon: <FolderOpen className="size-4" />, route: '/studentdashboard', activeMatch: 'none' },
   { text: 'Tehtävät', icon: <ClipboardList className="size-4" />, route: '/studentdashboard', activeMatch: 'none' },
   { text: 'Arvosanat', icon: <Award className="size-4" />, route: '/studentdashboard', activeMatch: 'none' },

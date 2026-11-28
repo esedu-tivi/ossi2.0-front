@@ -39,6 +39,11 @@ export function UserNav() {
 
   const onLogOut = () => {
     sessionStorage.clear();
+    // A dev login (DevLoginForm) has no Microsoft account to sign out of.
+    if (instance.getAllAccounts().length === 0) {
+      window.location.assign("/");
+      return;
+    }
     instance.logoutRedirect();
   };
 

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import DeleteThemesDialog from "@/components/common/DeleteThemesDialog";
 import { GET_QUALIFICATION_UNIT_PART_BY_ID } from "../../graphql/GetQualificationUnitPartById";
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
@@ -11,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 const QualificationUnitPartDetails = () => {
   const navigate = useNavigate();
   const { partId } = useParams();
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Fetch part details using GraphQL query
   const { loading, error, data } = useQuery(GET_QUALIFICATION_UNIT_PART_BY_ID, {
@@ -95,13 +98,24 @@ const QualificationUnitPartDetails = () => {
         </div>
       </div>
 
-      {/* Bottom Right Button */}
-      <div className="flex justify-end">
+      {/* Bottom Right Buttons */}
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteOpen(true)}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Poista
+        </Button>
         <Button onClick={() => navigate(`/qualificationunitparts/edit/${part.id}`)}>
           <Pencil className="mr-2 h-4 w-4" />
           Muokkaa
         </Button>
       </div>
+
+      <DeleteThemesDialog
+        themes={[part]}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onDeleted={() => navigate("/qualificationunitparts")}
+      />
     </div>
   );
 };

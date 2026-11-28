@@ -3,6 +3,7 @@ import TurndownService from 'turndown';
 import PlateEditor from '@/components/common/plate-editor';
 import ChipSelector from '@/components/common/chip-selector';
 import ItemSelectorDialog from '@/components/common/item-selector-dialog';
+import CompetenceSelectorDialog from '@/components/common/CompetenceSelectorDialog';
 import { Save, ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -50,7 +51,6 @@ const NewProjectForm: React.FC = () => {
         handleChange,
         handleToggleActivity,
         handleEditorChange,
-        competenceOptions,
     } = useFormHandleManager(initialState);
 
     useEffect(() => {
@@ -159,8 +159,6 @@ const NewProjectForm: React.FC = () => {
         switch (currentField) {
             case 'tags':
                 return projectTagsData ? projectTagsData.projectTags?.projectTags : [];
-            case 'competenceRequirements':
-                return competenceOptions;
             case 'includedInParts':
                 return partsData ? partsData.parts?.parts ?? [] : [];
             default:
@@ -292,17 +290,36 @@ const NewProjectForm: React.FC = () => {
             {error && <p className="text-center text-sm text-destructive">Virhe: {error.message}</p>}
             {data && <p className="text-center text-sm text-green-600">Projekti lisätty</p>}
 
-            <ItemSelectorDialog
-                items={items}
-                title={title}
-                buttonText={buttonText}
-                open={selectorOpen}
-                selectedItems={selectedItems[currentField]}
-                onAdd={handleAdd}
-                onClose={() => setSelectorOpen(false)}
-                currentField={currentField}
-                updateProjectTags={updateProjectTags}
-            />
+            {currentField === 'competenceRequirements' ? (
+
+                <CompetenceSelectorDialog
+
+                    open={selectorOpen}
+
+                    partIds={formData.includedInParts.map(part => String(part.id))}
+
+                    selected={formData.competenceRequirements}
+
+                    onSave={handleAdd}
+
+                    onClose={() => setSelectorOpen(false)}
+
+                />
+
+            ) : (
+                <ItemSelectorDialog
+                    items={items}
+                    title={title}
+                    buttonText={buttonText}
+                    open={selectorOpen}
+                    selectedItems={selectedItems[currentField]}
+                    onAdd={handleAdd}
+                    onClose={() => setSelectorOpen(false)}
+                    currentField={currentField}
+                    updateProjectTags={updateProjectTags}
+                />
+
+            )}
         </form>
     );
 };

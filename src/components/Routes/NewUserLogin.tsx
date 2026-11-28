@@ -1,5 +1,3 @@
-// TODO use correct QUALIFICATION_ID to select all TVP for new users. Backend does not support this yet.
-
 import React, { useState, useEffect } from 'react';
 
 import { useAuth } from '@/utils/auth-context';
@@ -10,8 +8,6 @@ import { useQuery, useMutation } from '@apollo/client';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-const QUALIFICATION_ID = '7861752'; // Temp TVP id
 
 const NewUserLogin: React.FC = () => {
     const navigate = useNavigate();
@@ -43,18 +39,10 @@ const NewUserLogin: React.FC = () => {
         }
     }, [meData, navigate]);
 
+    // amISetUp is read from the database, so refetching it is enough; no new login needed.
     const [setStudentInfo] = useMutation(SET_STUDENT_INFO, {
-        update(cache, { data }) {
-            if (data?.me) {
-                cache.writeQuery({
-                    query: USER_SETUP,
-                    data: {
-                        me: data.me,
-                        amISetUp: true
-                    },
-                });
-            }
-        }
+        refetchQueries: [{ query: USER_SETUP }],
+        awaitRefetchQueries: true,
     });
 
     const handleSelection = async (type: 'FULL_COMPLETION' | 'PARTIAL_COMPLETION') => {
@@ -70,15 +58,14 @@ const NewUserLogin: React.FC = () => {
             await setStudentInfo({
                 variables: {
                     studentId,
+                    // The backend picks the qualification and the peruste currently in force.
                     studentSetupInput: {
-                        qualificationCompletion: type,
-                        qualificationId: QUALIFICATION_ID
+                        qualificationCompletion: type
                     }
                 },
             });
 
-            await new Promise(resolve => setTimeout(resolve, 300));
-            navigate('/');
+            navigate('/studentdashboard');
         } catch (err) {
             console.error('Error setting up student:', err);
             setIsSubmitting(false);
@@ -156,7 +143,7 @@ const NewUserLogin: React.FC = () => {
                                     </Button>
                                 </div>
                                 <p className="mt-4 text-lg text-muted-foreground">
-                                    Valinnan j&auml;lkeen sinut ohjataan uudelleen kirjautumissivulle
+                                    Valinnan j&auml;lkeen sinut ohjataan omalle etusivullesi
                                 </p>
                             </>
                         ) : (

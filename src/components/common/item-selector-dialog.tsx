@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus } from 'lucide-react';
-import { useMutation, useLazyQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import {
   Dialog,
   DialogContent,
@@ -14,18 +14,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CREATE_PROJECT_TAG } from '@/graphql/CreateProjectTag';
-import { GET_COMPETENCE_REQUIREMENTS } from '@/graphql/GetCompetenceRequirements';
-import type { CompetenceRequirement } from '@/types';
 
 interface Item {
   id: string;
   name: string;
   description?: string;
-}
-
-interface CompetenceRequirementGroup {
-  id: string;
-  requirements: CompetenceRequirement[];
 }
 
 interface ItemSelectorDialogProps {
@@ -56,64 +49,6 @@ const ItemSelectorDialog: React.FC<ItemSelectorDialogProps> = ({
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [createProjectTag] = useMutation(CREATE_PROJECT_TAG);
-  const [fetchCompetenceRequirements] = useLazyQuery(
-    GET_COMPETENCE_REQUIREMENTS
-  );
-  const [competenceOptions, setCompetenceOptions] = useState<Item[]>([]);
-  const [fetchedTeemaIds, setFetchedTeemaIds] = useState<Set<string>>(
-    new Set()
-  );
-
-  const fetchCompetenceData = useCallback(
-    async (teemaIds: string[]) => {
-      try {
-        const fetchedCompetences = await Promise.all(
-          teemaIds.map(async (teemaId) => {
-            const { data } = await fetchCompetenceRequirements({
-              variables: { partId: teemaId },
-            });
-
-            const realPart = data?.part?.part;
-
-            if (
-              realPart &&
-              realPart.parentQualificationUnit?.competenceRequirementGroups
-            ) {
-              return realPart.parentQualificationUnit.competenceRequirementGroups.flatMap(
-                (group: CompetenceRequirementGroup) =>
-                  group.requirements.map(
-                    (requirement: CompetenceRequirement) => ({
-                      id: requirement.id,
-                      description: requirement.description,
-                    })
-                  )
-              );
-            } else {
-              return [];
-            }
-          })
-        );
-
-        const combinedCompetences = fetchedCompetences.flat();
-        setCompetenceOptions((prevCompetences) => {
-          const updatedCompetences = [
-            ...prevCompetences,
-            ...combinedCompetences,
-          ];
-          const uniqueCompetences = Array.from(
-            new Set(updatedCompetences.map((item) => item.id))
-          ).map((id) => updatedCompetences.find((item) => item.id === id));
-          return uniqueCompetences as Item[];
-        });
-
-        setFetchedTeemaIds((prev) => new Set([...prev, ...teemaIds]));
-      } catch (error) {
-        console.error('Error fetching competence requirements:', error);
-      }
-    },
-    [fetchCompetenceRequirements]
-  );
-
   // Reset selected items and search term when the dialog opens
   useEffect(() => {
     if (open) {
@@ -121,45 +56,9 @@ const ItemSelectorDialog: React.FC<ItemSelectorDialogProps> = ({
         ? initialSelectedItems
         : [];
 
-      if (currentField === 'competenceRequirements') {
-        setSelectedItems(
-          validSelectedItems.filter((item) => 'description' in item)
-        );
-      } else {
-        setSelectedItems(
-          validSelectedItems.filter((item) => 'name' in item)
-        );
-      }
-
-      setCompetenceOptions([]);
+      setSelectedItems(validSelectedItems.filter((item) => 'name' in item));
     }
-  }, [initialSelectedItems, currentField, open]);
-
-  useEffect(() => {
-    if (open && selectedItems.length > 0) {
-      const selectedTeemaIds = selectedItems.map((item) => item.id);
-      fetchCompetenceData(selectedTeemaIds);
-    }
-  }, [selectedItems, open, fetchCompetenceData]);
-
-  useEffect(() => {
-    if (open && currentField === 'competenceRequirements') {
-      const selectedTeemaIds = selectedItems.map((item) => item.id);
-      const newTeemaIds = selectedTeemaIds.filter(
-        (id) => !fetchedTeemaIds.has(id)
-      );
-
-      if (newTeemaIds.length > 0) {
-        fetchCompetenceData(newTeemaIds);
-      }
-    }
-  }, [
-    selectedItems,
-    currentField,
-    fetchedTeemaIds,
-    open,
-    fetchCompetenceData,
-  ]);
+  }, [initialSelectedItems, open]);
 
   const handleToggle = (value: Item) => () => {
     if (currentField === 'parentQualificationUnit') {
@@ -207,14 +106,10 @@ const ItemSelectorDialog: React.FC<ItemSelectorDialogProps> = ({
     }
   };
 
-  const filteredItems =
-    currentField === 'competenceRequirements'
-      ? competenceOptions.length > 0
-        ? competenceOptions
-        : []
-      : (Array.isArray(items) ? items : []).filter((item) =>
-          item?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+  // Osaamiset have their own selector (CompetenceSelectorDialog).
+  const filteredItems = (Array.isArray(items) ? items : []).filter((item) =>
+    item?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Dialog
@@ -264,9 +159,7 @@ const ItemSelectorDialog: React.FC<ItemSelectorDialogProps> = ({
               <span className="text-xs text-muted-foreground">Valitut:</span>
               {selectedItems.map((item) => (
                 <span key={item.id} className="text-xs">
-                  {currentField === 'competenceRequirements'
-                    ? item.description
-                    : item.name}
+                  {item.name}
                 </span>
               ))}
             </div>
@@ -285,9 +178,7 @@ const ItemSelectorDialog: React.FC<ItemSelectorDialogProps> = ({
                 onClick={handleToggle(item)}
               >
                 <span className="text-sm">
-                  {currentField === 'competenceRequirements'
-                    ? item.description
-                    : item.name}
+                  {item.name}
                 </span>
                 <Checkbox
                   checked={selectedItems.some(

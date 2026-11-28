@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState} from 'react';
 import { Archive, Undo2, Save } from 'lucide-react';
 import ItemSelectorDialog from '@/components/common/item-selector-dialog';
+import CompetenceSelectorDialog from '@/components/common/CompetenceSelectorDialog';
 import TurndownService from 'turndown';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
@@ -52,7 +53,6 @@ const EditProject: React.FC = () => {
         handleEditorChange,
         handleAddItem,
         handleNotifyStudents,
-        competenceOptions,
     } = useFormHandleManager(initialState);
 
     const { loading, error, data } = useQuery(GET_PROJECT_BY_ID, {
@@ -195,8 +195,6 @@ const EditProject: React.FC = () => {
         switch (currentField) {
             case 'tags':
                 return projectTagsData ? projectTagsData.projectTags?.projectTags : [];
-            case 'competenceRequirements':
-                return competenceOptions;
             case 'includedInParts':
                 return partsData ? partsData.parts?.parts : [];
             default:
@@ -347,17 +345,36 @@ const EditProject: React.FC = () => {
                 </div>
             </form>
 
-            <ItemSelectorDialog
-                items={items}
-                title={title}
-                buttonText={buttonText}
-                open={selectorOpen}
-                selectedItems={selectedItems[currentField]}
-                onAdd={handleAdd}
-                onClose={() => setSelectorOpen(false)}
-                currentField={currentField}
-                updateProjectTags={updateProjectTags}
-            />
+            {currentField === 'competenceRequirements' ? (
+
+                <CompetenceSelectorDialog
+
+                    open={selectorOpen}
+
+                    partIds={formData.includedInParts.map(part => String(part.id))}
+
+                    selected={formData.competenceRequirements}
+
+                    onSave={handleAdd}
+
+                    onClose={() => setSelectorOpen(false)}
+
+                />
+
+            ) : (
+                <ItemSelectorDialog
+                    items={items}
+                    title={title}
+                    buttonText={buttonText}
+                    open={selectorOpen}
+                    selectedItems={selectedItems[currentField]}
+                    onAdd={handleAdd}
+                    onClose={() => setSelectorOpen(false)}
+                    currentField={currentField}
+                    updateProjectTags={updateProjectTags}
+                />
+
+            )}
         </div>
     );
 };

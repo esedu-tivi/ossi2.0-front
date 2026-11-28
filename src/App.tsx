@@ -7,6 +7,7 @@ import { USER_SETUP } from './graphql/UserSetup';
 import TeacherDashboard from './components/Routes/teacherDashboard';
 import StudentDashboard from './components/Routes/studentDashboard';
 import StudentInternships from './components/Routes/studentDashboard/StudentInternships';
+import StudentStudies from './components/Routes/studentDashboard/StudentStudies';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './components/Login';
 import TeacherProjectsView from './components/Routes/TeacherProjectsView';
@@ -132,6 +133,7 @@ const App = () => {
             >
                 <Route index element={<StudentDashboard />} />
                 <Route path="harjoittelujaksot" element={<StudentInternships />} />
+                <Route path="opinnot" element={<StudentStudies />} />
             </Route>
             <Route
                 path="/teacherprojects"

@@ -1,6 +1,6 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import Internships from "./Internships";
-import EducationPath from "./EducationPath";
+import StudentStudyPlan from "@/components/StudyPlan/StudentStudyPlan";
 import EditStudies from "./EditStudies";
 import StudentProjectsPath from "./StudentProjectsPath";
 import { useParams } from "react-router-dom";
@@ -37,7 +37,7 @@ const StudentInfo = () => {
           <EditStudies student={student} />
         </TabsContent>
         <TabsContent value="hoks">
-          <EducationPath student={student} />
+          <StudentStudyPlan studentId={String(studentId)} />
         </TabsContent>
         <TabsContent value="projektit">
           <StudentProjectsPath student={student} />
